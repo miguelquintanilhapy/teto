@@ -16,6 +16,20 @@ Legenda de prioridade: **P1** entra no que for entregue; **P2** se der tempo;
 | Contrato único (Zod) que gera o validador **e** o JSON Schema enviado ao modelo | `schema.ts` | Implementação técnica |
 | Validação determinística da saída (CNPJ, data, valor, chave, confiança) | `validate.ts` | Execução técnica |
 | Registro de cada tentativa (provedor, resultado, latência) | `Attempt` | Comunicação, métricas |
+| Adaptadores Gemini e OpenRouter, montados a partir de `MODEL_CHAIN` | `src/server/extraction/providers` | Implementação técnica |
+| Prompt versionado (`PROMPT_VERSION`) com defesa contra instruções dentro do documento | `prompt.ts` | Implementação técnica |
+| Verificação real das chaves e modelos (`npm run check:ai`), sem imprimir segredos | `scripts/check-ai.mts` | Execução técnica |
+
+### Modelos escolhidos (plano gratuito)
+
+| Ordem | Modelo | Limites observados no AI Studio / OpenRouter |
+|---|---|---|
+| 1 | `gemini-3.1-flash-lite` | ~15 RPM, ~250 mil TPM, ~500 RPD (lidos do gráfico; confirmar) |
+| 2 | `gemini-3.8-flash` | ~5 RPM, ~250 mil TPM, ~20 RPD (lidos do gráfico; confirmar) |
+| 3 | `nvidia/nemotron-3.5-super-vl:free` | limite diário baixo, a confirmar; latência p50 ~6,7 s e p95 ~50 s |
+
+Os provedores gratuitos usam o conteúdo enviado para melhorar seus produtos:
+**só dados sintéticos** em testes, `eval` e demo.
 | Relógio e data injetáveis, provedores falsos: tudo testado sem rede | `router.test.ts` | Execução técnica |
 
 ## Ideias a implementar

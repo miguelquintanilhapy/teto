@@ -22,6 +22,30 @@ export type ExtractedReceipt = z.infer<typeof ExtractedReceiptSchema>;
 /** Mesmo contrato em JSON Schema, para enviar aos provedores (saída estruturada). */
 export const extractedReceiptJsonSchema = z.toJSONSchema(ExtractedReceiptSchema);
 
+type JsonObject = Record<string, unknown>;
+
+/**
+ * Versão do schema para enviar aos provedores: sem `$schema` e sem os limites
+ * de inteiro seguro que o Zod acrescenta, que provedores estritos podem recusar.
+ * A validação de verdade continua sendo feita por `parseExtraction`.
+ */
+export function toProviderSchema(schema: JsonObject = extractedReceiptJsonSchema): JsonObject {
+  const clean = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(clean);
+    if (node === null || typeof node !== "object") return node;
+    const out: JsonObject = {};
+    for (const [key, value] of Object.entries(node as JsonObject)) {
+      if (key === "$schema") continue;
+      if ((key === "minimum" || key === "maximum") && Math.abs(Number(value)) >= Number.MAX_SAFE_INTEGER) continue;
+      out[key] = clean(value);
+    }
+    return out;
+  };
+  return clean(schema) as JsonObject;
+}
+
+export const providerJsonSchema = toProviderSchema();
+
 export type ParseResult =
   | { ok: true; data: ExtractedReceipt }
   | { ok: false; issues: string[] };
