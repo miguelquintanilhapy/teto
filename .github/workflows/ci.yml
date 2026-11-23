@@ -18,3 +18,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # Repete as respostas gravadas (sem rede nem chave) e reprova se a qualidade cair.
+      - run: npm run eval -- --no-write --min-correct 0.75 --max-silent-wrong 0.10
