@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ProviderError, type DocumentInput, type ProviderCapabilities, type VisionProvider } from "../extraction/provider";
 
@@ -24,6 +24,47 @@ export interface Recording {
 
 export const sha256 = (data: Uint8Array): string => createHash("sha256").update(data).digest("hex");
 const safe = (id: string) => id.replace(/[^a-zA-Z0-9.-]+/g, "_");
+
+/**
+ * Apaga gravações que não valem mais: de outra versão do prompt ou de um
+ * arquivo que não existe mais no conjunto. Devolve quantas foram apagadas.
+ */
+export async function pruneStaleRecordings(
+  dir: string,
+  promptVersion: string,
+  validShas: ReadonlySet<string>,
+): Promise<number> {
+  let removed = 0;
+  let providerDirs: string[];
+  try {
+    providerDirs = await readdir(dir);
+  } catch {
+    return 0;
+  }
+  for (const pd of providerDirs) {
+    let files: string[];
+    try {
+      files = await readdir(join(dir, pd));
+    } catch {
+      continue; // não é uma pasta de provedor
+    }
+    for (const f of files.filter((x) => x.endsWith(".json"))) {
+      const path = join(dir, pd, f);
+      let stale = true;
+      try {
+        const rec = JSON.parse(await readFile(path, "utf8")) as Recording;
+        stale = rec.promptVersion !== promptVersion || !validShas.has(rec.docSha256);
+      } catch {
+        /* arquivo ilegível também é descartado */
+      }
+      if (stale) {
+        await rm(path);
+        removed += 1;
+      }
+    }
+  }
+  return removed;
+}
 
 export interface ExtractionMeta {
   raw: unknown;

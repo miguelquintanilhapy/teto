@@ -16,7 +16,7 @@ import {
   type Expected,
   type ProviderCaseResult,
 } from "./metrics";
-import { RecordedProvider, sha256 } from "./recording";
+import { RecordedProvider, pruneStaleRecordings, sha256 } from "./recording";
 import { renderReport } from "./report";
 
 const MEI = "11.222.333/0001-81";
@@ -83,6 +83,7 @@ const row = (over: Partial<ProviderCaseResult>): ProviderCaseResult => ({
   rulesIssues: [],
   fields: allOk,
   directionOk: true,
+  limitCorrect: true,
   ...over,
 });
 
@@ -90,7 +91,7 @@ describe("resumo por modelo", () => {
   it("conta falhas contra o modelo e ignora casos sem gravação", () => {
     const s = summarizeProvider([
       row({ caseId: "1" }),
-      row({ caseId: "2", fields: { ...allOk, totalCents: false } }),
+      row({ caseId: "2", fields: { ...allOk, totalCents: false }, limitCorrect: false }),
       row({ caseId: "3", outcome: "schema_invalid", fields: null, directionOk: null }),
       row({ caseId: "4", outcome: "no_recording", latencyMs: null, fields: null, directionOk: null }),
     ]);
@@ -98,6 +99,7 @@ describe("resumo por modelo", () => {
     expect(s.evaluated).toBe(3);
     expect(s.schemaValidRate).toBeCloseTo(2 / 3);
     expect(s.coreCorrectRate).toBeCloseTo(1 / 3);
+    expect(s.limitCorrectRate).toBeCloseTo(1 / 3);
     expect(s.fieldAccuracy?.totalCents).toBeCloseTo(1 / 3);
   });
 
@@ -122,6 +124,7 @@ const chainRow = (over: Partial<ChainCaseResult>): ChainCaseResult => ({
   providerId: "a",
   attempts: 1,
   coreCorrect: true,
+  limitCorrect: true,
   wrongFields: [],
   directionOk: true,
   ...over,
@@ -131,21 +134,24 @@ describe("resumo da cadeia", () => {
   const results = [
     chainRow({ caseId: "1", tags: ["adversarial"] }),
     chainRow({ caseId: "2", providerId: "b", attempts: 2, tags: ["adversarial"] }),
-    chainRow({ caseId: "3", coreCorrect: false, wrongFields: ["totalCents"] }), // erro silencioso
-    chainRow({ caseId: "4", status: "needs_review", coreCorrect: false }),
-    chainRow({ caseId: "5", status: "failed", providerId: null, attempts: 3, coreCorrect: null }),
+    chainRow({ caseId: "3", coreCorrect: false, limitCorrect: false, wrongFields: ["totalCents"] }), // erro silencioso
+    chainRow({ caseId: "4", status: "needs_review", coreCorrect: false, limitCorrect: false }),
+    chainRow({ caseId: "5", status: "failed", providerId: null, attempts: 3, coreCorrect: null, limitCorrect: null }),
+    chainRow({ caseId: "6", coreCorrect: false, limitCorrect: true, wrongFields: ["recipientTaxId"] }), // incompleta
   ];
 
-  it("separa corretas, erros silenciosos, revisão e falha", () => {
+  it("separa completas, incompletas, erros silenciosos, revisão e falha", () => {
     const s = summarizeChain(results);
-    expect(s.total).toBe(5);
+    expect(s.total).toBe(6);
     expect(s.acceptedCorrect).toBe(2);
-    expect(s.silentWrong).toBe(1);
+    expect(s.acceptedIncomplete).toBe(1); // certa para o limite, falta dado de terceiro
+    expect(s.silentWrong).toBe(1); // só conta o que afeta o limite
     expect(s.needsReview).toBe(1);
     expect(s.failed).toBe(1);
-    expect(s.silentWrongRate).toBeCloseTo(0.2);
-    expect(s.providerShare).toEqual({ a: 2, b: 1 });
-    expect(s.avgAttempts).toBeCloseTo(1.6);
+    expect(s.silentWrongRate).toBeCloseTo(1 / 6);
+    expect(s.acceptedLimitCorrectRate).toBeCloseTo(3 / 6);
+    expect(s.providerShare).toEqual({ a: 3, b: 1 });
+    expect(s.avgAttempts).toBeCloseTo(1.5);
   });
 
   it("agrupa por etiqueta", () => {
@@ -156,7 +162,7 @@ describe("resumo da cadeia", () => {
     const md = renderReport({
       promptVersion: "v2",
       mode: "replay",
-      caseCount: 5,
+      caseCount: 6,
       chain: ["gemini:a", "openrouter:b"],
       lastRecordedAt: "2026-11-24T10:00:00.000Z",
       providers: [{ id: "gemini:a", summary: summarizeProvider([row({})]), results: [row({ caseId: "3" })] }],
@@ -167,6 +173,8 @@ describe("resumo da cadeia", () => {
     expect(md).toContain("# Resultados da avaliação da extração");
     expect(md).toContain("erro silencioso");
     expect(md).toContain("`3` (a): divergiu em totalCents");
+    expect(md).toContain("`6` (a): recipientTaxId");
+    expect(md).toContain("✓ incompleta");
     expect(md).toContain("2026-11-24");
   });
 });
@@ -240,6 +248,23 @@ describe("gravação e repetição (VCR)", () => {
     await make(real, "live").extractWithMeta(DOC, signal);
     expect(real.calls).toBe(2);
     await expect(make(inner({}), "replay").extractWithMeta(DOC, signal)).rejects.toThrow();
+  });
+
+  it("remove gravações de outra versão do prompt e de arquivos que saíram do conjunto", async () => {
+    const other: DocumentInput = { mimeType: "image/png", data: new Uint8Array([9, 9, 9]) };
+    const oldPrompt: DocumentInput = { mimeType: "image/png", data: new Uint8Array([7, 7, 7]) };
+    await make(inner({ ok: 1 }), "record", "v1").extractWithMeta(oldPrompt, signal); // prompt antigo
+    await make(inner({ ok: 2 }), "record", "v2").extractWithMeta(other, signal); // arquivo que saiu do conjunto
+    await make(inner({ ok: 3 }), "record", "v2").extractWithMeta(DOC, signal); // vale
+
+    const removed = await pruneStaleRecordings(dir, "v2", new Set([sha256(DOC.data), sha256(oldPrompt.data)]));
+    expect(removed).toBe(2);
+    await expect(make(inner({}), "replay", "v2").extractWithMeta(DOC, signal)).resolves.toMatchObject({ raw: { ok: 3 } });
+    await expect(make(inner({}), "replay", "v2").extractWithMeta(other, signal)).rejects.toThrow(/sem gravação/);
+  });
+
+  it("não falha se a pasta de gravações não existe", async () => {
+    expect(await pruneStaleRecordings(join(dir, "nao-existe"), "v2", new Set())).toBe(0);
   });
 
   it("o hash identifica o conteúdo do arquivo", () => {
