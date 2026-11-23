@@ -41,16 +41,16 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 
 | Item | Estado |
 |---|---|
-| Regras do MEI em `src/core` (38 testes) | ✅ |
-| Roteador de extração com failover, escalonamento e cooldown (12 testes) | ✅ |
+| Regras do MEI em `src/core`, com testes unitários | ✅ |
+| Roteador de extração com failover, escalonamento, cooldown, orçamento de tempo e cota, testado sem rede | ✅ |
 | CI com lint, tipos e testes | ✅ |
 | Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ (falta a porta `Notifier` e aplicar a migração no Supabase) |
-| Adaptadores Gemini e OpenRouter | 🟡 |
+| Adaptadores Gemini e OpenRouter | ✅ (Gemini confirmado ao vivo em parte; ver EVAL-RESULTS) |
 | Migração e repositórios do Supabase | 🟡 |
 | Rotas de API e validação de upload | 🟡 |
 | Interface (upload, confirmação, painel, simulador) | 🟡 |
 | Alertas por e-mail e cron | 🟡 |
-| Harness `eval` e casos adversariais | 🟡 |
+| Harness `eval`, gravação/replay e casos adversariais | ✅ (porta de qualidade na CI ainda 🟡) |
 | `gitleaks` e `npm audit` na CI | 🟡 |
 | Deploy público | 🟡 |
 

@@ -46,12 +46,12 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 
 | Porta | Implementações | Status |
 |---|---|---|
-| `VisionProvider` | Gemini, OpenRouter, falsa (testes), replay (fixtures) | ✅ porta · 🟡 adaptadores |
-| `CooldownStore` | memória (testes), Postgres (produção) | 🟡 |
-| `Clock` | sistema em `America/Sao_Paulo`, fixo (testes) | 🟡 |
+| `VisionProvider` | Gemini, OpenRouter, falsa (testes), gravação e replay (eval) | ✅ |
+| `CooldownStore` | memória (testes), Postgres (produção) | ✅ porta e memória · 🟡 Postgres |
+| `Clock` | sistema em `America/Sao_Paulo`, fixo (testes) | ✅ |
 | `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | 🟡 |
 | `Notifier` | Resend, falso (testes) | 🟡 |
-| `QuotaGuard` | Postgres (contador diário), memória | 🟡 |
+| `QuotaGuard` | Postgres (contador diário), memória | ✅ porta e memória · 🟡 Postgres |
 
 ## 3. Núcleo (`src/core`)
 
@@ -64,10 +64,10 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `alerts` | Alertas idempotentes | ✅ |
 | `das` | Próximo vencimento do DAS | ✅ |
 | `reconcile` | Cruzamento determinístico extrato × notas | ✅ |
-| `documents` | CPF, CNPJ e chave de acesso | ✅ |
-| `rules` | Configuração **versionada por ano** (limite, tolerância, alíquotas) | 🟡 |
+| `documents` | CPF, CNPJ, chave de acesso e `deriveDirection` (receita ou despesa, decidido no código) | ✅ |
+| `rules` | Configuração **versionada por ano** (`rulesFor`: limite, tolerância, alíquotas) | ✅ |
 
-### Ajustes de fundação planejados (Fase 0)
+### Ajustes de fundação (Fase 0, implementados)
 
 1. **Status da transação** no lugar de `confirmed: boolean`:
    `pendente | confirmada | cancelada`. Só `confirmada` entra no acumulado.
@@ -107,20 +107,38 @@ Decisões de projeto:
 
 - **Failover** trata falha técnica; **escalonamento** trata falha de qualidade.
 - **Orçamento total (`totalBudgetMs`)** além do timeout por chamada, para a cadeia
-  nunca estourar o limite de tempo da função serverless. 🟡
+  nunca estourar o limite de tempo da função serverless. ✅
 - **Capacidades por adaptador** (`supportsPdf`, `maxBytes`, `maxPages`): o
-  roteador pula quem não consegue processar aquele arquivo. 🟡
+  roteador pula quem não consegue processar aquele arquivo. ✅
 - **Cooldown persistido** (`CooldownStore` no Postgres): em serverless, memória
   de instância não vale entre requisições. 🟡
 - **Cache e idempotência por hash** do conteúdo: o mesmo arquivo nunca é lido
   duas vezes (poupa cota gratuita e sustenta a demo). 🟡
 - **Versão do prompt e do schema** gravada em cada extração, para o resultado do
-  `eval` apontar para o prompt que o gerou. 🟡
+  `eval` apontar para o prompt que o gerou. ✅ (versão do prompt) · 🟡 (gravar no banco)
 - **Rastro persistido** (`extractions`): provedor, tentativas, latência, issues. 🟡
 - **Contrato único** (`schema.ts`): dele saem o validador e o JSON Schema
   enviado aos provedores. ✅
+- **Direção decidida no código.** A IA devolve as duas partes (`issuerTaxId`: quem vendeu ou
+  recebeu; `recipientTaxId`: quem comprou ou pagou). Se o documento é receita ou despesa do MEI
+  é decidido por `deriveDirection`, comparando com o CNPJ do perfil. A IA não decide isso. ✅
 - **Extração síncrona** com orçamento de tempo. Assíncrona (fila + polling) fica
   como evolução: exige infraestrutura que não cabe no prazo.
+
+### 4.1 Avaliação da extração (eval)
+
+- **Conjunto sintético:** 17 notas geradas por código (`scripts/generate-fixtures.mts`), com gabarito
+  em `fixtures/eval/cases.json`: NFS-e, NF-e com chave de acesso, recibos (inclusive letra
+  manuscrita), comprovantes Pix com documento mascarado, cupons de despesa, nota borrada e girada,
+  e **duas com injeção de prompt**. Dados 100% fictícios. ✅
+- **Gravação e replay (VCR):** cada resposta de modelo é gravada por hash do arquivo. A CI e os
+  testes repetem as gravações, sem rede, sem chave e sem gastar cota. Mudou o prompt
+  (`PROMPT_VERSION`), as gravações antigas deixam de valer. ✅
+- **Métricas:** acerto por campo, núcleo correto (data, valor, emissor e destinatário), direção,
+  latência p50/p95 e, principalmente, o **erro silencioso** (aceita sem revisão e errada). ✅
+- **Relatório gerado:** `npm run eval` escreve [EVAL-RESULTS.md](EVAL-RESULTS.md). ✅
+- **Porta de qualidade na CI:** `--min-correct` e `--max-silent-wrong` reprovam a execução se os
+  números piorarem. 🟡 (limiares definidos depois dos primeiros resultados)
 
 ## 5. Fluxos principais
 

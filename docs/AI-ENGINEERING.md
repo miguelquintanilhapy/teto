@@ -19,6 +19,11 @@ Legenda de prioridade: **P1** entra no que for entregue; **P2** se der tempo;
 | Adaptadores Gemini e OpenRouter, montados a partir de `MODEL_CHAIN` | `src/server/extraction/providers` | Implementação técnica |
 | Prompt versionado (`PROMPT_VERSION`) com defesa contra instruções dentro do documento | `prompt.ts` | Implementação técnica |
 | Verificação real das chaves e modelos (`npm run check:ai`), sem imprimir segredos | `scripts/check-ai.mts` | Execução técnica |
+| Harness de avaliação com 17 notas sintéticas e gabarito (`npm run eval`) | `scripts/eval.mts`, `fixtures/eval` | Implementação técnica, impacto |
+| Gravação e repetição das respostas dos modelos (VCR), invalidada pela versão do prompt | `src/server/eval/recording.ts` | Execução técnica |
+| Métrica de **erro silencioso** (aceita sem revisão e errada) e relatório gerado | `src/server/eval/metrics.ts`, [EVAL-RESULTS.md](EVAL-RESULTS.md) | Comunicação |
+| Casos adversariais (injeção de prompt), documentos mascarados e nota borrada no conjunto | `scripts/generate-fixtures.mts` | Implementação técnica |
+| Direção receita/despesa decidida pelo código, não pela IA | `deriveDirection` em `src/core/documents.ts` | Implementação técnica |
 
 ### Modelos escolhidos (plano gratuito)
 
@@ -59,7 +64,7 @@ Os provedores gratuitos usam o conteúdo enviado para melhorar seus produtos:
    *Por que vale:* torna a arquitetura visível no vídeo sem precisar explicar.
 
 4. **Explicação com guarda de consistência numérica.**
-   O Claude/Gemini explica a situação em português simples, mas recebe **apenas**
+   Um modelo de IA explica a situação em português simples, mas recebe **apenas**
    os números já calculados pelo `core`. Depois, um verificador extrai os valores
    do texto e confere se batem com os do `core`; se não batem, cai para um texto
    de template.
