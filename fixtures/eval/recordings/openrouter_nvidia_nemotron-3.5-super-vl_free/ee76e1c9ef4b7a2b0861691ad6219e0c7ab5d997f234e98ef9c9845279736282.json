@@ -1,9 +1,9 @@
 {
   "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
-  "promptVersion": "v2",
+  "promptVersion": "v3",
   "docSha256": "ee76e1c9ef4b7a2b0861691ad6219e0c7ab5d997f234e98ef9c9845279736282",
-  "recordedAt": "2026-11-23T19:19:07.011Z",
-  "latencyMs": 3295,
+  "recordedAt": "2026-11-23T20:05:08.922Z",
+  "latencyMs": 2373,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-11-04",

@@ -1,9 +1,9 @@
 {
-  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
-  "promptVersion": "v2",
+  "providerId": "gemini:gemini-3.1-flash-lite",
+  "promptVersion": "v3",
   "docSha256": "cf4e9857d2e55533c11d9ea294eb114d7ed09024961f381e15aec671ca63faa0",
-  "recordedAt": "2026-11-23T19:14:49.682Z",
-  "latencyMs": 5298,
+  "recordedAt": "2026-11-23T19:48:20.747Z",
+  "latencyMs": 45975,
   "raw": {
     "documentType": "recibo",
     "issueDate": "2026-08-14",
@@ -12,6 +12,6 @@
     "recipientTaxId": "23.456.789/0001-95",
     "accessKey": null,
     "description": "fornecimento de lanches para evento",
-    "confidence": 0.95
+    "confidence": 1
   }
 }

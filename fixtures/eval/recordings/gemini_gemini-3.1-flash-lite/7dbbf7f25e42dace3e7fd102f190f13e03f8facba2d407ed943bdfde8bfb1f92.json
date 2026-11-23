@@ -1,9 +1,9 @@
 {
-  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
-  "promptVersion": "v2",
+  "providerId": "gemini:gemini-3.1-flash-lite",
+  "promptVersion": "v3",
   "docSha256": "7dbbf7f25e42dace3e7fd102f190f13e03f8facba2d407ed943bdfde8bfb1f92",
-  "recordedAt": "2026-11-23T19:12:02.069Z",
-  "latencyMs": 2141,
+  "recordedAt": "2026-11-23T19:45:41.298Z",
+  "latencyMs": 22686,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-06-21",
@@ -12,6 +12,6 @@
     "recipientTaxId": "56.789.012/0001-00",
     "accessKey": null,
     "description": "Fornecimento mensal de sobremesas",
-    "confidence": 0.95
+    "confidence": 1
   }
 }

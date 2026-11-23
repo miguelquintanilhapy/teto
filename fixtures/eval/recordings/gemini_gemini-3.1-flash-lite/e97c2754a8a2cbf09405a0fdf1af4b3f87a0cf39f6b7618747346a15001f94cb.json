@@ -1,17 +1,17 @@
 {
-  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
-  "promptVersion": "v2",
+  "providerId": "gemini:gemini-3.1-flash-lite",
+  "promptVersion": "v3",
   "docSha256": "e97c2754a8a2cbf09405a0fdf1af4b3f87a0cf39f6b7618747346a15001f94cb",
-  "recordedAt": "2026-11-23T19:11:43.194Z",
-  "latencyMs": 2244,
+  "recordedAt": "2026-11-23T19:44:53.440Z",
+  "latencyMs": 10577,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-05-02",
     "totalCents": 7500,
-    "issuerTaxId": "11222333000181",
-    "recipientTaxId": "23456789173",
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "234.567.891-73",
     "accessKey": null,
     "description": "Caixa com 12 brigadeiros",
-    "confidence": 0.95
+    "confidence": 1
   }
 }
