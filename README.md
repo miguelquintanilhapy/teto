@@ -29,8 +29,23 @@ Limites, risco, projeção, alertas e conciliação são código próprio em
 gratuitos** de mais de um fornecedor, com failover, escalonamento por qualidade
 e validação determinística da resposta.
 
-Detalhes em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e
-[docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md).
+## Documentação
+
+| Documento | Conteúdo |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Camadas, fluxos, segurança, falhas, testes e decisões |
+| [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Schema do banco, restrições e regras de consistência |
+| [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md) | Práticas de engenharia de IA e avaliação |
+| [docs/mei-rules.md](docs/mei-rules.md) | Regras do MEI, fontes e questões em aberto |
+| [docs/PLANO.md](docs/PLANO.md) | Calendário, frentes de trabalho e definição de pronto |
+| [docs/AUDITORIA.md](docs/AUDITORIA.md) | Estado de qualidade: desenho × implementação |
+
+## Limitações conhecidas
+
+- Cobre o MEI comum; categorias com limite diferente estão fora do escopo.
+- O custo do estouro é uma estimativa, não cálculo oficial.
+- Demonstração com perfil único e dados fictícios, sem login.
+- A projeção é linear e não considera sazonalidade.
 
 ```
 src/
