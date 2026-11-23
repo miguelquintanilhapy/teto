@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "9a6c795ce0281601da496f577c1d67db224466865dae6ae57488083a166c4a00",
+  "recordedAt": "2026-11-23T19:11:23.765Z",
+  "latencyMs": 5564,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-04-18",
+    "totalCents": 298000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "23456789000195",
+    "accessKey": null,
+    "description": "Doces para festa junina da escola",
+    "confidence": 0.95
+  }
+}

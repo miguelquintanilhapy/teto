@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "d9fba739c5141a359b213d7f3e6ad357e2ca3da26b31c104b1864509ec812a0a",
+  "recordedAt": "2026-11-23T19:10:38.355Z",
+  "latencyMs": 5823,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-02-10",
+    "totalCents": 125000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678000195",
+    "accessKey": null,
+    "description": "Fornecimento de 100 doces finos para festa",
+    "confidence": 0.95
+  }
+}
