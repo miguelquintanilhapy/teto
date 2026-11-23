@@ -15,10 +15,10 @@ const GOOD: ExtractedReceipt = {
   documentType: "nota_fiscal",
   issueDate: "2026-05-10",
   totalCents: 150_00,
-  counterpartyTaxId: "11.222.333/0001-81",
+  issuerTaxId: "11.222.333/0001-81",
+  recipientTaxId: null,
   accessKey: null,
   description: "Bolo de aniversário",
-  kind: "receita",
   confidence: 0.95,
 };
 

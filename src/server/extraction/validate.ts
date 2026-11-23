@@ -21,8 +21,11 @@ export function checkBusinessRules(r: ExtractedReceipt, rules: BusinessRules): s
     issues.push("data de emissão no futuro");
   }
   if (r.totalCents <= 0) issues.push("valor deve ser positivo");
-  if (r.counterpartyTaxId !== null && !isValidTaxId(r.counterpartyTaxId)) {
-    issues.push("CPF/CNPJ com dígito verificador inválido");
+  for (const id of [r.issuerTaxId, r.recipientTaxId]) {
+    if (id !== null && !isValidTaxId(id)) {
+      issues.push("CPF/CNPJ com dígito verificador inválido");
+      break;
+    }
   }
   if (r.accessKey !== null && !isValidAccessKey(r.accessKey)) {
     issues.push("chave de acesso deve ter 44 dígitos");
