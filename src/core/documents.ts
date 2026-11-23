@@ -59,7 +59,23 @@ export function deriveDirection(
   return "indefinida";
 }
 
-/** Chave de acesso de NF-e/NFC-e: 44 dígitos. */
+/**
+ * Dígito verificador da chave de acesso de NF-e/NFC-e: módulo 11, com pesos de
+ * 2 a 9 repetidos da direita para a esquerda sobre os 43 primeiros dígitos.
+ */
+export function accessKeyCheckDigit(first43: string): number {
+  let sum = 0;
+  let weight = 2;
+  for (let i = first43.length - 1; i >= 0; i--) {
+    sum += Number(first43[i]) * weight;
+    weight = weight === 9 ? 2 : weight + 1;
+  }
+  const dv = 11 - (sum % 11);
+  return dv >= 10 ? 0 : dv;
+}
+
+/** Chave de acesso de NF-e/NFC-e: 44 dígitos com dígito verificador correto. */
 export function isValidAccessKey(input: string): boolean {
-  return /^\d{44}$/.test(onlyDigits(input)) && onlyDigits(input).length === 44;
+  const d = onlyDigits(input);
+  return d.length === 44 && accessKeyCheckDigit(d.slice(0, 43)) === Number(d[43]);
 }

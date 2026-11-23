@@ -28,7 +28,7 @@ export function checkBusinessRules(r: ExtractedReceipt, rules: BusinessRules): s
     }
   }
   if (r.accessKey !== null && !isValidAccessKey(r.accessKey)) {
-    issues.push("chave de acesso deve ter 44 dígitos");
+    issues.push("chave de acesso inválida (44 dígitos com dígito verificador correto)");
   }
   if (r.confidence < rules.minConfidence) {
     issues.push(`confiança ${r.confidence} abaixo do mínimo ${rules.minConfidence}`);

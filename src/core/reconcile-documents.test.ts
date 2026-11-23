@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  accessKeyCheckDigit,
   deriveDirection,
   isValidAccessKey,
   isValidCnpj,
@@ -11,6 +12,7 @@ import {
 } from "./index";
 
 const e = (id: string, date: string, amountCents: number): Entry => ({ id, date, amountCents });
+const groupsOf4 = (s: string) => s.replace(/(\d{4})(?=\d)/g, "$1 ");
 
 describe("reconcile", () => {
   it("pareia por valor exato dentro da janela de dias", () => {
@@ -84,9 +86,30 @@ describe("documentos", () => {
     expect(isValidTaxId("123")).toBe(false);
   });
 
-  it("valida chave de acesso e datas", () => {
-    expect(isValidAccessKey("1".repeat(44))).toBe(true);
-    expect(isValidAccessKey("1".repeat(43))).toBe(false);
+  it("valida a chave de acesso pelo tamanho e pelo dígito verificador", () => {
+    const first43 = "3526051122233300018155001000000201101591719";
+    const key = first43 + accessKeyCheckDigit(first43);
+    expect(key).toHaveLength(44);
+    expect(isValidAccessKey(key)).toBe(true);
+    expect(isValidAccessKey(groupsOf4(key))).toBe(true); // aceita espaços
+    const wrongDv = first43 + ((accessKeyCheckDigit(first43) + 1) % 10);
+    expect(isValidAccessKey(wrongDv)).toBe(false);
+    expect(isValidAccessKey(key.slice(1))).toBe(false); // faltou um dígito
+    expect(isValidAccessKey(key + "0")).toBe(false);
+  });
+
+  it("calcula o dígito verificador conforme a regra do módulo 11", () => {
+    // soma % 11 igual a 0 ou 1 resulta em dígito 0
+    expect(accessKeyCheckDigit("0".repeat(43))).toBe(0);
+    expect(accessKeyCheckDigit("1".repeat(43))).toBe(accessKeyCheckDigit("1".repeat(43)));
+    for (const k of ["1", "2", "7", "9"]) {
+      const dv = accessKeyCheckDigit(k.repeat(43));
+      expect(dv).toBeGreaterThanOrEqual(0);
+      expect(dv).toBeLessThanOrEqual(9);
+    }
+  });
+
+  it("valida datas", () => {
     expect(isValidISODate("2026-02-29")).toBe(false);
     expect(isValidISODate("2028-02-29")).toBe(true);
   });
