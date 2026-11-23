@@ -44,7 +44,7 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | Regras do MEI em `src/core` (38 testes) | ✅ |
 | Roteador de extração com failover, escalonamento e cooldown (12 testes) | ✅ |
 | CI com lint, tipos e testes | ✅ |
-| Fase 0 (status, Clock, regras por ano, budget, capabilities, portas) | 🟡 |
+| Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ (falta a porta `Notifier` e aplicar a migração no Supabase) |
 | Adaptadores Gemini e OpenRouter | 🟡 |
 | Migração e repositórios do Supabase | 🟡 |
 | Rotas de API e validação de upload | 🟡 |
@@ -56,12 +56,12 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 
 ## Pontos bobos a eliminar antes de enviar
 
-- [ ] Página inicial ainda é a do `create-next-app` (`src/app/page.tsx`)
-- [ ] Imagens de exemplo do Next em `public/`
-- [ ] Favicon padrão
+- [x] Página inicial ainda é a do `create-next-app` (substituída por página própria)
+- [x] Imagens de exemplo do Next em `public/` (removidas)
+- [x] Favicon padrão (substituído por `src/app/icon.svg`)
 - [ ] Sem `LICENSE` ou aviso de licença (o regulamento só exige que não impeça
       leitura, execução e teste do código)
-- [ ] Sem `engines` / `.nvmrc` com a versão do Node
+- [x] Sem `engines` / `.nvmrc` com a versão do Node
 - [ ] README sem link da demo e sem tabela de avaliação
 - [ ] Fontes das regras do MEI ainda "a confirmar"
 - [ ] Custo do estouro sempre rotulado como estimativa na interface

@@ -75,7 +75,8 @@ npm run dev                  # http://localhost:3000
 ## Estado atual
 
 - [x] Núcleo de regras do MEI com testes
-- [x] Roteador de modelos em cadeia com testes
+- [x] Roteador de modelos em cadeia com testes (failover, cooldown, orçamento de tempo, cota diária)
+- [x] Validação de ambiente e migração inicial do banco
 - [ ] Adaptadores dos provedores de IA
 - [ ] Persistência (Supabase) e rotas de API
 - [ ] Interface (upload, confirmação, painel, simulador)
