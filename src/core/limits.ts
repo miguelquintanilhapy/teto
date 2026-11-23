@@ -33,7 +33,7 @@ export function accumulatedRevenue(
 ): Cents {
   let total = 0;
   for (const t of transactions) {
-    if (t.kind !== "receita" || !t.confirmed) continue;
+    if (t.kind !== "receita" || t.status !== "confirmada") continue;
     if (yearOf(t.date) !== year) continue;
     if (upTo !== undefined && t.date > upTo) continue;
     total += t.amountCents;

@@ -5,6 +5,7 @@ import {
   annualLimitFor,
   classifyRisk,
   estimateOverrunCost,
+  rulesFor,
   toleranceLimitFor,
   type Transaction,
 } from "./index";
@@ -28,6 +29,21 @@ describe("annualLimitFor", () => {
   });
 });
 
+describe("rulesFor", () => {
+  it("usa o padrão quando o ano não tem diferenças", () => {
+    expect(rulesFor(2026)).toEqual(cfg);
+    expect(rulesFor(2031)).toEqual(cfg);
+  });
+
+  it("aplica só as diferenças do ano e não altera o padrão", () => {
+    const table = { 2027: { annualLimitCents: 130_000_00 } };
+    expect(rulesFor(2027, table).annualLimitCents).toBe(130_000_00);
+    expect(rulesFor(2027, table).dasDueDay).toBe(cfg.dasDueDay);
+    expect(rulesFor(2026, table).annualLimitCents).toBe(81_000_00);
+    expect(cfg.annualLimitCents).toBe(81_000_00);
+  });
+});
+
 describe("toleranceLimitFor", () => {
   it("soma 20% ao limite", () => {
     expect(toleranceLimitFor(LIMIT, 0.2)).toBe(97_200_00);
@@ -40,14 +56,15 @@ describe("accumulatedRevenue", () => {
     date: "2026-02-10",
     amountCents: 1_000_00,
     kind: "receita",
-    confirmed: true,
+    status: "confirmada",
     ...over,
   });
 
-  it("soma só receitas confirmadas do ano", () => {
+  it("soma só receitas confirmadas do ano (pendentes e canceladas ficam de fora)", () => {
     const txs = [
       tx({ id: "a" }),
-      tx({ id: "b", confirmed: false }),
+      tx({ id: "b", status: "pendente" }),
+      tx({ id: "b2", status: "cancelada" }),
       tx({ id: "c", kind: "despesa" }),
       tx({ id: "d", date: "2025-12-31" }),
       tx({ id: "e", amountCents: 500_00 }),

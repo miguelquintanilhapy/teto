@@ -23,14 +23,16 @@ Decisões do desenho que viram código antes de a equipe se dividir:
 - [ ] Cadastrar o rascunho no painel do Hack Brasil
 - [ ] Criar chaves (AI Studio, OpenRouter) e conferir limites e modelos atuais
 - [ ] Criar projeto no Supabase e conta no Resend
-- [ ] `Transaction.status` (`pendente | confirmada | cancelada`) no `core`
-- [ ] Porta `Clock` e cálculo de "hoje" em `America/Sao_Paulo`
-- [ ] `rulesFor(year)` com a configuração versionada por ano
-- [ ] `totalBudgetMs` e `capabilities` no roteador de extração
-- [ ] Portas `CooldownStore`, `QuotaGuard` e `Notifier`, com versões em memória
-- [ ] Validação das variáveis de ambiente com Zod
-- [ ] Remover o boilerplate do Next (página, `public/*.svg`, favicon)
-- [ ] Migração inicial do Supabase a partir de `DATA-MODEL.md`
+- [x] `Transaction.status` (`pendente | confirmada | cancelada`) no `core`
+- [x] Porta `Clock` e cálculo de "hoje" em `America/Sao_Paulo`
+- [x] `rulesFor(year)` com a configuração versionada por ano
+- [x] `totalBudgetMs` e `capabilities` no roteador de extração
+- [x] Portas `CooldownStore` e `QuotaGuard`, com versões em memória
+- [ ] Porta `Notifier` (e-mail), com versão em memória (entra com os alertas)
+- [x] Validação das variáveis de ambiente com Zod
+- [x] Remover o boilerplate do Next (página, `public/*.svg`, favicon)
+- [x] Migração inicial do Supabase a partir de `DATA-MODEL.md` (escrita; falta aplicar no projeto)
+- [ ] Implementações Postgres de `CooldownStore` e `QuotaGuard` (frente A/B)
 
 ## Frentes (cada pessoa é full-stack; a divisão é por fatia de produto)
 

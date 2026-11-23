@@ -39,3 +39,19 @@ export const DEFAULT_MEI_CONFIG: Readonly<MeiConfig> = Object.freeze({
   retroactiveTaxRate: 0.06,
   dasDueDay: 20,
 });
+
+/**
+ * Diferenças por ano em relação ao padrão. A lei muda; o código não.
+ * Para alterar o limite de um ano, basta adicionar uma entrada aqui.
+ */
+export const RULES_BY_YEAR: Readonly<Record<number, Partial<MeiConfig>>> = Object.freeze({
+  2026: {},
+});
+
+/** Configuração efetiva de um ano: o padrão com as diferenças daquele ano. */
+export function rulesFor(
+  year: number,
+  table: Readonly<Record<number, Partial<MeiConfig>>> = RULES_BY_YEAR,
+): Readonly<MeiConfig> {
+  return Object.freeze({ ...DEFAULT_MEI_CONFIG, ...(table[year] ?? {}) });
+}

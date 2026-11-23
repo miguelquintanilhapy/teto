@@ -18,7 +18,7 @@ const rev = (id: string, date: string, amountCents: number): Transaction => ({
   date,
   amountCents,
   kind: "receita",
-  confirmed: true,
+  status: "confirmada",
 });
 
 describe("projectYear", () => {

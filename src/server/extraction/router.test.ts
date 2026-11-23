@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { InMemoryCooldownStore } from "./cooldown";
 import { ProviderError, type VisionProvider } from "./provider";
+import { InMemoryQuotaGuard, QuotaExceededError } from "./quota";
 import { AllProvidersFailedError, ExtractionRouter } from "./router";
 import { parseExtraction, type ExtractedReceipt } from "./schema";
 import { checkBusinessRules } from "./validate";
@@ -119,6 +121,109 @@ describe("ExtractionRouter", () => {
 
   it("exige ao menos um provedor", () => {
     expect(() => new ExtractionRouter({ providers: [] })).toThrow();
+  });
+});
+
+describe("ExtractionRouter: orçamento, capacidades, cooldown compartilhado e cota", () => {
+  it("respeita o orçamento total e pula os provedores que sobraram", async () => {
+    let clock = 1_000;
+    const failing = (id: string, spentMs: number) =>
+      fake(id, async () => {
+        clock += spentMs;
+        throw new ProviderError("unavailable", "fora do ar");
+      });
+    const a = failing("a", 20_000);
+    const b = failing("b", 10_000);
+    const c = fake("c", async () => GOOD);
+    const router = new ExtractionRouter({
+      providers: [a, b, c],
+      now: () => clock,
+      today: () => "2026-05-12",
+      totalBudgetMs: 25_000,
+    });
+
+    const err = await router.extract(DOC).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(AllProvidersFailedError);
+    expect((err as AllProvidersFailedError).attempts.map((t) => t.outcome)).toEqual([
+      "error",
+      "error",
+      "skipped_budget",
+    ]);
+    expect(c.calls).toBe(0);
+  });
+
+  it("pula provedores que não suportam o tipo ou o tamanho do arquivo", async () => {
+    const pdfOnly = {
+      ...fake("pdf", async () => GOOD),
+      capabilities: { mimeTypes: ["application/pdf"], maxBytes: 1_000 },
+    };
+    const small = {
+      ...fake("small", async () => GOOD),
+      capabilities: { mimeTypes: ["image/png"], maxBytes: 2 },
+    };
+    const ok = fake("ok", async () => GOOD);
+    const r = await make([pdfOnly, small, ok]).extract(DOC);
+    expect(r.providerId).toBe("ok");
+    expect(r.attempts.map((t) => t.outcome)).toEqual([
+      "skipped_capability",
+      "skipped_capability",
+      "accepted",
+    ]);
+  });
+
+  it("compartilha o cooldown entre instâncias do roteador (como em serverless)", async () => {
+    const store = new InMemoryCooldownStore();
+    const a = fake("a", async () => {
+      throw new ProviderError("rate_limit", "429");
+    });
+    const b = fake("b", async () => GOOD);
+    const opts = { providers: [a, b], now: () => 1_000, today: () => "2026-05-12", cooldownStore: store };
+
+    await new ExtractionRouter(opts).extract(DOC); // instância 1 descobre o 429
+    const second = await new ExtractionRouter(opts).extract(DOC); // instância 2 já sabe
+    expect(a.calls).toBe(1);
+    expect(second.attempts[0]).toMatchObject({ providerId: "a", outcome: "skipped_cooldown" });
+  });
+
+  it("respeita o Retry-After do provedor ao definir o cooldown", async () => {
+    const store = new InMemoryCooldownStore();
+    const a = fake("a", async () => {
+      throw new ProviderError("rate_limit", "429", 5_000);
+    });
+    await new ExtractionRouter({
+      providers: [a, fake("b", async () => GOOD)],
+      now: () => 1_000,
+      today: () => "2026-05-12",
+      cooldownStore: store,
+    }).extract(DOC);
+    expect(await store.blockedUntil("a")).toBe(6_000);
+  });
+
+  it("bloqueia a extração quando o teto diário acaba, sem chamar nenhum provedor", async () => {
+    const a = fake("a", async () => GOOD);
+    const router = new ExtractionRouter({
+      providers: [a],
+      now: () => 1_000,
+      today: () => "2026-05-12",
+      quota: new InMemoryQuotaGuard(1),
+    });
+    await router.extract(DOC);
+    await expect(router.extract(DOC)).rejects.toBeInstanceOf(QuotaExceededError);
+    expect(a.calls).toBe(1);
+  });
+
+  it("a cota é por dia: o dia seguinte libera de novo", async () => {
+    let day = "2026-05-12";
+    const quota = new InMemoryQuotaGuard(1);
+    const router = new ExtractionRouter({
+      providers: [fake("a", async () => GOOD)],
+      now: () => 1_000,
+      today: () => day,
+      quota,
+    });
+    await router.extract(DOC);
+    day = "2026-05-13";
+    await expect(router.extract(DOC)).resolves.toMatchObject({ status: "accepted" });
   });
 });
 
