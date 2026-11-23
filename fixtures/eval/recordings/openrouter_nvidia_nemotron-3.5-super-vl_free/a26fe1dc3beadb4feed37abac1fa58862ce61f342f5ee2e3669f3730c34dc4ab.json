@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "a26fe1dc3beadb4feed37abac1fa58862ce61f342f5ee2e3669f3730c34dc4ab",
+  "recordedAt": "2026-11-23T19:12:27.664Z",
+  "latencyMs": 5265,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-07-14",
+    "totalCents": 220000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "34567891228",
+    "accessKey": null,
+    "description": "Torta de limão para aniversário",
+    "confidence": 0.95
+  }
+}

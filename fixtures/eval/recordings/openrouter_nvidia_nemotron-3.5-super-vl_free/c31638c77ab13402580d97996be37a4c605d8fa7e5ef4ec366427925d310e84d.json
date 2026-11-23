@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "c31638c77ab13402580d97996be37a4c605d8fa7e5ef4ec366427925d310e84d",
+  "recordedAt": "2026-11-23T19:11:00.608Z",
+  "latencyMs": 4264,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-03-05",
+    "totalCents": 38050,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678909",
+    "accessKey": null,
+    "description": "Bolo decorado de 2 kg",
+    "confidence": 0.95
+  }
+}

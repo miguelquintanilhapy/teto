@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "4be5f8c552ebfacfcb38224e45cc09ee32eb73c974c8e4b798af3f853724e96c",
+  "recordedAt": "2026-11-23T19:18:17.916Z",
+  "latencyMs": 5274,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-08-30",
+    "totalCents": 14800,
+    "issuerTaxId": "45678901000175",
+    "recipientTaxId": null,
+    "accessKey": "35260545678901000175550010000090871719599530",
+    "description": "Caixa embalagem 20un e Fita decorativa",
+    "confidence": 0.95
+  }
+}

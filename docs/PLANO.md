@@ -6,6 +6,15 @@ Janela: **23/11 a 30/11/2026**. O envio fecha em 30/11 às 23h59 e o repositóri
 Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) ·
 [auditoria](AUDITORIA.md).
 
+## Andamento (23/11)
+
+- [x] Fase 0 de fundação, mesclada na `main`
+- [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
+- [x] Harness de avaliação com notas sintéticas, gravação/replay e relatório
+- [ ] Postgres para `CooldownStore` e `QuotaGuard`, repositórios e rotas de API (frente B)
+- [ ] Interface, alertas e e-mail (frente C)
+- [ ] Questões de negócio do MEI confirmadas em fonte oficial
+
 ## Como trabalhamos
 
 - Branches curtas (vida de no máximo um dia) e pull request para a `main`; a CI

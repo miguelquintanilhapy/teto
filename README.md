@@ -39,6 +39,7 @@ e validação determinística da resposta.
 | [docs/mei-rules.md](docs/mei-rules.md) | Regras do MEI, fontes e questões em aberto |
 | [docs/PLANO.md](docs/PLANO.md) | Calendário, frentes de trabalho e definição de pronto |
 | [docs/AUDITORIA.md](docs/AUDITORIA.md) | Estado de qualidade: desenho × implementação |
+| [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) | Resultados da avaliação da extração (gerado) |
 
 ## Limitações conhecidas
 
@@ -71,17 +72,22 @@ npm run dev                  # http://localhost:3000
 | `npm run typecheck` | Checagem de tipos |
 | `npm run lint` | ESLint |
 | `npm run check` | Lint + tipos + testes (o mesmo que a CI roda) |
+| `npm run check:supabase` | Confere a conexão e o schema do banco (não imprime chaves) |
+| `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
+| `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
+| `npm run eval:record` | Regrava as respostas chamando os modelos de verdade |
+| `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
 
 ## Estado atual
 
 - [x] Núcleo de regras do MEI com testes
 - [x] Roteador de modelos em cadeia com testes (failover, cooldown, orçamento de tempo, cota diária)
 - [x] Validação de ambiente e migração inicial do banco
-- [ ] Adaptadores dos provedores de IA
+- [x] Adaptadores dos provedores de IA (Gemini e OpenRouter)
 - [ ] Persistência (Supabase) e rotas de API
 - [ ] Interface (upload, confirmação, painel, simulador)
 - [ ] Alertas por e-mail e cron
-- [ ] Harness de avaliação da extração
+- [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
 
 ## Nota técnica
 

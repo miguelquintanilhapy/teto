@@ -64,7 +64,7 @@ Rastro do que a IA fez, uma linha por documento extraído.
 | prompt_version | text | liga o resultado ao prompt do eval |
 | schema_version | text | |
 | attempts | jsonb | lista de `Attempt` (provedor, resultado, latência, issues) |
-| raw_result | jsonb | saída validada do modelo |
+| raw_result | jsonb | saída validada do modelo (emissor e destinatário; o modelo não devolve `kind`) |
 | created_at | timestamptz | |
 
 ### `transactions`
@@ -76,10 +76,10 @@ Rastro do que a IA fez, uma linha por documento extraído.
 | date | date | **data que conta para o limite** (critério a confirmar) |
 | issue_date | date nulo | data de emissão da nota, se houver |
 | amount_cents | bigint | CHECK `> 0` |
-| kind | text | `receita` · `despesa` |
+| kind | text | `receita` · `despesa`; derivada por `deriveDirection` a partir do CNPJ do perfil, e o usuário pode corrigir |
 | source | text | `nota` · `pix` · `manual` |
 | status | text | `pendente` · `confirmada` · `cancelada` |
-| counterparty_tax_id | text nulo | |
+| counterparty_tax_id | text nulo | a outra parte, depois de derivada a direção |
 | access_key | text nulo | 44 dígitos |
 | description | text | |
 | confidence | real nulo | 0 a 1 |

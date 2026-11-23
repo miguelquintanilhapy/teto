@@ -12,10 +12,10 @@ const GOOD: ExtractedReceipt = {
   documentType: "nota_fiscal",
   issueDate: "2026-05-10",
   totalCents: 150_00,
-  counterpartyTaxId: "11.222.333/0001-81",
+  issuerTaxId: "11.222.333/0001-81",
+  recipientTaxId: null,
   accessKey: null,
   description: "Bolo de aniversário",
-  kind: "receita",
   confidence: 0.95,
 };
 
@@ -76,7 +76,7 @@ describe("ExtractionRouter", () => {
   });
 
   it("escala para o próximo modelo quando a validação reprova (CNPJ inválido)", async () => {
-    const bad = { ...GOOD, counterpartyTaxId: "11.222.333/0001-82" };
+    const bad = { ...GOOD, issuerTaxId: "11.222.333/0001-82" };
     const a = fake("a", async () => bad);
     const b = fake("b", async () => GOOD);
     const r = await make([a, b]).extract(DOC);
@@ -94,8 +94,8 @@ describe("ExtractionRouter", () => {
   });
 
   it("devolve a melhor candidata para revisão manual se nenhuma passar", async () => {
-    const worse = { ...GOOD, counterpartyTaxId: "123", confidence: 0.2 };
-    const better = { ...GOOD, counterpartyTaxId: "123" };
+    const worse = { ...GOOD, issuerTaxId: "123", confidence: 0.2 };
+    const better = { ...GOOD, issuerTaxId: "123" };
     const r = await make([fake("a", async () => worse), fake("b", async () => better)]).extract(DOC);
     expect(r.status).toBe("needs_review");
     expect(r.providerId).toBe("b");

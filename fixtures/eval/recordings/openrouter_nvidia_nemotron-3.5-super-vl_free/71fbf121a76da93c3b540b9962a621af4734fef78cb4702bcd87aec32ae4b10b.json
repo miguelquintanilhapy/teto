@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "71fbf121a76da93c3b540b9962a621af4734fef78cb4702bcd87aec32ae4b10b",
+  "recordedAt": "2026-11-23T19:15:12.913Z",
+  "latencyMs": 3829,
+  "raw": {
+    "documentType": "recibo",
+    "issueDate": "2026-09-03",
+    "totalCents": 22000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": null,
+    "accessKey": null,
+    "description": "bolo de aniversário",
+    "confidence": 0.9
+  }
+}

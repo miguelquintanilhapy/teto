@@ -11,7 +11,11 @@
     "test:watch": "vitest",
     "typecheck": "next typegen && tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm test",
-    "check:supabase": "node --env-file=.env.local scripts/check-supabase.mjs"
+    "check:supabase": "node --env-file=.env.local scripts/check-supabase.mjs",
+    "check:ai": "tsx --env-file=.env.local scripts/check-ai.mts",
+    "fixtures:generate": "tsx scripts/generate-fixtures.mts",
+    "eval": "tsx scripts/eval.mts",
+    "eval:record": "tsx --env-file=.env.local scripts/eval.mts --mode record"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -20,6 +24,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
@@ -27,6 +32,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.1"
   },

@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v2",
+  "docSha256": "e0a5d3f50c29f2c4354af86201f60740e0838cee2a2a3a8b95c9b70865d70e32",
+  "recordedAt": "2026-11-23T19:12:59.501Z",
+  "latencyMs": 5755,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-07-09",
+    "totalCents": 64090,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678000195",
+    "accessKey": "3526051122233300181550010000002011015917190",
+    "description": "Kit sobremesas (100 un.)",
+    "confidence": 0.95
+  }
+}
