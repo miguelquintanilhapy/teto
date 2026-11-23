@@ -127,7 +127,7 @@ Decisões de projeto:
 
 ### 4.1 Avaliação da extração (eval)
 
-- **Conjunto sintético:** 17 notas geradas por código (`scripts/generate-fixtures.mts`), com gabarito
+- **Conjunto sintético:** 26 notas geradas por código (`scripts/generate-fixtures.mts`), com gabarito
   em `fixtures/eval/cases.json`: NFS-e, NF-e com chave de acesso, recibos (inclusive letra
   manuscrita), comprovantes Pix com documento mascarado, cupons de despesa, nota borrada e girada,
   e **duas com injeção de prompt**. Dados 100% fictícios. ✅

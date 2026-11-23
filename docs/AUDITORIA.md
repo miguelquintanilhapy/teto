@@ -50,7 +50,8 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | Rotas de API e validação de upload | 🟡 |
 | Interface (upload, confirmação, painel, simulador) | 🟡 |
 | Alertas por e-mail e cron | 🟡 |
-| Harness `eval`, gravação/replay e casos adversariais | ✅ (porta de qualidade na CI ainda 🟡) |
+| Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
+| Cobertura das gravações: Flash-Lite 12/26, Nemotron 14/26, Flash 0/26 (sobrecarga do Google e cotas) | 🟡 completar nos próximos dias |
 | `gitleaks` e `npm audit` na CI | 🟡 |
 | Deploy público | 🟡 |
 
