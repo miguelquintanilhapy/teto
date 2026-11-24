@@ -22,6 +22,9 @@ export const ExtractedReceiptSchema = z.object({
 
 export type ExtractedReceipt = z.infer<typeof ExtractedReceiptSchema>;
 
+/** Versão do contrato acima; gravada em cada extração. Mudou o schema, suba. */
+export const SCHEMA_VERSION = "2";
+
 /** Mesmo contrato em JSON Schema, para enviar aos provedores (saída estruturada). */
 export const extractedReceiptJsonSchema = z.toJSONSchema(ExtractedReceiptSchema);
 
