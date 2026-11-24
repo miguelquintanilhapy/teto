@@ -36,7 +36,16 @@ async function PainelConteudo() {
   const r = await loadPanelSafe("painel");
   if (!r.ok) {
     return r.reason === "no_profile" ? (
-      <Mensagem titulo="Perfil de demonstração não encontrado" texto="Rode npm run seed para criar os dados de demonstração." />
+      <>
+        <h1 className="t-large-title mt-2 mb-4">Painel</h1>
+        <section className="rounded-card bg-card p-6 text-center">
+          <h2 className="t-title">Cadastre seu MEI</h2>
+          <p className="t-body mt-2 text-label-2">Com o CNPJ e a data de abertura, o Teto calcula o seu limite e avisa antes de você estourar.</p>
+          <Link href="/bem-vindo" className="mt-6 flex h-[3.375rem] w-full items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary">
+            Começar
+          </Link>
+        </section>
+      </>
     ) : (
       <Mensagem titulo="Não foi possível carregar o painel" texto="Tente de novo em instantes." />
     );

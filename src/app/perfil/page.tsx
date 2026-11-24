@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { monthOf, rulesFor, yearOf } from "@/core";
 import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
@@ -74,6 +75,9 @@ async function Conteudo() {
           </p>
         </div>
       </section>
+      <Link href="/perfil/editar" className="mt-3 flex h-12 items-center justify-center rounded-full bg-card text-[1.0625rem] font-semibold">
+        Editar cadastro
+      </Link>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Aparência</h2>
       <div className="divide-y divide-sep rounded-card bg-card">
