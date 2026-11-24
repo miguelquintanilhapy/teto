@@ -93,7 +93,12 @@ describe("reviewErrors", () => {
 });
 
 describe("toConfirmBody", () => {
-  it("não envia o tipo, o status nem o perfil: o servidor decide", () => {
+  it("envia o tipo só quando o usuário precisou escolher", () => {
+    expect(toConfirmBody(values(), "despesa")).toMatchObject({ kind: "despesa" });
+    expect(toConfirmBody(values())).not.toHaveProperty("kind");
+  });
+
+  it("não envia o tipo, o status nem o perfil por padrão: o servidor decide", () => {
     const body = toConfirmBody(values());
     expect(body).not.toHaveProperty("kind");
     expect(body).not.toHaveProperty("status");

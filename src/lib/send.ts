@@ -79,12 +79,14 @@ export function reviewErrors(v: Pick<ReviewValues, "amountCents" | "date">, toda
 }
 
 /**
- * Corpo do POST /api/transactions. Não envia o tipo: quem decide receita ou despesa é o servidor,
- * comparando com o CNPJ do MEI, e o cliente nunca define status, perfil nem id.
+ * Corpo do POST /api/transactions. O tipo só vai quando o código não conseguiu decidir pelos CPF/CNPJ
+ * (nota sem o CNPJ do MEI, Pix, lançamento manual) e o usuário escolheu. Nos demais casos quem decide é o
+ * servidor. O cliente nunca define status, perfil nem id.
  */
-export function toConfirmBody(v: ReviewValues): Record<string, unknown> {
+export function toConfirmBody(v: ReviewValues, explicitKind?: "receita" | "despesa"): Record<string, unknown> {
   const source = v.documentType === "comprovante_pix" ? "pix" : v.documentType === null ? "manual" : "nota";
   return {
+    ...(explicitKind ? { kind: explicitKind } : {}),
     documentId: v.documentId,
     date: v.date,
     issueDate: v.date,
