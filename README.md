@@ -180,7 +180,37 @@ curl -X POST http://localhost:3000/api/documents \
 | `503` | Perfil de demonstração não configurado (`npm run seed`) |
 | `500` | Erro interno (sem detalhes ao cliente; o log do servidor tem a causa) |
 
-A extração **não entra no limite** até o usuário confirmar (rota de confirmação: a fazer).
+A extração **não entra no limite** até o usuário confirmar (`POST /api/transactions`, abaixo).
+
+### Confirmar um lançamento
+
+`POST /api/transactions` (JSON) registra o lançamento **depois da conferência do usuário**. Só a partir daqui o valor conta no limite.
+
+| Campo | Obrigatório | Observação |
+|---|---|---|
+| `date` | sim | `AAAA-MM-DD`: a data que conta para o limite. Até amanhã (fuso), nunca depois |
+| `amountCents` | sim | Inteiro positivo, em centavos |
+| `source` | sim | `nota`, `pix` ou `manual` |
+| `issuerTaxId` / `recipientTaxId` | não | CPF/CNPJ de **quem vendeu ou recebeu** / de **quem comprou ou pagou** |
+| `kind` | só se preciso | `receita` ou `despesa`. O código decide pelo CNPJ do MEI; só envie se a resposta for `direction_required` |
+| `documentId`, `accessKey`, `issueDate`, `description`, `confidence` | não | `documentId` e `accessKey` evitam lançamento duplicado |
+
+Campos não listados (por exemplo `status`, `id`, `profileId`) são **recusados**: o cliente nunca os define.
+
+| Resposta | Significado |
+|---|---|
+| `201` `status: "created"` | Lançamento criado e confirmado |
+| `200` `status: "duplicate"` | Já existia (mesmo documento ou mesma chave de acesso): devolve o existente |
+| `422` | Regra de negócio: `invalid_amount`, `invalid_date`, `future_date`, `invalid_tax_id`, `invalid_access_key` ou `direction_required` |
+| `400` / `413` / `503` / `500` | Corpo inválido ou com campo proibido / grande demais / sem perfil de demo / erro interno |
+
+### Listar e painel
+
+- `GET /api/transactions?year=2026`: lançamentos do ano (padrão: o ano de hoje, em Brasília), por data.
+- `GET /api/dashboard`: o resumo do ano de hoje: `limitCents` (proporcional se abriu no ano), `accumulatedCents`,
+  `headroomCents`, `usedRatio`, `band` (`ok`, `attention`, `critical`, `over_tolerance`, `over_retroactive`),
+  `cost` (**estimativa**), `projection` (ritmo e data prevista de cruzar o limite), `das`
+  (próximo vencimento), `alerts` e `pendingCount`. Só receitas **confirmadas** entram.
 
 ## Comandos
 
@@ -264,7 +294,8 @@ A extração **não entra no limite** até o usuário confirmar (rota de confirm
 - [x] Adaptadores dos provedores de IA (Gemini e OpenRouter)
 - [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
 - [x] Upload e extração com persistência: `POST /api/documents` (validação, hash, Supabase, cadeia de IA)
-- [ ] Demais rotas: transações, confirmação e painel
+- [x] Confirmação de lançamentos e painel: `POST/GET /api/transactions` e `GET /api/dashboard`
+- [ ] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento
 - [ ] Interface (upload, confirmação, painel, simulador)
 - [ ] Alertas por e-mail e cron
 
