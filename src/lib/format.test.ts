@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   centsPart,
+  maskEmail,
   formatCnpjInput,
   formatCompact,
   formatDayMonth,
@@ -92,5 +93,13 @@ describe("formatCnpjInput", () => {
   it("ignora letras e passa de 14 números", () => {
     expect(formatCnpjInput("11.222.333/0001-81 99")).toBe("11.222.333/0001-81");
     expect(formatCnpjInput("abc")).toBe("");
+  });
+});
+
+describe("maskEmail", () => {
+  it("esconde o miolo do endereço", () => {
+    expect(maskEmail("marta@example.com")).toBe("m•••@example.com");
+    expect(maskEmail("semarroba")).toBe("não informado");
+    expect(maskEmail("@x.com")).toBe("não informado");
   });
 });

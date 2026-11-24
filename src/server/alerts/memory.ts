@@ -10,7 +10,9 @@ export class InMemoryAlertsRepo implements AlertsRepo {
   }
 
   async list(profileId: string, year: number): Promise<AlertRow[]> {
-    return this.rows.filter((r) => r.profileId === profileId && r.referenceYear === year).map(({ profileId: _p, ...r }) => r);
+    return this.rows
+      .filter((r) => r.profileId === profileId && r.referenceYear === year)
+      .map((r) => ({ kind: r.kind, referenceYear: r.referenceYear, createdAt: r.createdAt, sentAt: r.sentAt }));
   }
 
   async markSent(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<void> {

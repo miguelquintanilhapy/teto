@@ -94,3 +94,10 @@ export function formatCnpjInput(raw: string): string {
   if (parts[4]) out += `-${parts[4]}`;
   return out;
 }
+
+/** "marta@example.com" vira "m•••@example.com": reconhece o endereço sem expô-lo por inteiro. */
+export function maskEmail(email: string): string {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return "não informado";
+  return `${email[0]}•••${email.slice(at)}`;
+}
