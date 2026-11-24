@@ -1,11 +1,14 @@
 import { z } from "zod";
 import type { Clock } from "@/server/clock";
 import type { ProfilesRepo } from "@/server/extraction/service";
+import { readJsonBody } from "./json-body";
 import { validateProfile } from "@/server/profile/validate";
 
 export interface ProfileHandlerDeps {
   profiles: ProfilesRepo;
   clock: Clock;
+  /** Falso em produção por padrão: o primeiro cadastro sempre pode, mas mudar um cadastro existente não. */
+  allowEdit: boolean;
 }
 
 const MAX_BODY_BYTES = 5_000;
@@ -25,15 +28,9 @@ const Body = z
 
 /** PUT /api/profile: cadastra o MEI (primeiro uso) ou atualiza os dados. */
 export async function handleSaveProfile(req: Request, deps: ProfileHandlerDeps): Promise<Response> {
-  const declared = Number(req.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return json({ error: "too_large", message: "Pedido grande demais." }, 413);
-
-  let raw: unknown;
-  try {
-    raw = await req.json();
-  } catch {
-    return json({ error: "invalid_json", message: "Envie um JSON válido." }, 400);
-  }
+  const body = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const raw = body.value;
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
@@ -44,6 +41,9 @@ export async function handleSaveProfile(req: Request, deps: ProfileHandlerDeps):
   if (!check.ok) return json({ error: "invalid_profile", message: "Confira os campos destacados.", fields: check.errors }, 422);
 
   try {
+    if (!deps.allowEdit && (await deps.profiles.getDemoProfileId()) !== null) {
+      return json({ error: "edit_disabled", message: "A edição do cadastro está desativada neste ambiente." }, 403);
+    }
     const saved = await deps.profiles.saveDemoProfile(check.value);
     return json({
       status: "saved",

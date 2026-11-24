@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { readJsonBody } from "./json-body";
 import { buildDashboard, yearOf } from "@/core";
 import { maskTaxId } from "@/lib/format";
 import type { Clock } from "@/server/clock";
@@ -74,16 +75,9 @@ async function loadProfile(deps: TransactionsHandlerDeps): Promise<ProfileRecord
 
 /** POST /api/transactions: confirma um lançamento depois da conferência do usuário. */
 export async function handleConfirm(req: Request, deps: TransactionsHandlerDeps): Promise<Response> {
-  const declared = Number(req.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    return json({ error: "too_large", message: "Pedido grande demais." }, 413);
-  }
-  let raw: unknown;
-  try {
-    raw = await req.json();
-  } catch {
-    return json({ error: "invalid_json", message: "Envie um JSON válido." }, 400);
-  }
+  const body = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const raw = body.value;
   const parsed = ConfirmBody.safeParse(raw);
   if (!parsed.success) {
     // Só o caminho e a mensagem do erro: nunca devolve os valores recebidos.
@@ -164,16 +158,9 @@ const ChangeBody = z.discriminatedUnion("action", [
 export async function handleChange(req: Request, id: string, deps: TransactionsHandlerDeps): Promise<Response> {
   if (!IdParam.safeParse(id).success) return json({ error: "invalid_id", message: "Identificador inválido." }, 400);
 
-  const declared = Number(req.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    return json({ error: "too_large", message: "Pedido grande demais." }, 413);
-  }
-  let raw: unknown;
-  try {
-    raw = await req.json();
-  } catch {
-    return json({ error: "invalid_json", message: "Envie um JSON válido." }, 400);
-  }
+  const body = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const raw = body.value;
   const parsed = ChangeBody.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
