@@ -1,5 +1,7 @@
 import { revalidateTag } from "next/cache";
-import { getTransactionsDeps } from "@/server/composition";
+import { after } from "next/server";
+import { triggerAlerts } from "@/server/alerts/trigger";
+import { getAlertsDeps, getTransactionsDeps } from "@/server/composition";
 import { PANEL_TAG } from "@/server/panel-cache";
 import { handleConfirm, handleList, type TransactionsHandlerDeps } from "@/server/http/transactions-handler";
 
@@ -21,7 +23,17 @@ export async function POST(request: Request): Promise<Response> {
   if (d instanceof Response) return d;
   const res = await handleConfirm(request, d);
   // Um lançamento novo muda o painel: descarta o cache já, sem servir o número antigo.
-  if (res.status === 201) revalidateTag(PANEL_TAG, { expire: 0 });
+  if (res.status === 201) {
+    revalidateTag(PANEL_TAG, { expire: 0 });
+    // Depois de responder: se o limite acabou de cruzar uma faixa, avisa por e-mail (uma vez por faixa).
+    after(async () => {
+      try {
+        await triggerAlerts(getAlertsDeps());
+      } catch (e) {
+        console.error("alertas: configuração", e instanceof Error ? e.message.slice(0, 120) : "erro");
+      }
+    });
+  }
   return res;
 }
 
