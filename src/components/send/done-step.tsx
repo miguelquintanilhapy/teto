@@ -25,6 +25,7 @@ export function DoneStep({
   expense,
   onAnother,
   onBack,
+  anotherLabel = "Enviar outra nota",
 }: {
   ctx: SendContext;
   impact: Impact;
@@ -32,6 +33,7 @@ export function DoneStep({
   expense: boolean;
   onAnother: () => void;
   onBack: () => void;
+  anotherLabel?: string;
 }) {
   const { label, tone } = bandView(impact.band);
   const room = Math.max(0, ctx.limitCents - impact.afterCents);
@@ -71,7 +73,7 @@ export function DoneStep({
           Voltar ao painel
         </button>
         <button type="button" onClick={onAnother} className="h-11 text-[1.1875rem] font-semibold">
-          Enviar outra nota
+          {anotherLabel}
         </button>
       </BottomAction>
     </>

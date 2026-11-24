@@ -36,10 +36,14 @@ const TITLES: Record<Stage["name"], string | undefined> = {
 };
 
 /** Fluxo em quatro passos: escolher, ler, conferir e confirmar. Só o código decide o que entra no limite. */
-export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
+export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
   const router = useRouter();
   const [ctx, setCtx] = useState(initialCtx);
-  const [stage, setStage] = useState<Stage>({ name: "choose", error: null });
+  const first = (): Stage =>
+    startManual
+      ? { name: "review", values: EMPTY, notice: { duplicate: false, lowTrust: false, manual: true, chosen: true }, saving: false, error: null }
+      : { name: "choose", error: null };
+  const [stage, setStage] = useState<Stage>(first);
   const abortRef = useRef<AbortController | null>(null);
 
   async function handleFile(file: File) {
@@ -131,7 +135,7 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
   };
 
   return (
-    <SheetShell title={TITLES[stage.name]}>
+    <SheetShell title={startManual && stage.name === "review" ? "Lançar sem nota" : TITLES[stage.name]}>
       {stage.name === "choose" && <ChooseStep onFile={handleFile} error={stage.error} />}
       {stage.name === "reading" && <ReadingStep fileName={stage.fileName} onCancel={cancelReading} onManual={skipToManual} />}
       {stage.name === "review" && (
@@ -150,8 +154,9 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
           impact={stage.impact}
           duplicate={stage.duplicate}
           expense={stage.expense}
-          onAnother={() => setStage({ name: "choose", error: null })}
+          onAnother={() => setStage(first())}
           onBack={backToPanel}
+          anotherLabel={startManual ? "Lançar outro" : "Enviar outra nota"}
         />
       )}
     </SheetShell>
