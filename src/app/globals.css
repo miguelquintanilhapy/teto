@@ -1,26 +1,164 @@
 @import "tailwindcss";
 
+/*
+ * Tokens de cor. Dois modos, escolhidos pelo sistema (prefers-color-scheme).
+ * Valores de sistema do iOS; os do modo claro usam tons mais escuros de laranja,
+ * verde e vermelho para passar de 3:1 (gráficos) e 4,5:1 (texto) sobre o branco.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  color-scheme: light dark;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --card-raised: #ffffff;
+  --sep: #d1d1d6;
+  --track: #e5e5ea;
+  --tile: #f2f2f7;
+  --label: #000000;
+  --label-2: #6c6c70;
+  --primary: #000000;
+  --on-primary: #ffffff;
+
+  --ok: #248a3d;
+  --ok-text: #1f7a34;
+  --warn: #cc6600;
+  --warn-text: #b25000;
+  --danger: #d70015;
+  --danger-text: #d70015;
+
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-edge: rgba(0, 0, 0, 0.08);
+  --tabbar: rgba(255, 255, 255, 0.78);
+  --selected: rgba(0, 0, 0, 0.07);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #000000;
+    --card: #242426;
+    --card-raised: #333335;
+    --sep: #3c3c3e;
+    --track: #3a3a3c;
+    --tile: #161618;
+    --label: #ffffff;
+    --label-2: #a1a1a6;
+    --primary: #ffffff;
+    --on-primary: #000000;
+
+    --ok: #30d158;
+    --ok-text: #30d158;
+    --warn: #ff9f0a;
+    --warn-text: #ffb340;
+    --danger: #ff453a;
+    --danger-text: #ff6961;
+
+    --glass: rgba(58, 58, 60, 0.55);
+    --glass-edge: rgba(255, 255, 255, 0.16);
+    --tabbar: rgba(36, 36, 38, 0.72);
+    --selected: rgba(0, 0, 0, 0.55);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-raised: var(--card-raised);
+  --color-sep: var(--sep);
+  --color-track: var(--track);
+  --color-tile: var(--tile);
+  --color-label: var(--label);
+  --color-label-2: var(--label-2);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-ok: var(--ok);
+  --color-ok-text: var(--ok-text);
+  --color-warn: var(--warn);
+  --color-warn-text: var(--warn-text);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --radius-card: 1.6875rem; /* 27 pt: raio medido no Ajustes do iOS 26 */
+}
+
+html {
+  background: var(--bg);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--label);
+  /* A fonte do sistema vem primeiro: SF Pro no iPhone e no Mac, Inter nos demais. */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Escala de texto em rem: acompanha o tamanho de texto do navegador e do sistema. */
+@utility t-large-title {
+  font-size: 2.25rem;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+@utility t-display {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+@utility t-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+@utility t-headline {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+@utility t-body {
+  font-size: 1.0625rem;
+  line-height: 1.38;
+}
+@utility t-row {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: 500;
+}
+@utility t-sub {
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+@utility t-caption {
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+/* Vidro: só nos controles de navegação, nunca no conteúdo. */
+@utility glass {
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .room-fill {
+    animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: bottom;
+  }
+  @keyframes rise {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
 }

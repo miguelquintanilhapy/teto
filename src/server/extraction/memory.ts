@@ -7,6 +7,7 @@ import {
   type FileStorage,
   type NewDocument,
   type NewExtraction,
+  type ProfileRecord,
   type ProfilesRepo,
 } from "./service";
 
@@ -52,9 +53,22 @@ export class InMemoryFileStorage implements FileStorage {
 }
 
 export class InMemoryProfilesRepo implements ProfilesRepo {
-  constructor(private readonly id: string | null) {}
+  constructor(
+    private readonly id: string | null,
+    private readonly details: Partial<Omit<ProfileRecord, "id">> = {},
+  ) {}
 
   async getDemoProfileId(): Promise<string | null> {
     return this.id;
+  }
+
+  async getDemoProfile(): Promise<ProfileRecord | null> {
+    if (this.id === null) return null;
+    return {
+      id: this.id,
+      name: this.details.name ?? "Doces da Marta MEI",
+      taxId: this.details.taxId ?? "11222333000181",
+      openingDate: this.details.openingDate ?? "2026-03-01",
+    };
   }
 }

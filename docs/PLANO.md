@@ -12,7 +12,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
 - [x] Harness de avaliação com notas sintéticas, gravação/replay e relatório
 - [x] Persistência da extração: cooldown e cota no Postgres, serviço com idempotência por hash e `POST /api/documents`
-- [ ] Repositórios de transações e rotas de confirmação, painel e extrato (frente B)
+- [x] Confirmação de lançamentos e painel: `/api/transactions` e `/api/dashboard`, com a direção decidida pelo código
+- [ ] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento (frente B)
 - [ ] Interface, alertas e e-mail (frente C)
 - [ ] Questões de negócio do MEI confirmadas em fonte oficial
 

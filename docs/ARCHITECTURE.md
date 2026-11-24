@@ -49,7 +49,7 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `VisionProvider` | Gemini, OpenRouter, falsa (testes), gravação e replay (eval) | ✅ |
 | `CooldownStore` | memória (testes), Postgres (produção) | ✅ |
 | `Clock` | sistema em `America/Sao_Paulo`, fixo (testes) | ✅ |
-| `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | ✅ perfil, documentos, extrações e storage · 🟡 transações |
+| `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | ✅ perfil, documentos, extrações, transações e storage |
 | `Notifier` | Resend, falso (testes) | 🟡 |
 | `QuotaGuard` | Postgres (contador diário), memória | ✅ |
 
@@ -65,6 +65,7 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `das` | Próximo vencimento do DAS | ✅ |
 | `reconcile` | Cruzamento determinístico extrato × notas | ✅ |
 | `documents` | CPF, CNPJ, chave de acesso e `deriveDirection` (receita ou despesa, decidido no código) | ✅ |
+| `dashboard` | Resumo do painel: limite do ano, acumulado, faixa, custo estimado, projeção, DAS e alertas | ✅ |
 | `rules` | Configuração **versionada por ano** (`rulesFor`: limite, tolerância, alíquotas) | ✅ |
 
 ### Ajustes de fundação (Fase 0, implementados)
@@ -237,7 +238,7 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 
 | Requisito | Meta |
 |---|---|
-| Extração de uma nota | p95 abaixo de 15 s; orçamento total de 25 s |
+| Extração de uma nota | p95 abaixo de 15 s; orçamento total de 40 s |
 | Painel | Carrega em menos de 2 s com o perfil de demo |
 | Responsivo | Usável em 360 px de largura, mobile-first |
 | Acessibilidade básica | Rótulos, contraste, navegação por teclado, foco visível |

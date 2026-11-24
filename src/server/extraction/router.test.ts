@@ -57,6 +57,50 @@ describe("ExtractionRouter", () => {
     ]);
   });
 
+  it("deixa fora por mais tempo o provedor que respondeu 'indisponível' (alta demanda)", async () => {
+    let clock = 1_000;
+    const a = fake("a", async () => {
+      throw new ProviderError("unavailable", "HTTP 503");
+    });
+    const b = fake("b", async () => GOOD);
+    const router = new ExtractionRouter({
+      providers: [a, b],
+      now: () => clock,
+      today: () => "2026-05-12",
+      timeoutMs: 50,
+      cooldownMs: 10_000,
+      unavailableCooldownMs: 120_000,
+    });
+    await router.extract(DOC);
+    clock += 60_000; // já passou o cooldown comum, mas não o de "indisponível"
+    const second = await router.extract(DOC);
+    expect(second.attempts[0]).toMatchObject({ providerId: "a", outcome: "skipped_cooldown" });
+    expect(a.calls).toBe(1);
+    clock += 61_000;
+    await router.extract(DOC);
+    expect(a.calls).toBe(2);
+  });
+
+  it("o cooldown de 429 continua curto", async () => {
+    let clock = 1_000;
+    const a = fake("a", async () => {
+      throw new ProviderError("rate_limit", "429");
+    });
+    const b = fake("b", async () => GOOD);
+    const router = new ExtractionRouter({
+      providers: [a, b],
+      now: () => clock,
+      today: () => "2026-05-12",
+      timeoutMs: 50,
+      cooldownMs: 10_000,
+      unavailableCooldownMs: 120_000,
+    });
+    await router.extract(DOC);
+    clock += 10_001;
+    await router.extract(DOC);
+    expect(a.calls).toBe(2);
+  });
+
   it("coloca o provedor em cooldown e o pula nas próximas chamadas", async () => {
     let clock = 1_000;
     const a = fake("a", async () => {

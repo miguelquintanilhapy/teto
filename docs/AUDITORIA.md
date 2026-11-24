@@ -46,8 +46,9 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | CI com lint, tipos e testes | ✅ |
 | Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ (falta a porta `Notifier` e aplicar a migração no Supabase) |
 | Adaptadores Gemini e OpenRouter | ✅ (Gemini confirmado ao vivo em parte; ver EVAL-RESULTS) |
-| Migração e repositórios do Supabase (perfil, documentos, extrações, storage, cooldown, cota) | ✅ transações ainda 🟡 |
-| Upload (`POST /api/documents`): validação por assinatura do arquivo, hash, persistência e extração, testado ponta a ponta no Supabase real | ✅ demais rotas 🟡 |
+| Migração e repositórios do Supabase (perfil, documentos, extrações, transações, storage, cooldown, cota) | ✅ |
+| Upload (`POST /api/documents`): validação por assinatura do arquivo, hash, persistência e extração, testado ponta a ponta no Supabase real | ✅ |
+| Confirmação de lançamento e painel (`POST/GET /api/transactions`, `GET /api/dashboard`), testados no Supabase real | ✅ extrato, cancelar e corrigir 🟡 |
 | Interface (upload, confirmação, painel, simulador) | 🟡 |
 | Alertas por e-mail e cron | 🟡 |
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
