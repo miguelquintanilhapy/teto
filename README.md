@@ -85,7 +85,9 @@ Preencha cada variável. **Sem aspas e sem espaço antes ou depois do `=`.**
 | `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Use uma conta **Gmail pessoal**. Contas corporativas (Workspace) costumam bloquear. Não ative cobrança. |
 | `OPENROUTER_API_KEY` | [openrouter.ai/keys](https://openrouter.ai/keys) | Sugestão: expiração de 90 dias e limite de crédito baixo (US$ 0,10). Usamos só modelos `:free`. |
 | `MODEL_CHAIN` | Lista fixa do time | **Uma linha só**, sem espaços (veja abaixo). |
-| `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys | Opcional até os alertas por e-mail entrarem. Pode ficar vazio. |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys | Para os alertas por e-mail. Vazio = os alertas ficam registrados e saem quando a chave for configurada. |
+| `ALERT_FROM` | Opcional | Remetente dos alertas. Padrão `Teto <onboarding@resend.dev>`, que só entrega ao dono da conta Resend. |
+| `ALLOW_PROFILE_EDIT` | Opcional | Em produção, editar um cadastro existente é recusado por padrão (não há login). `true` libera. |
 | `CRON_SECRET` | Você inventa | **Mínimo de 16 caracteres.** Veja como gerar abaixo. |
 | `EXTRACTION_DAILY_QUOTA` | Padrão `200` | Teto diário de extrações com IA, para proteger a cota gratuita. |
 | `DEMO_PROFILE_EMAIL` | Opcional | E-mail do perfil de demonstração (recebe os alertas). Só é lido pelo `npm run seed`. |
@@ -116,6 +118,8 @@ Para gerar um `CRON_SECRET` no PowerShell:
 2. Abra o **SQL Editor** → **New query**, cole **todo** o arquivo
    [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) e clique em **Run**.
    **Rode uma vez só**: repetir dá erro de "already exists".
+   Depois rode também [`0002_one_transaction_per_document.sql`](supabase/migrations/0002_one_transaction_per_document.sql)
+   (o arquivo explica como conferir se já existe documento duplicado antes).
 3. Pegue a URL e as chaves (tabela do passo 3).
 
 **Opção B: o projeto já existe (a equipe usa o mesmo)**
@@ -177,7 +181,8 @@ curl -X POST http://localhost:3000/api/documents \
 | `200` `status: "duplicate"` | Esse arquivo já foi enviado: devolve a extração existente, sem gastar IA |
 | `200` `status: "manual_entry"` | A IA não pôde ler (`reason`: `quota_exceeded` ou `all_providers_failed`): abrir o formulário manual |
 | `400` / `413` / `415` | Sem arquivo ou `kind` inválido / arquivo grande demais / formato não suportado |
-| `503` | Perfil de demonstração não configurado (`npm run seed`) |
+| `429` | Muitos envios novos em pouco tempo (teto de 30 a cada 10 minutos). Tente de novo em instantes |
+| `503` | Perfil de demonstração não configurado (cadastre o MEI ou rode `npm run seed`) |
 | `500` | Erro interno (sem detalhes ao cliente; o log do servidor tem a causa) |
 
 A extração **não entra no limite** até o usuário confirmar (`POST /api/transactions`, abaixo).
@@ -192,7 +197,7 @@ A extração **não entra no limite** até o usuário confirmar (`POST /api/tran
 | `amountCents` | sim | Inteiro positivo, em centavos |
 | `source` | sim | `nota`, `pix` ou `manual` |
 | `issuerTaxId` / `recipientTaxId` | não | CPF/CNPJ de **quem vendeu ou recebeu** / de **quem comprou ou pagou** |
-| `kind` | só se preciso | `receita` ou `despesa`. O código decide pelo CNPJ do MEI; só envie se a resposta for `direction_required` |
+| `kind` | só se preciso | `receita` ou `despesa`. O código decide pelo CNPJ do MEI; só envie se a resposta for `direction_required`. Se o CNPJ do MEI aparece na nota e o `kind` enviado contradiz, a resposta é `direction_conflict` |
 | `documentId`, `accessKey`, `issueDate`, `description`, `confidence` | não | `documentId` e `accessKey` evitam lançamento duplicado |
 
 Campos não listados (por exemplo `status`, `id`, `profileId`) são **recusados**: o cliente nunca os define.
@@ -201,8 +206,25 @@ Campos não listados (por exemplo `status`, `id`, `profileId`) são **recusados*
 |---|---|
 | `201` `status: "created"` | Lançamento criado e confirmado |
 | `200` `status: "duplicate"` | Já existia (mesmo documento ou mesma chave de acesso): devolve o existente |
-| `422` | Regra de negócio: `invalid_amount`, `invalid_date`, `future_date`, `invalid_tax_id`, `invalid_access_key` ou `direction_required` |
+| `422` | Regra de negócio: `invalid_amount`, `invalid_date`, `future_date`, `invalid_tax_id`, `invalid_access_key`, `direction_required` ou `direction_conflict` |
 | `400` / `413` / `503` / `500` | Corpo inválido ou com campo proibido / grande demais / sem perfil de demo / erro interno |
+
+Toda rota que grava (`POST`, `PUT`, `PATCH`) exige `Content-Type: application/json` (ou multipart no upload),
+recusa requisições de outra origem (`403`) e limita o tamanho do corpo. Ver [docs/SEGURANCA.md](docs/SEGURANCA.md).
+
+### Cancelar e corrigir um lançamento
+
+`PATCH /api/transactions/:id` com `{"action":"cancel"}` ou `{"action":"correct","amountCents":…,"date":…,"description":…}`.
+Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no histórico (`transaction_events`).
+`404` se não existe, `409` ao corrigir um lançamento cancelado, `422` nas regras de valor e data.
+
+### Outras rotas
+
+- `PUT /api/profile`: cadastra o MEI no primeiro uso. Em produção, **mudar um cadastro existente é recusado**
+  (`403 edit_disabled`) a menos que `ALLOW_PROFILE_EDIT=true`.
+- `GET /api/report`: baixa os lançamentos do ano em CSV (com proteção contra injeção de fórmula).
+- `GET /api/cron/alerts`: dispara os alertas por e-mail. Exige `Authorization: Bearer <CRON_SECRET>`
+  (a Vercel envia sozinha; ver `vercel.json`).
 
 ### Listar e painel
 
@@ -278,12 +300,17 @@ Campos não listados (por exemplo `status`, `id`, `profileId`) são **recusados*
 | [docs/PLANO.md](docs/PLANO.md) | Calendário, frentes de trabalho e definição de pronto |
 | [docs/AUDITORIA.md](docs/AUDITORIA.md) | Estado de qualidade: desenho × implementação |
 | [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) | Resultados da avaliação da extração (gerado) |
+| [docs/INTERFACE.md](docs/INTERFACE.md) | Telas, decisões de design, acessibilidade e navegação fluida |
+| [docs/SEGURANCA.md](docs/SEGURANCA.md) | Modelo de ameaças, defesas, riscos aceitos e o que falta |
+| [docs/REVISAO.md](docs/REVISAO.md) | Revisão de UX, acessibilidade e segurança: o que foi corrigido e o que ficou |
 
 ## Limitações conhecidas
 
 - Cobre o MEI comum; categorias com limite diferente estão fora do escopo.
 - O custo do estouro é uma estimativa, não cálculo oficial.
-- Demonstração com perfil único e dados fictícios, sem login.
+- Demonstração com perfil único e dados fictícios, **sem login**. Qualquer pessoa com o endereço pode ler os
+  lançamentos (com CPF/CNPJ mascarados), enviar notas (limitadas por janela e por cota diária) e cancelar ou
+  corrigir lançamentos. Para uso real, autenticação é o primeiro passo.
 - A projeção é linear e não considera sazonalidade.
 
 ## Estado atual
@@ -295,9 +322,12 @@ Campos não listados (por exemplo `status`, `id`, `profileId`) são **recusados*
 - [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
 - [x] Upload e extração com persistência: `POST /api/documents` (validação, hash, Supabase, cadeia de IA)
 - [x] Confirmação de lançamentos e painel: `POST/GET /api/transactions` e `GET /api/dashboard`
-- [ ] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento
-- [ ] Interface (upload, confirmação, painel, simulador)
-- [ ] Alertas por e-mail e cron
+- [x] Cancelar e corrigir lançamento, com histórico de alterações
+- [x] Interface: painel, enviar nota, lançar sem nota, simulador, histórico e detalhe, extrato, relatório, alertas, transparência da IA, cadastro e perfil
+- [x] Extrato: importar CSV (no navegador) e conciliar com as receitas
+- [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica
+- [ ] Autenticação e vários MEIs
+- [ ] Lembrete do vencimento do DAS (precisa guardar uma data por mês)
 
 ## Nota técnica
 
