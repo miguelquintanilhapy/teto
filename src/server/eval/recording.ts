@@ -1,6 +1,6 @@
-import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { sha256 } from "../hash";
 import { ProviderError, type DocumentInput, type ProviderCapabilities, type VisionProvider } from "../extraction/provider";
 
 /**
@@ -22,7 +22,7 @@ export interface Recording {
   raw: unknown;
 }
 
-export const sha256 = (data: Uint8Array): string => createHash("sha256").update(data).digest("hex");
+export { sha256 };
 const safe = (id: string) => id.replace(/[^a-zA-Z0-9.-]+/g, "_");
 
 /**
