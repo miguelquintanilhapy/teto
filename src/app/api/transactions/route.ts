@@ -2,6 +2,7 @@ import { revalidateTag } from "next/cache";
 import { after } from "next/server";
 import { triggerAlerts } from "@/server/alerts/trigger";
 import { getAlertsDeps, getTransactionsDeps } from "@/server/composition";
+import { FORBIDDEN_ORIGIN, isSameOrigin } from "@/server/http/origin";
 import { PANEL_TAG } from "@/server/panel-cache";
 import { handleConfirm, handleList, type TransactionsHandlerDeps } from "@/server/http/transactions-handler";
 
@@ -19,6 +20,7 @@ function deps(): TransactionsHandlerDeps | Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  if (!isSameOrigin(request)) return FORBIDDEN_ORIGIN();
   const d = deps();
   if (d instanceof Response) return d;
   const res = await handleConfirm(request, d);

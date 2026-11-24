@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { AI_TAG } from "@/server/ai/load";
 import { getUploadHandlerDeps } from "@/server/composition";
+import { FORBIDDEN_ORIGIN, isSameOrigin } from "@/server/http/origin";
 import { handleUpload } from "@/server/http/upload-handler";
 
 // Com `cacheComponents` ligado, o Next 16 não aceita `runtime` nem `dynamic` aqui:
@@ -10,6 +11,7 @@ import { handleUpload } from "@/server/http/upload-handler";
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<Response> {
+  if (!isSameOrigin(request)) return FORBIDDEN_ORIGIN();
   let deps;
   try {
     deps = getUploadHandlerDeps();

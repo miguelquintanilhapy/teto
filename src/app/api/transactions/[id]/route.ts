@@ -1,9 +1,11 @@
 import { revalidateTag } from "next/cache";
 import { getTransactionsDeps } from "@/server/composition";
 import { handleChange } from "@/server/http/transactions-handler";
+import { FORBIDDEN_ORIGIN, isSameOrigin } from "@/server/http/origin";
 import { PANEL_TAG } from "@/server/panel-cache";
 
 export async function PATCH(request: Request, ctx: RouteContext<"/api/transactions/[id]">): Promise<Response> {
+  if (!isSameOrigin(request)) return FORBIDDEN_ORIGIN();
   let deps;
   try {
     deps = getTransactionsDeps();

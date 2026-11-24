@@ -1,9 +1,11 @@
 import { revalidateTag } from "next/cache";
 import { getTransactionsDeps } from "@/server/composition";
 import { handleSaveProfile } from "@/server/http/profile-handler";
+import { FORBIDDEN_ORIGIN, isSameOrigin } from "@/server/http/origin";
 import { PANEL_TAG } from "@/server/panel-cache";
 
 export async function PUT(request: Request): Promise<Response> {
+  if (!isSameOrigin(request)) return FORBIDDEN_ORIGIN();
   let deps;
   try {
     deps = getTransactionsDeps();
