@@ -6,6 +6,7 @@ import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
 import { MonthlyChart } from "@/components/panel/monthly-chart";
+import { QuickEntry } from "@/components/panel/quick-entry";
 import { getTransactionsDeps } from "@/server/composition";
 import { loadPanel } from "@/server/panel";
 
@@ -67,6 +68,7 @@ async function PainelConteudo() {
         <Forecast dashboard={dashboard} />
         <Bento dashboard={dashboard} />
         <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
+        <QuickEntry />
       </div>
     </>
   );
