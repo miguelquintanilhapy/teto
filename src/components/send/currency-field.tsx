@@ -19,7 +19,7 @@ export function CurrencyField({
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3">
+    <div className="px-5 py-3 focus-within:bg-track/40">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
@@ -27,12 +27,13 @@ export function CurrencyField({
         id={id}
         inputMode="numeric"
         autoComplete="off"
+        enterKeyHint="next"
         value={cents === 0 ? "" : formatMoney(cents)}
         placeholder="R$ 0,00"
         onChange={(e) => onChange(centsFromInput(e.target.value))}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2/60"
+        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">
@@ -53,20 +54,28 @@ export function TextField({
   max,
   placeholder,
   maxLength,
+  inputMode,
+  autoComplete,
+  autoCapitalize,
+  enterKeyHint,
 }: {
   label: string;
-  type?: "text" | "date";
+  type?: "text" | "date" | "email";
   value: string;
   onChange: (v: string) => void;
   error?: string;
   max?: string;
   placeholder?: string;
   maxLength?: number;
+  inputMode?: "text" | "numeric" | "email";
+  autoComplete?: string;
+  autoCapitalize?: "none" | "sentences" | "words";
+  enterKeyHint?: "next" | "done";
 }) {
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3">
+    <div className="px-5 py-3 focus-within:bg-track/40">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
@@ -77,10 +86,15 @@ export function TextField({
         max={max}
         maxLength={maxLength}
         placeholder={placeholder}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize}
+        spellCheck={type === "text" ? undefined : false}
+        enterKeyHint={enterKeyHint}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2/60"
+        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">
