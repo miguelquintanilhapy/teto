@@ -59,9 +59,9 @@ describe("confirmTransaction: direção decidida pelo código", () => {
   });
 
   it("registra no histórico quando o usuário contraria a derivação do código", async () => {
-    const { outcome, repo } = await run(base({ kind: "despesa" })); // código derivaria receita
-    expect(outcome).toMatchObject({ status: "created", transaction: { kind: "despesa" } });
-    expect(repo.events[0]!.changes).toMatchObject({ kind: "despesa", derivedKind: "receita" });
+    const { outcome, repo } = await run(base({ kind: "despesa" })); // o código deriva receita
+    expect(outcome).toMatchObject({ status: "invalid", code: "direction_conflict" });
+    expect(repo.rows).toHaveLength(0);
   });
 });
 

@@ -34,6 +34,12 @@ describe("validateProfile", () => {
     expect(r.ok === false && r.errors.taxId).toBe("Este CNPJ não confere. Confira os números.");
   });
 
+  it("recusa nome com link ou e-mail, que iria parar nos alertas", () => {
+    for (const name of ["Veja http://golpe.x", "www.golpe.x MEI", "fulano@golpe.x"]) {
+      expect(validateProfile({ ...ok, name }, TODAY)).toMatchObject({ ok: false, errors: { name: "O nome não pode ter links nem e-mails." } });
+    }
+  });
+
   it("recusa abertura no futuro e antes da criação do MEI", () => {
     const future = validateProfile({ ...ok, openingDate: "2026-11-25" }, TODAY);
     const old = validateProfile({ ...ok, openingDate: "2009-06-30" }, TODAY);

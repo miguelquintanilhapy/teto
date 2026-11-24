@@ -27,6 +27,7 @@ export function validateProfile(input: ProfileInput, today: ISODate): ProfileChe
 
   const name = input.name.trim().replace(/\s+/g, " ");
   if (name.length < 2) errors.name = "Informe o nome do seu MEI.";
+  else if (/(https?:|www\.|:\/\/|@)/i.test(name)) errors.name = "O nome não pode ter links nem e-mails.";
   else if (name.length > 80) errors.name = "O nome pode ter até 80 caracteres.";
 
   const taxId = input.taxId.replace(/\D/g, "");

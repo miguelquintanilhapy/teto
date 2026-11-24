@@ -104,7 +104,8 @@ export type InvalidCode =
   | "invalid_amount"
   | "invalid_tax_id"
   | "invalid_access_key"
-  | "direction_required";
+  | "direction_required"
+  | "direction_conflict";
 
 export type ConfirmOutcome =
   | { status: "created"; transaction: TransactionRecord }
@@ -152,6 +153,11 @@ export async function confirmTransaction(
   const issuer = present(input.issuerTaxId) ? digits(input.issuerTaxId) : null;
   const recipient = present(input.recipientTaxId) ? digits(input.recipientTaxId) : null;
   const derived = deriveDirection(profile.taxId, issuer, recipient);
+  // O código decide a direção quando consegue. O usuário só escolhe quando não dá para derivar:
+  // impor o contrário do que o CNPJ do MEI mostra tiraria uma receita do cálculo do limite.
+  if (input.kind !== undefined && derived !== "indefinida" && input.kind !== derived) {
+    return invalid("direction_conflict", "O tipo não confere com o CNPJ do seu MEI na nota. Corrija a nota ou lance sem nota.");
+  }
   const kind: TransactionKind | null = input.kind ?? (derived === "indefinida" ? null : derived);
   if (kind === null) {
     return invalid(
@@ -182,7 +188,7 @@ export async function confirmTransaction(
     counterpartyTaxId: kind === "receita" ? recipient : issuer,
     accessKey,
     description: (input.description ?? "").trim().slice(0, 300),
-    confidence: input.confidence ?? null,
+    confidence: input.source === "manual" ? null : (input.confidence ?? null),
   };
 
   let created: TransactionRecord;
