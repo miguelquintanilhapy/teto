@@ -18,6 +18,8 @@ export interface ReviewNotice {
   lowTrust: boolean;
   /** Não foi possível ler a nota: o usuário preenche tudo. */
   manual: boolean;
+  /** O usuário escolheu lançar sem nota (nada falhou, então não há aviso). */
+  chosen?: boolean;
 }
 
 export function ReviewStep({
@@ -65,7 +67,7 @@ export function ReviewStep({
           Você já enviou este arquivo. Se ele já foi confirmado, não será somado de novo.
         </p>
       )}
-      {manual && (
+      {manual && !notice.chosen && (
         <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
           <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
           Não consegui ler esta nota. Preencha os dados abaixo.
@@ -83,7 +85,7 @@ export function ReviewStep({
         </p>
       )}
 
-      <h2 className="mt-5 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Dados da nota</h2>
+      <h2 className="mt-5 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">{notice.chosen ? "Dados do lançamento" : "Dados da nota"}</h2>
       <div className="divide-y divide-sep rounded-card bg-card">
         {mustChoose ? (
           <div className="px-5 py-3.5">
@@ -166,7 +168,7 @@ export function ReviewStep({
 
       <BottomAction>
         <button type="button" onClick={submit} disabled={saving || waitingChoice} className={primaryButton}>
-          {saving ? "Salvando…" : "Confirmar nota"}
+          {saving ? "Salvando…" : notice.chosen ? "Confirmar lançamento" : "Confirmar nota"}
         </button>
       </BottomAction>
     </>

@@ -28,6 +28,17 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 - **Erro específico por campo**, nunca um "inválido" genérico, e uma saída sempre à vista (cancelar, preencher
   manualmente, tentar de novo).
 
+## Navegação fluida
+
+- O painel é lido por `getPanel` (`src/server/panel-cache.ts`), com `"use cache"`: o servidor só volta ao banco
+  a cada 30 s ou quando um lançamento é confirmado (a rota de confirmação chama `revalidateTag`).
+- Todas as telas são pré-renderizadas e o roteador do navegador reaproveita a tela por 60 s sem pedir nada ao
+  servidor. Medido em produção local: trocar de aba leva cerca de 15 ms (antes, 0,6 a 1 s por visita).
+- O filtro do histórico roda no navegador, para a página continuar estática.
+- Os esqueletos têm a forma do conteúdo, e não um bloco vazio.
+- Limite conhecido: o cache é do perfil único de demonstração. Com várias contas, o identificador do usuário
+  entra como argumento de `getPanel`.
+
 ## Acessibilidade
 
 - Texto em `rem`: acompanha o tamanho de texto do navegador e do sistema.
