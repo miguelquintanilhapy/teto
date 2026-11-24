@@ -11,7 +11,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [x] Fase 0 de fundação, mesclada na `main`
 - [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
 - [x] Harness de avaliação com notas sintéticas, gravação/replay e relatório
-- [ ] Postgres para `CooldownStore` e `QuotaGuard`, repositórios e rotas de API (frente B)
+- [x] Persistência da extração: cooldown e cota no Postgres, serviço com idempotência por hash e `POST /api/documents`
+- [ ] Repositórios de transações e rotas de confirmação, painel e extrato (frente B)
 - [ ] Interface, alertas e e-mail (frente C)
 - [ ] Questões de negócio do MEI confirmadas em fonte oficial
 

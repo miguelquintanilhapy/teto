@@ -47,11 +47,11 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | Porta | Implementações | Status |
 |---|---|---|
 | `VisionProvider` | Gemini, OpenRouter, falsa (testes), gravação e replay (eval) | ✅ |
-| `CooldownStore` | memória (testes), Postgres (produção) | ✅ porta e memória · 🟡 Postgres |
+| `CooldownStore` | memória (testes), Postgres (produção) | ✅ |
 | `Clock` | sistema em `America/Sao_Paulo`, fixo (testes) | ✅ |
-| `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | 🟡 |
+| `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | ✅ perfil, documentos, extrações e storage · 🟡 transações |
 | `Notifier` | Resend, falso (testes) | 🟡 |
-| `QuotaGuard` | Postgres (contador diário), memória | ✅ porta e memória · 🟡 Postgres |
+| `QuotaGuard` | Postgres (contador diário), memória | ✅ |
 
 ## 3. Núcleo (`src/core`)
 
@@ -111,12 +111,14 @@ Decisões de projeto:
 - **Capacidades por adaptador** (`supportsPdf`, `maxBytes`, `maxPages`): o
   roteador pula quem não consegue processar aquele arquivo. ✅
 - **Cooldown persistido** (`CooldownStore` no Postgres): em serverless, memória
-  de instância não vale entre requisições. 🟡
-- **Cache e idempotência por hash** do conteúdo: o mesmo arquivo nunca é lido
-  duas vezes (poupa cota gratuita e sustenta a demo). 🟡
+  de instância não vale entre requisições. ✅ Se o banco do cooldown ou da cota falhar, o roteador
+  segue sem eles (fail-open): uma falha de apoio não derruba a extração.
+- **Cache e idempotência por hash** do conteúdo (`processUpload`): o mesmo arquivo nunca é lido
+  duas vezes (poupa cota gratuita e sustenta a demo). Upload simultâneo do mesmo arquivo é resolvido
+  pela restrição única do banco. ✅
 - **Versão do prompt e do schema** gravada em cada extração, para o resultado do
   `eval` apontar para o prompt que o gerou. ✅ (versão do prompt) · 🟡 (gravar no banco)
-- **Rastro persistido** (`extractions`): provedor, tentativas, latência, issues. 🟡
+- **Rastro persistido** (`extractions`): provedor, tentativas, latência, issues, versões do prompt e do schema. ✅
 - **Contrato único** (`schema.ts`): dele saem o validador e o JSON Schema
   enviado aos provedores. ✅
 - **Direção decidida no código.** A IA devolve as duas partes (`issuerTaxId`: quem vendeu ou

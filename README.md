@@ -88,6 +88,7 @@ Preencha cada variável. **Sem aspas e sem espaço antes ou depois do `=`.**
 | `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys | Opcional até os alertas por e-mail entrarem. Pode ficar vazio. |
 | `CRON_SECRET` | Você inventa | **Mínimo de 16 caracteres.** Veja como gerar abaixo. |
 | `EXTRACTION_DAILY_QUOTA` | Padrão `200` | Teto diário de extrações com IA, para proteger a cota gratuita. |
+| `DEMO_PROFILE_EMAIL` | Opcional | E-mail do perfil de demonstração (recebe os alertas). Só é lido pelo `npm run seed`. |
 
 Valor atual do `MODEL_CHAIN` (do modelo mais leve ao mais forte):
 
@@ -127,10 +128,17 @@ Para gerar um `CRON_SECRET` no PowerShell:
    o *SQL Editor*, avise o dono: o papel pode precisar subir para *Administrator*.
 4. **Não rode a migração de novo.**
 
+**Criar o perfil de demonstração** (só a opção A; na B o banco já o tem):
+
+```bash
+npm run seed
+```
+
 **Conferir** (as duas opções):
 
 ```bash
 npm run check:supabase
+npm run check:db
 ```
 
 Deve listar as 10 tabelas como `OK`, o bucket `documents` como privado e terminar com
@@ -153,6 +161,27 @@ npm run check   # lint + tipos + testes (o mesmo que a CI roda)
 npm run eval    # avaliação da extração, repetindo respostas gravadas (sem rede)
 ```
 
+## API
+
+`POST /api/documents` recebe uma nota, recibo ou extrato e devolve os campos extraídos.
+Multipart com `file` (JPEG, PNG, WebP ou PDF, até 10 MB) e `kind` (`nota`, `recibo` ou `extrato`; padrão `nota`).
+
+```bash
+curl -X POST http://localhost:3000/api/documents \
+  -F "file=@fixtures/eval/nfse-01.png" -F "kind=nota"
+```
+
+| Resposta | Significado |
+|---|---|
+| `200` `status: "extracted"` | Extraída. `extraction.data` traz os campos; `extraction.status` é `accepted` ou `needs_review`; `trace` mostra cada tentativa (modelo, resultado, latência) |
+| `200` `status: "duplicate"` | Esse arquivo já foi enviado: devolve a extração existente, sem gastar IA |
+| `200` `status: "manual_entry"` | A IA não pôde ler (`reason`: `quota_exceeded` ou `all_providers_failed`): abrir o formulário manual |
+| `400` / `413` / `415` | Sem arquivo ou `kind` inválido / arquivo grande demais / formato não suportado |
+| `503` | Perfil de demonstração não configurado (`npm run seed`) |
+| `500` | Erro interno (sem detalhes ao cliente; o log do servidor tem a causa) |
+
+A extração **não entra no limite** até o usuário confirmar (rota de confirmação: a fazer).
+
 ## Comandos
 
 | Comando | O que faz |
@@ -164,6 +193,8 @@ npm run eval    # avaliação da extração, repetindo respostas gravadas (sem r
 | `npm run check` | Lint + tipos + testes (o mesmo que a CI roda) |
 | `npm run check:supabase` | Confere a conexão e o schema do banco (não imprime chaves) |
 | `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
+| `npm run check:db` | Testa no banco real a cota diária, o cooldown, o storage e o perfil de demo (apaga o que cria) |
+| `npm run seed` | Cria o perfil de demonstração fictício (idempotente; só quem criou o banco) |
 | `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
 | `npm run eval:record` | Regrava as respostas chamando os modelos de verdade (usa a cota gratuita) |
 | `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
@@ -180,6 +211,7 @@ npm run eval    # avaliação da extração, repetindo respostas gravadas (sem r
 | `check:ai` com `403` ou `401` | Chave inválida, expirada ou conta bloqueada | Gere outra chave. Conta de empresa pode estar bloqueada |
 | "permission denied" no AI Studio | Conta corporativa (Workspace) | Use um Gmail pessoal, em janela anônima, e aceite os termos |
 | `npm install` falha com `ETARGET typescript-eslint` | Publicação parcial do pacote no npm | O `package.json` já fixa a versão; rode `npm install` de novo |
+| A rota `/api/documents` devolve `503` "Perfil de demonstração não configurado" | Banco sem o perfil de demo | Rode `npm run seed` (só uma vez, só quem criou o banco) |
 | `eval` diz "sem gravação" | O prompt mudou e as gravações antigas deixaram de valer | `npm run eval:record` (usa a cota gratuita) |
 | Notas do `fixtures:generate` com fonte diferente | O gerador usa fontes do sistema (Arial, Courier New, Segoe Script) | Só para regenerar. As imagens já estão no repositório |
 
@@ -231,7 +263,8 @@ npm run eval    # avaliação da extração, repetindo respostas gravadas (sem r
 - [x] Validação de ambiente e migração inicial do banco
 - [x] Adaptadores dos provedores de IA (Gemini e OpenRouter)
 - [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
-- [ ] Persistência (Supabase) e rotas de API
+- [x] Upload e extração com persistência: `POST /api/documents` (validação, hash, Supabase, cadeia de IA)
+- [ ] Demais rotas: transações, confirmação e painel
 - [ ] Interface (upload, confirmação, painel, simulador)
 - [ ] Alertas por e-mail e cron
 
