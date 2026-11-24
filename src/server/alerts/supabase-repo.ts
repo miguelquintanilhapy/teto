@@ -28,11 +28,26 @@ export class SupabaseAlertsRepo implements AlertsRepo {
     }));
   }
 
-  async markSent(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<void> {
+  async claim(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<AlertKind[]> {
+    if (kinds.length === 0) return [];
+    // `is null` + update numa só instrução: só uma das rodadas simultâneas consegue reservar cada linha.
+    const { data, error } = await this.db
+      .from("alerts")
+      .update({ sent_at: sentAtIso })
+      .eq("profile_id", profileId)
+      .eq("reference_year", year)
+      .in("kind", kinds)
+      .is("sent_at", null)
+      .select("kind");
+    if (error) throw new Error(`alerts: ${error.message}`);
+    return ((data ?? []) as Array<{ kind: AlertKind }>).map((r) => r.kind);
+  }
+
+  async release(profileId: string, kinds: AlertKind[], year: number): Promise<void> {
     if (kinds.length === 0) return;
     const { error } = await this.db
       .from("alerts")
-      .update({ sent_at: sentAtIso })
+      .update({ sent_at: null })
       .eq("profile_id", profileId)
       .eq("reference_year", year)
       .in("kind", kinds);

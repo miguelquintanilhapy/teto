@@ -15,9 +15,20 @@ export class InMemoryAlertsRepo implements AlertsRepo {
       .map((r) => ({ kind: r.kind, referenceYear: r.referenceYear, createdAt: r.createdAt, sentAt: r.sentAt }));
   }
 
-  async markSent(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<void> {
+  async claim(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<AlertKind[]> {
+    const claimed: AlertKind[] = [];
     for (const r of this.rows) {
-      if (r.profileId === profileId && r.referenceYear === year && kinds.includes(r.kind)) r.sentAt = sentAtIso;
+      if (r.profileId === profileId && r.referenceYear === year && kinds.includes(r.kind) && r.sentAt === null) {
+        r.sentAt = sentAtIso;
+        claimed.push(r.kind);
+      }
+    }
+    return claimed;
+  }
+
+  async release(profileId: string, kinds: AlertKind[], year: number): Promise<void> {
+    for (const r of this.rows) {
+      if (r.profileId === profileId && r.referenceYear === year && kinds.includes(r.kind)) r.sentAt = null;
     }
   }
 }

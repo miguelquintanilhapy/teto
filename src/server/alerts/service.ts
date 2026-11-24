@@ -38,7 +38,10 @@ export async function runAlerts(input: {
   if (pending.length === 0) return { status: "nothing_due" };
   if (!sender) return { status: "not_configured", pending };
 
-  const kind = mostSevere(pending)!;
+  // Reserva antes de enviar: se o cron e uma confirmação rodarem juntos, só um dos dois fica com o alerta.
+  const claimed = await alerts.claim(profile.id, pending, year, input.now().toISOString());
+  if (claimed.length === 0) return { status: "nothing_due" };
+  const kind = mostSevere(claimed)!;
   const crossing = dash.projection.limitCrossing.status === "projected" ? dash.projection.limitCrossing.date : null;
   const email = buildAlertEmail(kind, {
     profileName: profile.name,
@@ -52,8 +55,9 @@ export async function runAlerts(input: {
   try {
     await sender.send({ to: profile.email, ...email });
   } catch (e) {
-    return { status: "failed", pending, reason: e instanceof Error ? e.message.slice(0, 120) : "erro" };
+    // Não saiu: devolve à fila para o cron tentar de novo.
+    await alerts.release(profile.id, claimed, year).catch(() => undefined);
+    return { status: "failed", pending: claimed, reason: e instanceof Error ? e.message.slice(0, 120) : "erro" };
   }
-  await alerts.markSent(profile.id, pending, year, input.now().toISOString());
-  return { status: "sent", kind, suppressed: pending.filter((k) => k !== kind) };
+  return { status: "sent", kind, suppressed: claimed.filter((k) => k !== kind) };
 }

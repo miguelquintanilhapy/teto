@@ -73,4 +73,11 @@ describe("runAlerts", () => {
     expect(await run()).toMatchObject({ status: "sent", kind: "threshold_critical" });
     expect(sender.sent).toHaveLength(2);
   });
+
+  it("duas rodadas simultâneas não mandam o mesmo e-mail duas vezes", async () => {
+    const { run, sender } = await setup(55_000_00);
+    const [a, b] = await Promise.all([run(), run()]);
+    expect(sender.sent).toHaveLength(1);
+    expect([a.status, b.status].sort()).toEqual(["nothing_due", "sent"]);
+  });
 });
