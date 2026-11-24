@@ -3,6 +3,8 @@ import {
   DuplicateTransactionError,
   type EventAction,
   type NewTransaction,
+  type TransactionEvent,
+  type TransactionPatch,
   type TransactionRecord,
   type TransactionsRepo,
 } from "./service";
@@ -116,5 +118,42 @@ export class SupabaseTransactionsRepo implements TransactionsRepo {
       .from("transaction_events")
       .insert({ transaction_id: e.transactionId, action: e.action, changes: e.changes });
     if (error) throw new Error(`transaction_events: ${error.message}`);
+  }
+
+  async findById(profileId: string, id: string): Promise<TransactionRecord | null> {
+    const { data, error } = await this.db.from("transactions").select("*").eq("profile_id", profileId).eq("id", id).maybeSingle();
+    if (error) throw new Error(`transactions: ${error.message}`);
+    return data ? fromRow(data as TransactionRow) : null;
+  }
+
+  async update(profileId: string, id: string, patch: TransactionPatch): Promise<TransactionRecord | null> {
+    const row: Record<string, unknown> = {};
+    if (patch.date !== undefined) row.date = patch.date;
+    if (patch.amountCents !== undefined) row.amount_cents = patch.amountCents;
+    if (patch.description !== undefined) row.description = patch.description;
+    if (patch.status !== undefined) row.status = patch.status;
+    const { data, error } = await this.db
+      .from("transactions")
+      .update(row)
+      .eq("profile_id", profileId)
+      .eq("id", id)
+      .select("*")
+      .maybeSingle();
+    if (error) throw new Error(`transactions: ${error.message}`);
+    return data ? fromRow(data as TransactionRow) : null;
+  }
+
+  async listEvents(transactionId: string): Promise<TransactionEvent[]> {
+    const { data, error } = await this.db
+      .from("transaction_events")
+      .select("action, changes, created_at")
+      .eq("transaction_id", transactionId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(`transaction_events: ${error.message}`);
+    return ((data ?? []) as Array<{ action: TransactionEvent["action"]; changes: Record<string, unknown>; created_at: string }>).map((e) => ({
+      action: e.action,
+      changes: e.changes ?? {},
+      createdAt: e.created_at,
+    }));
   }
 }

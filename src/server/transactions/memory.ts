@@ -2,6 +2,8 @@ import {
   DuplicateTransactionError,
   type EventAction,
   type NewTransaction,
+  type TransactionEvent,
+  type TransactionPatch,
   type TransactionRecord,
   type TransactionsRepo,
 } from "./service";
@@ -44,5 +46,22 @@ export class InMemoryTransactionsRepo implements TransactionsRepo {
   async addEvent(e: { transactionId: string; action: EventAction; changes: Record<string, unknown> }): Promise<void> {
     if (this.failEvents) throw new Error("histórico indisponível");
     this.events.push(e);
+  }
+
+  async findById(profileId: string, id: string): Promise<TransactionRecord | null> {
+    return this.rows.find((r) => r.profileId === profileId && r.id === id) ?? null;
+  }
+
+  async update(profileId: string, id: string, patch: TransactionPatch): Promise<TransactionRecord | null> {
+    const i = this.rows.findIndex((r) => r.profileId === profileId && r.id === id);
+    if (i < 0) return null;
+    this.rows[i] = { ...this.rows[i]!, ...patch };
+    return this.rows[i]!;
+  }
+
+  async listEvents(transactionId: string): Promise<TransactionEvent[]> {
+    return this.events
+      .filter((e) => e.transactionId === transactionId)
+      .map((e, n) => ({ action: e.action, changes: e.changes, createdAt: `2026-01-01T00:00:${String(n).padStart(2, "0")}Z` }));
   }
 }
