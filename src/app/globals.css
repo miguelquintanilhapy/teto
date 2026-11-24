@@ -33,8 +33,10 @@
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
 }
 
+/* Escuro automático (sistema), a menos que o usuário tenha escolhido o claro. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #000000;
     --card: #242426;
     --card-raised: #333335;
@@ -59,6 +61,38 @@
     --selected: rgba(0, 0, 0, 0.55);
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
+}
+
+/* Escuro escolhido pelo usuário. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --card: #242426;
+  --card-raised: #333335;
+  --sep: #3c3c3e;
+  --track: #3a3a3c;
+  --tile: #161618;
+  --label: #ffffff;
+  --label-2: #a1a1a6;
+  --primary: #ffffff;
+  --on-primary: #000000;
+
+  --ok: #30d158;
+  --ok-text: #30d158;
+  --warn: #ff9f0a;
+  --warn-text: #ffb340;
+  --danger: #ff453a;
+  --danger-text: #ff6961;
+
+  --glass: rgba(58, 58, 60, 0.55);
+  --glass-edge: rgba(255, 255, 255, 0.16);
+  --tabbar: rgba(36, 36, 38, 0.72);
+  --selected: rgba(0, 0, 0, 0.55);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @theme inline {
@@ -146,6 +180,12 @@ body {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-edge);
   box-shadow: var(--shadow);
+}
+
+/* Privacidade: esconde os valores quando o usuário liga "Ocultar valores". */
+:root[data-privacy="on"] .sensitive {
+  filter: blur(0.4em);
+  user-select: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
