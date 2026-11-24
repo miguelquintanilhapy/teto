@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Warning } from "@phosphor-icons/react/dist/ssr";
 import { formatMoney, maskTaxId } from "@/lib/format";
 import type { TransactionView } from "@/server/panel";
@@ -17,7 +18,8 @@ export function TransactionRow({ t }: { t: TransactionView }) {
   const sign = income ? "+" : "−";
 
   return (
-    <li className="relative flex items-center gap-3.5 px-5 py-3 [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:right-5 [&:not(:first-child)]:before:left-[4rem] [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-sep">
+    <li className="relative [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:right-5 [&:not(:first-child)]:before:left-[4rem] [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-sep">
+      <Link href={`/historico/${t.id}`} className="flex items-center gap-3.5 px-5 py-3 active:bg-track">
       <span className={`grid size-[1.875rem] shrink-0 place-items-center rounded-lg bg-tile ${income ? "text-ok" : "text-label-2"}`}>
         <Icon size={18} weight="bold" aria-hidden="true" />
       </span>
@@ -38,6 +40,7 @@ export function TransactionRow({ t }: { t: TransactionView }) {
         <span className="sr-only">{income ? "Receita " : "Despesa "}</span>
         {sign} {formatMoney(t.amountCents)}
       </p>
+      </Link>
     </li>
   );
 }
