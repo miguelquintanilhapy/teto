@@ -93,6 +93,16 @@ export class SupabaseDocumentsRepo implements DocumentsRepo {
     }
     return toDocument(data as DocumentRow);
   }
+
+  async countSince(profileId: string, sinceIso: string): Promise<number> {
+    const { count, error } = await this.db
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId)
+      .gte("created_at", sinceIso);
+    if (error) throw new Error(`documents: ${error.message}`);
+    return count ?? 0;
+  }
 }
 
 export class SupabaseExtractionsRepo implements ExtractionsRepo {

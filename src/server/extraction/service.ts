@@ -47,6 +47,8 @@ export class DuplicateDocumentError extends Error {
 export interface DocumentsRepo {
   findByHash(profileId: string, contentHash: string): Promise<DocumentRecord | null>;
   insert(doc: NewDocument): Promise<DocumentRecord>;
+  /** Quantos documentos novos o perfil enviou desde `sinceIso`. */
+  countSince(profileId: string, sinceIso: string): Promise<number>;
 }
 
 export interface ExtractionsRepo {
@@ -89,6 +91,9 @@ export interface UploadDeps {
   storage: FileStorage;
   extractor: Extractor;
   maxBytes?: number;
+  /** Teto de documentos NOVOS por janela. Sem login, isto impede encher o storage e gastar a cota de IA. */
+  throttle?: { max: number; windowMs: number };
+  now?: () => number;
 }
 
 export interface UploadInput {
@@ -98,7 +103,7 @@ export interface UploadInput {
 }
 
 export type UploadOutcome =
-  | { status: "rejected"; code: "empty" | "too_large" | "unsupported_type"; message: string }
+  | { status: "rejected"; code: "empty" | "too_large" | "unsupported_type" | "rate_limited"; message: string }
   /** Arquivo já enviado antes e já extraído: devolve o que existe, sem gastar cota de IA. */
   | { status: "duplicate"; document: DocumentRecord; extraction: ExtractionRecord }
   | { status: "extracted"; document: DocumentRecord; extraction: ExtractionRecord; issues: string[] }
@@ -115,6 +120,8 @@ export type UploadOutcome =
  * Recebe um arquivo, guarda, extrai com a cadeia de modelos e registra o rastro.
  * É idempotente pelo hash do conteúdo: o mesmo arquivo nunca é lido duas vezes.
  */
+const DEFAULT_THROTTLE = { max: 30, windowMs: 10 * 60_000 } as const;
+
 export async function processUpload(input: UploadInput, deps: UploadDeps): Promise<UploadOutcome> {
   const check = validateUpload(input.bytes, deps.maxBytes);
   if (!check.ok) return { status: "rejected", code: check.code, message: check.message };
@@ -127,6 +134,11 @@ export async function processUpload(input: UploadInput, deps: UploadDeps): Promi
     if (existing && existing.status !== "failed") return { status: "duplicate", document, extraction: existing };
     // Sem extração, ou a anterior falhou: tenta de novo sobre o mesmo documento.
   } else {
+    const { max, windowMs } = deps.throttle ?? DEFAULT_THROTTLE;
+    const since = new Date((deps.now ?? Date.now)() - windowMs).toISOString();
+    if ((await deps.documents.countSince(input.profileId, since)) >= max) {
+      return { status: "rejected", code: "rate_limited", message: "Muitos envios em pouco tempo. Tente de novo em alguns minutos." };
+    }
     const storagePath = `${input.profileId}/${hash}.${check.extension}`;
     await deps.storage.put(storagePath, input.bytes, check.mimeType);
     const row: NewDocument = {

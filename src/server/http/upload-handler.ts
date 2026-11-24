@@ -38,8 +38,10 @@ function viewExtraction(e: ExtractionRecord) {
 function respond(outcome: UploadOutcome): Response {
   switch (outcome.status) {
     case "rejected": {
-      const status = outcome.code === "too_large" ? 413 : outcome.code === "unsupported_type" ? 415 : 400;
-      return json({ error: outcome.code, message: outcome.message }, status);
+      const status = outcome.code === "too_large" ? 413 : outcome.code === "unsupported_type" ? 415 : outcome.code === "rate_limited" ? 429 : 400;
+      const res = json({ error: outcome.code, message: outcome.message }, status);
+      if (status === 429) res.headers.set("Retry-After", "60");
+      return res;
     }
     case "duplicate":
       return json({

@@ -14,6 +14,9 @@ import {
 /** Implementações em memória das portas de persistência: testes e desenvolvimento sem banco. */
 export class InMemoryDocumentsRepo implements DocumentsRepo {
   readonly rows: DocumentRecord[] = [];
+  private readonly insertedAt = new Map<string, number>();
+  /** Relógio injetável, para testar a janela do limite de envios. */
+  now: () => number = Date.now;
 
   async findByHash(profileId: string, contentHash: string): Promise<DocumentRecord | null> {
     return this.rows.find((d) => d.profileId === profileId && d.contentHash === contentHash) ?? null;
@@ -25,7 +28,13 @@ export class InMemoryDocumentsRepo implements DocumentsRepo {
     }
     const row: DocumentRecord = { id: crypto.randomUUID(), ...doc };
     this.rows.push(row);
+    this.insertedAt.set(row.id, this.now());
     return row;
+  }
+
+  async countSince(profileId: string, sinceIso: string): Promise<number> {
+    const since = Date.parse(sinceIso);
+    return this.rows.filter((d) => d.profileId === profileId && (this.insertedAt.get(d.id) ?? 0) >= since).length;
   }
 }
 
