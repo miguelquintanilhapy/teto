@@ -274,7 +274,7 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 
 | Questão | Como resolver | Responsável / prazo |
 |---|---|---|
-| Qual data conta para o limite: emissão ou recebimento? | Consultar a fonte oficial e registrar em `mei-rules.md` | Terça 24/11 |
-| Valores atuais do limite, tolerância e DAS | Confirmar no Portal do Empreendedor | Terça 24/11 |
-| Alíquotas reais para estimar o custo do estouro | Confirmar ou manter placeholder rotulado como estimativa | Terça 24/11 |
-| Modelos e limites exatos dos tiers gratuitos | Conferir no AI Studio e no OpenRouter, preencher `MODEL_CHAIN` | Hoje |
+| Qual data conta para o limite: emissão ou recebimento? | **Sem regra oficial achada** na pesquisa de 24/11. Conferir a Resolução CGSN 140 oficial ou perguntar a um contador | Antes da entrega |
+| Valores atuais do limite, tolerância e DAS | ✅ Confirmados em 24/11/2026 (ver `mei-rules.md`) | Feito |
+| Alíquotas reais para estimar o custo do estouro | O excedente usa alíquotas efetivas por anexo do Simples. Manter o placeholder rotulado como estimativa | Antes da entrega |
+| Modelos e limites exatos dos tiers gratuitos | ✅ Modelos definidos; reconferir os limites no painel antes da demo | Feito |

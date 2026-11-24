@@ -32,10 +32,10 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 
 ## Desenho: questões abertas (negócio)
 
-- [ ] Data que conta para o limite: emissão ou recebimento
-- [ ] Valores atuais do limite, tolerância e DAS
-- [ ] Alíquotas para estimar o custo do estouro
-- [ ] Modelos e limites exatos dos tiers gratuitos
+- [ ] Data que conta para o limite: emissão ou recebimento (**sem regra oficial achada**; ver mei-rules.md)
+- [x] Valores atuais do limite, tolerância e DAS (confirmados em 24/11/2026; o teto sobe em 2027 e 2028 pela LC 238/2026)
+- [ ] Alíquotas para estimar o custo do estouro (o excedente usa alíquotas efetivas por anexo; o 6% segue como estimativa)
+- [x] Modelos e limites exatos dos tiers gratuitos (modelos definidos; limites lidos do painel, a reconferir)
 
 ## Implementação: estado atual
 
