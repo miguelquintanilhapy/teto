@@ -30,9 +30,29 @@ describe("annualLimitFor", () => {
 });
 
 describe("rulesFor", () => {
-  it("usa o padrão quando o ano não tem diferenças", () => {
+  it("em 2026 usa o padrão: R$ 81.000", () => {
     expect(rulesFor(2026)).toEqual(cfg);
-    expect(rulesFor(2031)).toEqual(cfg);
+    expect(rulesFor(2025)).toEqual(cfg);
+  });
+
+  it("aplica os limites da LC 238/2026: R$ 110.000 em 2027 e R$ 140.000 de 2028 em diante", () => {
+    expect(rulesFor(2027).annualLimitCents).toBe(110_000_00);
+    expect(rulesFor(2028).annualLimitCents).toBe(140_000_00);
+    expect(rulesFor(2031).annualLimitCents).toBe(140_000_00); // vale até a lei mudar
+    expect(rulesFor(2028).toleranceRate).toBe(cfg.toleranceRate); // o resto segue o padrão
+  });
+
+  it("o limite proporcional mensal acompanha os valores da lei", () => {
+    // R$ 9.166,67 por mês em 2027 e R$ 11.666,67 por mês em 2028
+    expect(annualLimitFor("2027-12-10", 2027, rulesFor(2027))).toBe(916_667);
+    expect(annualLimitFor("2028-12-10", 2028, rulesFor(2028))).toBe(1_166_667);
+    expect(annualLimitFor("2027-05-02", 2027, rulesFor(2027))).toBe(7_333_333); // 8 meses
+  });
+
+  it("a regra de um ano passa para os seguintes (tabela personalizada)", () => {
+    const table = { 2027: { annualLimitCents: 130_000_00 } };
+    expect(rulesFor(2030, table).annualLimitCents).toBe(130_000_00);
+    expect(rulesFor(2026, table).annualLimitCents).toBe(81_000_00);
   });
 
   it("aplica só as diferenças do ano e não altera o padrão", () => {
