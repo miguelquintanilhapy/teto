@@ -1,0 +1,71 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { LimitBar } from "@/components/limit-bar";
+import { CurrencyField } from "@/components/send/currency-field";
+import { formatPercent, formatReais } from "@/lib/format";
+import { simulationView, type SimulateContext } from "@/lib/simulate";
+
+const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", danger: "text-danger-text" } as const;
+
+/** "E se eu aceitar uma venda de R$ X?" Responde na hora, enquanto o valor é digitado. */
+export function Simulator({ ctx }: { ctx: SimulateContext }) {
+  const [cents, setCents] = useState(0);
+  const view = useMemo(() => simulationView(ctx, cents), [ctx, cents]);
+  const headroom = Math.max(0, ctx.limitCents - ctx.accumulatedCents);
+
+  const presets: Array<{ label: string; value: number }> = [
+    { label: formatReais(500_00), value: 500_00 },
+    { label: formatReais(1_000_00), value: 1_000_00 },
+    { label: formatReais(5_000_00), value: 5_000_00 },
+    ...(headroom > 0 ? [{ label: "O que cabe", value: headroom }] : []),
+  ];
+
+  return (
+    <>
+      <div className="rounded-card bg-card">
+        <CurrencyField label="Valor da venda" cents={cents} onChange={setCents} />
+      </div>
+
+      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => setCents(p.value)}
+            className="shrink-0 rounded-full bg-card px-4 py-2 text-[0.9375rem] font-semibold"
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <section aria-live="polite" aria-label="Resultado da simulação" className="mt-5 rounded-card bg-card p-5">
+        <p className={`mb-1 text-[1.0625rem] font-bold ${TONE_TEXT[view.band.tone]}`}>
+          {view.band.label} · {formatPercent(view.ratio)} do limite
+        </p>
+        <h2 className="t-title">{view.headline}</h2>
+        <p className="t-body mt-2 text-label-2">{view.detail}</p>
+
+        <div className="mt-4">
+          <LimitBar
+            ratio={view.ratio}
+            addedRatio={view.addedRatio}
+            tone={view.band.tone}
+            label={`Com esta venda você usaria ${formatPercent(view.ratio)} do limite`}
+          />
+          <div className="t-caption mt-2 flex justify-between text-label-2">
+            <span>{formatReais(view.result.after.accumulatedCents)}</span>
+            <span>Limite de {formatReais(ctx.limitCents)}</span>
+          </div>
+        </div>
+
+        {view.costLine && <p className="t-body mt-4 rounded-2xl bg-tile p-3.5 text-label-2">{view.costLine}</p>}
+      </section>
+
+      <p className="t-sub mt-4 px-2 text-label-2">
+        É só uma simulação: nada é lançado. Os valores de custo são estimativas e não substituem o cálculo oficial.
+      </p>
+    </>
+  );
+}
