@@ -51,20 +51,29 @@ describe("privacidade", () => {
 describe("script de preferências antes da pintura", () => {
   const run = (stored: Record<string, string>, broken = false) => {
     const el: RootLike = root();
+    const metas = [{ content: "#f2f2f7", setAttribute(_k: string, v: string) { this.content = v; } }];
     const localStorage = {
       getItem: (k: string) => {
         if (broken) throw new Error("bloqueado");
         return stored[k] ?? null;
       },
     };
-    new Function("document", "localStorage", PREFS_SCRIPT)({ documentElement: el }, localStorage);
-    return el;
+    const doc = { documentElement: el, querySelectorAll: () => metas, addEventListener: () => undefined };
+    new Function("document", "localStorage", PREFS_SCRIPT)(doc, localStorage);
+    (el as RootLike & { metas?: typeof metas }).metas = metas;
+    return el as RootLike & { metas: typeof metas };
   };
 
   it("aplica o tema e a privacidade guardados", () => {
     const el = run({ [THEME_KEY]: "dark", [PRIVACY_KEY]: "on" });
     expect(el.dataset.theme).toBe("dark");
     expect(el.dataset.privacy).toBe("on");
+  });
+
+  it("ajusta a cor da barra do navegador ao tema escolhido", () => {
+    expect(run({ [THEME_KEY]: "dark" }).metas[0]!.content).toBe("#000000");
+    expect(run({ [THEME_KEY]: "light" }).metas[0]!.content).toBe("#f2f2f7");
+    expect(run({}).metas[0]!.content).toBe("#f2f2f7"); // sem escolha, deixa como o sistema definiu
   });
 
   it("ignora valores desconhecidos e não quebra se o armazenamento estiver bloqueado", () => {

@@ -11,7 +11,7 @@ export const parsePrivacy = (v: string | null | undefined): boolean => v === "on
  * Roda antes da primeira pintura, para a tela não piscar no tema errado.
  * É texto puro (vai dentro de um <script>), por isso fica aqui e é testado.
  */
-export const PREFS_SCRIPT = `(function(){try{var d=document.documentElement,t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark")d.dataset.theme=t;if(localStorage.getItem("${PRIVACY_KEY}")==="on")d.dataset.privacy="on"}catch(e){}})()`;
+export const PREFS_SCRIPT = `(function(){try{var d=document.documentElement,t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark"){d.dataset.theme=t;var c=t==="dark"?"#000000":"#f2f2f7",f=function(){var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++)m[i].setAttribute("content",c)};f();document.addEventListener("DOMContentLoaded",f)}if(localStorage.getItem("${PRIVACY_KEY}")==="on")d.dataset.privacy="on"}catch(e){}})()`;
 
 export interface RootLike {
   dataset: Record<string, string | undefined>;
