@@ -197,7 +197,9 @@ export async function confirmTransaction(
   } catch (e) {
     if (!(e instanceof DuplicateTransactionError)) throw e;
     // Outra confirmação da mesma nota chegou primeiro.
-    const existing = accessKey !== null ? await transactions.findByAccessKey(profile.id, accessKey) : null;
+    const existing =
+      (accessKey !== null ? await transactions.findByAccessKey(profile.id, accessKey) : null) ??
+      (present(input.documentId) ? await transactions.findByDocumentId(profile.id, input.documentId) : null);
     if (!existing) throw e;
     return { status: "duplicate", transaction: existing };
   }

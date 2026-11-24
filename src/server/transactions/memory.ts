@@ -19,6 +19,10 @@ export class InMemoryTransactionsRepo implements TransactionsRepo {
     if (t.accessKey && this.rows.some((r) => r.profileId === t.profileId && r.accessKey === t.accessKey)) {
       throw new DuplicateTransactionError();
     }
+    // Espelha o índice único (perfil, documento): um documento vira no máximo um lançamento.
+    if (t.documentId && this.rows.some((r) => r.profileId === t.profileId && r.documentId === t.documentId)) {
+      throw new DuplicateTransactionError();
+    }
     const row: TransactionRecord = { id: crypto.randomUUID(), ...t };
     this.rows.push(row);
     return row;

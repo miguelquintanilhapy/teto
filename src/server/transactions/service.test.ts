@@ -159,3 +159,27 @@ describe("confirmTransaction: idempotência e consistência", () => {
     });
   });
 });
+
+describe("confirmTransaction: dois toques simultâneos no mesmo documento", () => {
+  it("o segundo recebe o lançamento do primeiro, em vez de criar outro", async () => {
+    const repo = new InMemoryTransactionsRepo();
+    const doc = "7d0a2b52-2f7c-4d3a-9d3e-6c3b5d0c1a11";
+    const input = base({ documentId: doc, issuerTaxId: MEI, recipientTaxId: CLIENT_CNPJ });
+    // Simula a corrida: a verificação inicial não vê nada, e o outro toque grava antes do insert.
+    const real = repo.findByDocumentId.bind(repo);
+    let first = true;
+    repo.findByDocumentId = async (p, d) => {
+      if (first) {
+        first = false;
+        return null;
+      }
+      return real(p, d);
+    };
+    const [a, b] = await Promise.all([
+      confirmTransaction(input, { transactions: repo, profile: PROFILE, today: TODAY }),
+      confirmTransaction(input, { transactions: repo, profile: PROFILE, today: TODAY }),
+    ]);
+    expect(repo.rows).toHaveLength(1);
+    expect([a.status, b.status].sort()).toEqual(["created", "duplicate"]);
+  });
+});
