@@ -8,7 +8,25 @@ import {
   SupabaseFileStorage,
   SupabaseProfilesRepo,
 } from "@/server/extraction/stores/supabase-repos";
+import { systemClock } from "@/server/clock";
+import type { TransactionsHandlerDeps } from "@/server/http/transactions-handler";
 import type { UploadHandlerDeps } from "@/server/http/upload-handler";
+import { SupabaseTransactionsRepo } from "@/server/transactions/supabase-repo";
+
+let cachedTransactions: TransactionsHandlerDeps | undefined;
+
+/** Dependências das rotas de lançamentos e do painel. */
+export function getTransactionsDeps(): TransactionsHandlerDeps {
+  if (cachedTransactions) return cachedTransactions;
+  getEnv(); // falha cedo, com mensagem clara, se faltar variável
+  const db = getAdminClient();
+  cachedTransactions = {
+    profiles: new SupabaseProfilesRepo(db),
+    transactions: new SupabaseTransactionsRepo(db),
+    clock: systemClock,
+  };
+  return cachedTransactions;
+}
 
 let cached: UploadHandlerDeps | undefined;
 
