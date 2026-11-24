@@ -1,5 +1,5 @@
-import { getTransactionsDeps } from "@/server/composition";
-import { loadPanel, type PanelData } from "@/server/panel";
+import type { PanelData } from "@/server/panel";
+import { getPanel } from "@/server/panel-cache";
 
 export type PanelResult = { ok: true; panel: PanelData } | { ok: false; reason: "error" | "no_profile" };
 
@@ -9,7 +9,7 @@ export type PanelResult = { ok: true; panel: PanelData } | { ok: false; reason: 
  */
 export async function loadPanelSafe(where: string): Promise<PanelResult> {
   try {
-    const panel = await loadPanel(getTransactionsDeps());
+    const panel = await getPanel();
     return panel ? { ok: true, panel } : { ok: false, reason: "no_profile" };
   } catch (e) {
     console.error(`${where}: falha ao carregar`, e instanceof Error ? e.message.slice(0, 200) : "erro desconhecido");

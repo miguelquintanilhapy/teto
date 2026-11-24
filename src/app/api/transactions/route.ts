@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { getTransactionsDeps } from "@/server/composition";
+import { PANEL_TAG } from "@/server/panel-cache";
 import { handleConfirm, handleList, type TransactionsHandlerDeps } from "@/server/http/transactions-handler";
 
 function deps(): TransactionsHandlerDeps | Response {
@@ -16,7 +18,11 @@ function deps(): TransactionsHandlerDeps | Response {
 
 export async function POST(request: Request): Promise<Response> {
   const d = deps();
-  return d instanceof Response ? d : handleConfirm(request, d);
+  if (d instanceof Response) return d;
+  const res = await handleConfirm(request, d);
+  // Um lançamento novo muda o painel: descarta o cache já, sem servir o número antigo.
+  if (res.status === 201) revalidateTag(PANEL_TAG, { expire: 0 });
+  return res;
 }
 
 export async function GET(request: Request): Promise<Response> {
