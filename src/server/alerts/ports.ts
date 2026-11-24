@@ -1,0 +1,28 @@
+import type { AlertKind } from "@/core";
+
+/** O que o banco guarda de cada alerta: um por faixa e por ano. */
+export interface AlertRow {
+  kind: AlertKind;
+  referenceYear: number;
+  createdAt: string;
+  /** Nulo enquanto o e-mail não saiu; o cron tenta de novo. */
+  sentAt: string | null;
+}
+
+export interface AlertsRepo {
+  /** Cria o alerta se ainda não existe (idempotente por perfil, faixa e ano). */
+  ensure(profileId: string, kind: AlertKind, year: number): Promise<void>;
+  list(profileId: string, year: number): Promise<AlertRow[]>;
+  markSent(profileId: string, kinds: AlertKind[], year: number, sentAtIso: string): Promise<void>;
+}
+
+export interface Email {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}
+
+export interface EmailSender {
+  send(email: Email): Promise<void>;
+}
