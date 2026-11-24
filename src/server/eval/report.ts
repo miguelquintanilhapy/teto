@@ -44,8 +44,9 @@ export function renderReport(r: ReportInput): string {
   out.push("");
   out.push("| Resultado | Casos | Taxa |");
   out.push("|---|---|---|");
-  out.push(`| Aceita automaticamente e **correta** | ${c.acceptedCorrect} | ${pct(c.acceptedCorrectRate)} |`);
-  out.push(`| Aceita automaticamente e **errada** (erro silencioso) | ${c.silentWrong} | ${pct(c.silentWrongRate)} |`);
+  out.push(`| Aceita automaticamente e **completa** (data, valor, emissor e destinatário certos) | ${c.acceptedCorrect} | ${pct(c.acceptedCorrectRate)} |`);
+  out.push(`| Aceita, certa para o limite, mas com dado de terceiro **faltando ou diferente** | ${c.acceptedIncomplete} | ${pct(c.acceptedIncompleteRate)} |`);
+  out.push(`| Aceita automaticamente e **errada para o limite** (erro silencioso) | ${c.silentWrong} | ${pct(c.silentWrongRate)} |`);
   out.push(`| Enviada para revisão manual | ${c.needsReview} | ${pct(c.needsReviewRate)} |`);
   out.push(`| Falha total (nenhum modelo respondeu) | ${c.failed} | ${pct(c.failedRate)} |`);
   out.push("");
@@ -55,24 +56,28 @@ export function renderReport(r: ReportInput): string {
   );
   out.push("");
   out.push(
-    "O número que mais importa é o **erro silencioso**: uma extração errada aceita sem revisão. " +
-      "Por isso toda extração só entra no limite depois que o usuário confirma.",
+    "O número que mais importa é o **erro silencioso**: uma extração errada para o limite (data, valor ou " +
+      "direção) aceita sem revisão. Um dado de terceiro faltando (por exemplo, um CPF ilegível) não muda o " +
+      "acumulado e é contado à parte. Em todos os casos, a extração só entra no limite depois que o usuário confirma.",
   );
   out.push("");
 
   out.push("## Por modelo (cada um sozinho)");
   out.push("");
-  out.push("| Modelo | Gravações | JSON válido | Núcleo correto | Direção | Passa nas regras | p50 | p95 |");
-  out.push("|---|---|---|---|---|---|---|---|");
+  out.push("| Modelo | Gravações | JSON válido | Certo p/ o limite | Núcleo completo | Direção | Passa nas regras | p50 | p95 |");
+  out.push("|---|---|---|---|---|---|---|---|---|");
   for (const p of r.providers) {
     const s = p.summary;
     out.push(
-      `| \`${p.id}\` | ${s.evaluated}/${s.total} | ${pct(s.schemaValidRate)} | ${pct(s.coreCorrectRate)} | ` +
+      `| \`${p.id}\` | ${s.evaluated}/${s.total} | ${pct(s.schemaValidRate)} | ${pct(s.limitCorrectRate)} | ${pct(s.coreCorrectRate)} | ` +
         `${pct(s.directionRate)} | ${pct(s.rulesPassRate)} | ${secs(s.p50LatencyMs)} | ${secs(s.p95LatencyMs)} |`,
     );
   }
   out.push("");
-  out.push("_Núcleo = data, valor, emissor e destinatário todos certos. Direção = receita/despesa derivada pelo código._");
+  out.push(
+    "_Certo p/ o limite = data, valor e direção (receita/despesa) certos. Núcleo completo = além disso, emissor e " +
+      "destinatário certos. Direção é derivada pelo código._",
+  );
   out.push("");
 
   out.push("### Acerto por campo");
@@ -94,8 +99,8 @@ export function renderReport(r: ReportInput): string {
   }
   out.push("");
 
-  const wrong = r.chainResults.filter((x) => x.status === "accepted" && x.coreCorrect === false);
-  out.push("## Erros silenciosos");
+  const wrong = r.chainResults.filter((x) => x.status === "accepted" && x.limitCorrect === false);
+  out.push("## Erros silenciosos (afetam o limite)");
   out.push("");
   if (wrong.length === 0) {
     out.push("Nenhum nesta execução.");
@@ -106,13 +111,33 @@ export function renderReport(r: ReportInput): string {
   }
   out.push("");
 
+  const incomplete = r.chainResults.filter((x) => x.status === "accepted" && x.coreCorrect === false && x.limitCorrect === true);
+  out.push("## Aceitas, certas para o limite, com dado de terceiro faltando ou diferente");
+  out.push("");
+  if (incomplete.length === 0) {
+    out.push("Nenhuma nesta execução.");
+  } else {
+    for (const w of incomplete) {
+      out.push(`- \`${w.caseId}\` (${w.providerId}): ${w.wrongFields.join(", ")}`);
+    }
+  }
+  out.push("");
+
   out.push("## Resultado por nota");
   out.push("");
   out.push(`| Nota | Cadeia | ${r.providers.map((p) => `\`${p.id}\``).join(" | ")} |`);
   out.push(`|---|---|${r.providers.map(() => "---").join("|")}|`);
   for (const cr of r.chainResults) {
     const chainCell =
-      cr.status === "accepted" ? (cr.coreCorrect ? "✓" : "✗ silencioso") : cr.status === "needs_review" ? "revisão" : "falha";
+      cr.status === "accepted"
+        ? cr.coreCorrect
+          ? "✓"
+          : cr.limitCorrect
+            ? "✓ incompleta"
+            : "✗ silencioso"
+        : cr.status === "needs_review"
+          ? "revisão"
+          : "falha";
     const cells = r.providers.map((p) => {
       const res = p.results.find((x) => x.caseId === cr.caseId);
       if (!res || res.outcome === "no_recording") return "·";
@@ -122,7 +147,10 @@ export function renderReport(r: ReportInput): string {
     out.push(`| ${cr.caseId} | ${chainCell} | ${cells.join(" | ")} |`);
   }
   out.push("");
-  out.push("Legenda: ✓ núcleo correto · ✗ errado · revisão = precisaria de conferência manual · · sem gravação.");
+  out.push(
+    "Legenda: ✓ núcleo correto · ✓ incompleta = certa para o limite, falta dado de terceiro · ✗ errado · " +
+      "revisão = precisaria de conferência manual · · sem gravação.",
+  );
   out.push("");
   return out.join("\n");
 }

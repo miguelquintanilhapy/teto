@@ -19,11 +19,42 @@ Legenda de prioridade: **P1** entra no que for entregue; **P2** se der tempo;
 | Adaptadores Gemini e OpenRouter, montados a partir de `MODEL_CHAIN` | `src/server/extraction/providers` | Implementação técnica |
 | Prompt versionado (`PROMPT_VERSION`) com defesa contra instruções dentro do documento | `prompt.ts` | Implementação técnica |
 | Verificação real das chaves e modelos (`npm run check:ai`), sem imprimir segredos | `scripts/check-ai.mts` | Execução técnica |
-| Harness de avaliação com 17 notas sintéticas e gabarito (`npm run eval`) | `scripts/eval.mts`, `fixtures/eval` | Implementação técnica, impacto |
+| Harness de avaliação com 26 notas sintéticas e gabarito (`npm run eval`) | `scripts/eval.mts`, `fixtures/eval` | Implementação técnica, impacto |
 | Gravação e repetição das respostas dos modelos (VCR), invalidada pela versão do prompt | `src/server/eval/recording.ts` | Execução técnica |
 | Métrica de **erro silencioso** (aceita sem revisão e errada) e relatório gerado | `src/server/eval/metrics.ts`, [EVAL-RESULTS.md](EVAL-RESULTS.md) | Comunicação |
 | Casos adversariais (injeção de prompt), documentos mascarados e nota borrada no conjunto | `scripts/generate-fixtures.mts` | Implementação técnica |
 | Direção receita/despesa decidida pelo código, não pela IA | `deriveDirection` em `src/core/documents.ts` | Implementação técnica |
+
+### O eval em ação: um erro real encontrado e corrigido
+
+A primeira avaliação completa (prompt **v2**, 23 notas) mostrou que o Gemini Flash-Lite
+**trocava quem pagou e quem recebeu** nos comprovantes Pix, com confiança de 0,95 a 1,0.
+Uma receita virava despesa sem aviso: o pior tipo de erro para um controle de limite.
+O prompt deixava ambíguo o papel de "quem recebeu" em transferências.
+
+Correção (prompt **v3**): regra explícita de que, em Pix e transferências, o emissor é
+sempre quem recebeu o dinheiro, seguindo o rótulo e não a ordem dos blocos. Para não
+calibrar só nas notas que já falhavam, foram criados Pix novos, com rótulos diferentes
+("Origem/Destino", "Pagador/Favorecido"), ordem invertida e um caso em que o próprio MEI paga.
+
+| Versão | Notas | Aceitas e completas | Erro silencioso | Pix certos |
+|---|---|---|---|---|
+| v2 | 23 | 87% | 9% (2 casos, ambos Pix) | 1 de 3 |
+| v3 | 26 | 85% | 4% (1 caso, ver abaixo) | **6 de 6** |
+
+Os conjuntos de notas são diferentes (o v3 tem mais Pix e notas de controle), então a
+comparação direta de percentuais é só indicativa. O caso restante do v3 é um recibo lido
+por um modelo reserva (Nemotron) quando o Flash-Lite estava sobrecarregado.
+
+Outras proteções que o eval levou a implementar:
+
+- **Dígito verificador da chave de acesso** (módulo 11), e não só o tamanho: um dígito
+  perdido ou trocado manda a nota para revisão. Hoje cerca de 1 em cada 8 notas vai para
+  revisão por causa de chave mal lida; é limitação conhecida dos modelos gratuitos.
+- **Métrica separada de impacto no limite** (data, valor e direção) e de dado de terceiro
+  faltando, para um CPF ilegível não ser tratado como erro de limite.
+- **Gravações invalidadas pela versão do prompt**, para nenhum resultado antigo ser
+  confundido com o atual.
 
 ### Modelos escolhidos (plano gratuito)
 

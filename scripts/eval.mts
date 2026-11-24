@@ -17,12 +17,13 @@ import {
   compareFields,
   isCoreCorrect,
   isDirectionCorrect,
+  isLimitCorrect,
   summarizeChain,
   summarizeProvider,
   type ChainCaseResult,
   type ProviderCaseResult,
 } from "../src/server/eval/metrics";
-import { RecordedProvider, type EvalMode } from "../src/server/eval/recording";
+import { RecordedProvider, pruneStaleRecordings, sha256, type EvalMode } from "../src/server/eval/recording";
 import { renderReport } from "../src/server/eval/report";
 import { parseEnv, parseModelChain } from "../src/server/env";
 import { PROMPT_VERSION } from "../src/server/extraction/prompt";
@@ -100,7 +101,8 @@ async function liveWithRetry(rp: RecordedProvider, doc: (typeof suite.cases)[num
 }
 
 if (mode === "record" && args.all) {
-  for (const p of providers) {
+  // --only limita QUAIS modelos rodam em todas as notas (poupa a cota do Flash, que é de ~20 por dia).
+  for (const p of providers.filter((x) => !args.only || x.id.includes(args.only))) {
     const rp = wrap(p, "record");
     for (const c of suite.cases) {
       const before = rp.liveCalls;
@@ -136,7 +138,11 @@ for (const c of suite.cases) {
       providerId: r.providerId,
       attempts: r.attempts.filter((a) => !a.outcome.startsWith("skipped")).length,
       coreCorrect: isCoreCorrect(fields),
-      wrongFields: CORE_FIELDS.filter((f) => !fields[f]),
+      limitCorrect: isLimitCorrect(suite.ownerTaxId, c.expected, r.data),
+      wrongFields: [
+        ...CORE_FIELDS.filter((f) => !fields[f]),
+        ...(isDirectionCorrect(suite.ownerTaxId, c.expected, r.data) ? [] : ["direção"]),
+      ],
       directionOk: isDirectionCorrect(suite.ownerTaxId, c.expected, r.data),
     };
   } catch (e) {
@@ -147,6 +153,7 @@ for (const c of suite.cases) {
       providerId: null,
       attempts: e instanceof AllProvidersFailedError ? e.attempts.length : 0,
       coreCorrect: null,
+      limitCorrect: null,
       wrongFields: [],
       directionOk: null,
     };
@@ -154,6 +161,12 @@ for (const c of suite.cases) {
   chainResults.push(row);
   console.log(`  cadeia   ${c.id.padEnd(10)} ${row.status}${row.coreCorrect === false ? " (ERRADA)" : ""}`);
   if (mode === "record" && wrapped.some((w) => w.liveCalls > 0)) await sleep(Math.max(...wrapped.filter((w) => w.liveCalls > 0).map((w) => paceMs(w.id))));
+}
+
+// Em modo record, apaga gravações de prompts antigos ou de notas que não existem mais.
+if (mode === "record") {
+  const removed = await pruneStaleRecordings(RECORDINGS, PROMPT_VERSION, new Set(suite.cases.map((c) => sha256(c.doc.data))));
+  if (removed > 0) console.log(`\n  ${removed} gravação(ões) obsoleta(s) removida(s)`);
 }
 
 // ---------------------------------------- (3) por modelo, lendo as gravações
@@ -169,7 +182,7 @@ for (const p of providers.filter((x) => !args.only || x.id.includes(args.only)))
       if (m.recordedAt && (!lastRecordedAt || m.recordedAt > lastRecordedAt)) lastRecordedAt = m.recordedAt;
       const parsed = parseExtraction(m.raw);
       if (!parsed.ok) {
-        results.push({ ...base, outcome: "schema_invalid", latencyMs: m.latencyMs, rulesIssues: parsed.issues, fields: null, directionOk: null });
+        results.push({ ...base, outcome: "schema_invalid", latencyMs: m.latencyMs, rulesIssues: parsed.issues, fields: null, directionOk: null, limitCorrect: null });
         continue;
       }
       results.push({
@@ -179,10 +192,11 @@ for (const p of providers.filter((x) => !args.only || x.id.includes(args.only)))
         rulesIssues: checkBusinessRules(parsed.data, { minConfidence: 0.7, today: EVAL_TODAY }),
         fields: compareFields(c.expected, parsed.data),
         directionOk: isDirectionCorrect(suite.ownerTaxId, c.expected, parsed.data),
+        limitCorrect: isLimitCorrect(suite.ownerTaxId, c.expected, parsed.data),
       });
     } catch (e) {
       const missing = e instanceof ProviderError && e.message.startsWith("sem gravação");
-      results.push({ ...base, outcome: missing ? "no_recording" : "error", latencyMs: null, rulesIssues: [], fields: null, directionOk: null });
+      results.push({ ...base, outcome: missing ? "no_recording" : "error", latencyMs: null, rulesIssues: [], fields: null, directionOk: null, limitCorrect: null });
     }
   }
   providerRows.push({ id: p.id, summary: summarizeProvider(results), results });
@@ -208,19 +222,19 @@ if (!args["no-write"]) {
 
 const pct = (x: number | null) => (x === null ? "n/d" : `${Math.round(x * 100)}%`);
 console.log(
-  `\nCadeia: corretas ${pct(chainSummary.acceptedCorrectRate)} · erro silencioso ${pct(chainSummary.silentWrongRate)} · ` +
+  `\nCadeia: completas ${pct(chainSummary.acceptedCorrectRate)} · incompletas ${pct(chainSummary.acceptedIncompleteRate)} · erro silencioso ${pct(chainSummary.silentWrongRate)} · ` +
     `revisão ${pct(chainSummary.needsReviewRate)} · falha ${pct(chainSummary.failedRate)}`,
 );
 for (const p of providerRows) {
-  console.log(`  ${p.id}: ${p.summary.evaluated}/${p.summary.total} gravadas · núcleo correto ${pct(p.summary.coreCorrectRate)}`);
+  console.log(`  ${p.id}: ${p.summary.evaluated}/${p.summary.total} gravadas · certo p/ o limite ${pct(p.summary.limitCorrectRate)} · núcleo completo ${pct(p.summary.coreCorrectRate)}`);
 }
 
 // ----------------------------------------------------------- porta de qualidade
 const minCorrect = args["min-correct"] === undefined ? undefined : Number(args["min-correct"]);
 const maxSilent = args["max-silent-wrong"] === undefined ? undefined : Number(args["max-silent-wrong"]);
 let gateFailed = false;
-if (minCorrect !== undefined && (chainSummary.acceptedCorrectRate ?? 0) < minCorrect) {
-  console.error(`\nREPROVADO: corretas ${pct(chainSummary.acceptedCorrectRate)} < mínimo ${pct(minCorrect)}`);
+if (minCorrect !== undefined && (chainSummary.acceptedLimitCorrectRate ?? 0) < minCorrect) {
+  console.error(`\nREPROVADO: corretas para o limite ${pct(chainSummary.acceptedLimitCorrectRate)} < mínimo ${pct(minCorrect)}`);
   gateFailed = true;
 }
 if (maxSilent !== undefined && (chainSummary.silentWrongRate ?? 0) > maxSilent) {

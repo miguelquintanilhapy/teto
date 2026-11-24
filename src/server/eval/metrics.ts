@@ -31,6 +31,19 @@ export function isDirectionCorrect(ownerTaxId: string, expected: Expected, actua
   );
 }
 
+/**
+ * O que realmente importa para o limite do MEI: a data, o valor e a direção
+ * (receita ou despesa) estão certos? Faltar o CPF de um terceiro, por exemplo,
+ * não muda o acumulado, então não conta como erro de limite.
+ */
+export function isLimitCorrect(ownerTaxId: string, expected: Expected, actual: ExtractedReceipt): boolean {
+  return (
+    expected.issueDate === actual.issueDate &&
+    expected.totalCents === actual.totalCents &&
+    isDirectionCorrect(ownerTaxId, expected, actual)
+  );
+}
+
 /** Percentil pelo método do posto mais próximo. */
 export function percentile(values: ReadonlyArray<number>, p: number): number | null {
   if (values.length === 0) return null;
@@ -51,6 +64,8 @@ export interface ProviderCaseResult {
   rulesIssues: string[];
   fields: Record<Field, boolean> | null;
   directionOk: boolean | null;
+  /** Data, valor e direção certos (o que afeta o limite). */
+  limitCorrect: boolean | null;
 }
 
 export interface ProviderSummary {
@@ -60,6 +75,7 @@ export interface ProviderSummary {
   schemaValidRate: number | null;
   fieldAccuracy: Record<Field, number> | null;
   coreCorrectRate: number | null;
+  limitCorrectRate: number | null;
   directionRate: number | null;
   rulesPassRate: number | null;
   p50LatencyMs: number | null;
@@ -86,6 +102,7 @@ export function summarizeProvider(results: ReadonlyArray<ProviderCaseResult>): P
     schemaValidRate: rate(ok.length, n),
     fieldAccuracy,
     coreCorrectRate: rate(ok.filter((r) => r.fields && isCoreCorrect(r.fields)).length, n),
+    limitCorrectRate: rate(ok.filter((r) => r.limitCorrect).length, n),
     directionRate: rate(ok.filter((r) => r.directionOk).length, n),
     rulesPassRate: rate(ok.filter((r) => r.rulesIssues.length === 0).length, n),
     p50LatencyMs: percentile(evaluated.flatMap((r) => (r.latencyMs === null ? [] : [r.latencyMs])), 50),
@@ -100,7 +117,10 @@ export interface ChainCaseResult {
   status: "accepted" | "needs_review" | "failed";
   providerId: string | null;
   attempts: number;
+  /** Núcleo completo certo: data, valor, emissor e destinatário. */
   coreCorrect: boolean | null;
+  /** Data, valor e direção certos: o que afeta o limite. */
+  limitCorrect: boolean | null;
   /** Campos centrais que divergem do gabarito (vazio se correta ou sem resposta). */
   wrongFields: string[];
   directionOk: boolean | null;
@@ -111,11 +131,16 @@ export interface ChainSummary {
   accepted: number;
   needsReview: number;
   failed: number;
-  /** Aceitas automaticamente E corretas. */
+  /** Aceitas automaticamente, com o núcleo completo certo. */
   acceptedCorrect: number;
-  /** Aceitas automaticamente mas ERRADAS: o pior caso, o erro silencioso. */
+  /** Aceitas, corretas para o limite, mas com algum dado de terceiro faltando ou diferente. */
+  acceptedIncomplete: number;
+  /** Aceitas automaticamente mas ERRADAS para o limite: o pior caso, o erro silencioso. */
   silentWrong: number;
   acceptedCorrectRate: number | null;
+  acceptedIncompleteRate: number | null;
+  /** Corretas para o limite (completas ou incompletas). */
+  acceptedLimitCorrectRate: number | null;
   silentWrongRate: number | null;
   needsReviewRate: number | null;
   failedRate: number | null;
@@ -126,8 +151,9 @@ export interface ChainSummary {
 export function summarizeChain(results: ReadonlyArray<ChainCaseResult>): ChainSummary {
   const n = results.length;
   const accepted = results.filter((r) => r.status === "accepted");
-  const silentWrong = accepted.filter((r) => r.coreCorrect === false).length;
+  const silentWrong = accepted.filter((r) => r.limitCorrect === false).length;
   const acceptedCorrect = accepted.filter((r) => r.coreCorrect === true).length;
+  const acceptedIncomplete = accepted.filter((r) => r.coreCorrect === false && r.limitCorrect === true).length;
   const providerShare: Record<string, number> = {};
   for (const r of accepted) if (r.providerId) providerShare[r.providerId] = (providerShare[r.providerId] ?? 0) + 1;
 
@@ -137,8 +163,11 @@ export function summarizeChain(results: ReadonlyArray<ChainCaseResult>): ChainSu
     needsReview: results.filter((r) => r.status === "needs_review").length,
     failed: results.filter((r) => r.status === "failed").length,
     acceptedCorrect,
+    acceptedIncomplete,
     silentWrong,
     acceptedCorrectRate: rate(acceptedCorrect, n),
+    acceptedIncompleteRate: rate(acceptedIncomplete, n),
+    acceptedLimitCorrectRate: rate(acceptedCorrect + acceptedIncomplete, n),
     silentWrongRate: rate(silentWrong, n),
     needsReviewRate: rate(results.filter((r) => r.status === "needs_review").length, n),
     failedRate: rate(results.filter((r) => r.status === "failed").length, n),
@@ -154,7 +183,7 @@ export function breakdownByTag(results: ReadonlyArray<ChainCaseResult>): Record<
     for (const tag of r.tags) {
       const e = (out[tag] ??= { total: 0, correct: 0 });
       e.total += 1;
-      if (r.status === "accepted" && r.coreCorrect) e.correct += 1;
+      if (r.status === "accepted" && r.limitCorrect) e.correct += 1;
     }
   }
   return out;

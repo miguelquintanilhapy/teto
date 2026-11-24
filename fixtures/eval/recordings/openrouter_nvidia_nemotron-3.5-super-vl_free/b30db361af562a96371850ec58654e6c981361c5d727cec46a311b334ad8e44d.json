@@ -1,16 +1,16 @@
 {
   "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
-  "promptVersion": "v2",
-  "docSha256": "a29be9f3d5d2641c91afc4705c8e5bf4d7ae43f7ff76b3f60f396c7d4ef9360f",
-  "recordedAt": "2026-11-23T19:17:54.629Z",
-  "latencyMs": 2068,
+  "promptVersion": "v3",
+  "docSha256": "b30db361af562a96371850ec58654e6c981361c5d727cec46a311b334ad8e44d",
+  "recordedAt": "2026-11-23T20:03:51.077Z",
+  "latencyMs": 2252,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-05-15",
     "totalCents": 51237,
     "issuerTaxId": "34567890000130",
     "recipientTaxId": "11222333000181",
-    "accessKey": "3526053456789000013055001000045121357305280",
+    "accessKey": "3526053456789000013055001000045121357305283",
     "description": "Farinha de trigo 25kg, Açúcar refinado 30kg, Leite condensado cx 27un",
     "confidence": 0.95
   }

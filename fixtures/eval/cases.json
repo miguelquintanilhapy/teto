@@ -131,7 +131,7 @@
         "totalCents": 64090,
         "issuerTaxId": "11222333000181",
         "recipientTaxId": "12345678000195",
-        "accessKey": "35260511222333000181550010000002011015917190"
+        "accessKey": "35260511222333000181550010000002011015917191"
       }
     },
     {
@@ -240,7 +240,7 @@
         "totalCents": 51237,
         "issuerTaxId": "34567890000130",
         "recipientTaxId": "11222333000181",
-        "accessKey": "35260534567890000130550010000045121357305280"
+        "accessKey": "35260534567890000130550010000045121357305283"
       }
     },
     {
@@ -258,7 +258,7 @@
         "totalCents": 14800,
         "issuerTaxId": "45678901000175",
         "recipientTaxId": null,
-        "accessKey": "35260545678901000175550010000090871719599530"
+        "accessKey": "35260545678901000175550010000090871719599532"
       }
     },
     {
@@ -313,6 +313,178 @@
         "totalCents": 154000,
         "issuerTaxId": "11222333000181",
         "recipientTaxId": "23456789000195",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "nfse-07",
+      "file": "nfse-07.png",
+      "mimeType": "image/png",
+      "tags": [
+        "nfse",
+        "receita",
+        "pf",
+        "valor-alto",
+        "varias-linhas"
+      ],
+      "expected": {
+        "documentType": "nota_fiscal",
+        "issueDate": "2026-10-27",
+        "totalCents": 432075,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "45678912364",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "nfe-02",
+      "file": "nfe-02.png",
+      "mimeType": "image/png",
+      "tags": [
+        "nfe",
+        "receita",
+        "pj",
+        "chave-de-acesso"
+      ],
+      "expected": {
+        "documentType": "nota_fiscal",
+        "issueDate": "2026-09-25",
+        "totalCents": 387000,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "23456789000195",
+        "accessKey": "35260511222333000181550010000002021015996382"
+      }
+    },
+    {
+      "id": "recibo-04",
+      "file": "recibo-04.png",
+      "mimeType": "image/png",
+      "tags": [
+        "recibo",
+        "receita",
+        "pj",
+        "valor-alto"
+      ],
+      "expected": {
+        "documentType": "recibo",
+        "issueDate": "2026-11-10",
+        "totalCents": 315000,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "56789012000100",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "pix-03",
+      "file": "pix-03.png",
+      "mimeType": "image/png",
+      "tags": [
+        "pix",
+        "receita",
+        "pj",
+        "documento-mascarado"
+      ],
+      "expected": {
+        "documentType": "comprovante_pix",
+        "issueDate": "2026-06-30",
+        "totalCents": 199999,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": null,
+        "accessKey": null
+      }
+    },
+    {
+      "id": "cupom-03",
+      "file": "cupom-03.png",
+      "mimeType": "image/png",
+      "tags": [
+        "nfce",
+        "terceiros",
+        "chave-de-acesso",
+        "direcao-indefinida"
+      ],
+      "expected": {
+        "documentType": "nota_fiscal",
+        "issueDate": "2026-09-12",
+        "totalCents": 7640,
+        "issuerTaxId": "56789012000100",
+        "recipientTaxId": "23456789173",
+        "accessKey": "35260556789012000100550010000112201888511807"
+      }
+    },
+    {
+      "id": "adv-03",
+      "file": "adv-03.png",
+      "mimeType": "image/png",
+      "tags": [
+        "adversarial",
+        "injecao-de-prompt",
+        "em-ingles",
+        "receita"
+      ],
+      "expected": {
+        "documentType": "nota_fiscal",
+        "issueDate": "2026-08-08",
+        "totalCents": 51500,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "12345678909",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "pix-04",
+      "file": "pix-04.png",
+      "mimeType": "image/png",
+      "tags": [
+        "pix",
+        "receita",
+        "pf",
+        "rotulos-origem-destino"
+      ],
+      "expected": {
+        "documentType": "comprovante_pix",
+        "issueDate": "2026-05-19",
+        "totalCents": 56000,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "12345678909",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "pix-05",
+      "file": "pix-05.png",
+      "mimeType": "image/png",
+      "tags": [
+        "pix",
+        "receita",
+        "pf",
+        "ordem-invertida"
+      ],
+      "expected": {
+        "documentType": "comprovante_pix",
+        "issueDate": "2026-07-03",
+        "totalCents": 127530,
+        "issuerTaxId": "11222333000181",
+        "recipientTaxId": "34567891228",
+        "accessKey": null
+      }
+    },
+    {
+      "id": "pix-06",
+      "file": "pix-06.png",
+      "mimeType": "image/png",
+      "tags": [
+        "pix",
+        "despesa",
+        "pj",
+        "mei-paga"
+      ],
+      "expected": {
+        "documentType": "comprovante_pix",
+        "issueDate": "2026-08-21",
+        "totalCents": 234000,
+        "issuerTaxId": "34567890000130",
+        "recipientTaxId": "11222333000181",
         "accessKey": null
       }
     }

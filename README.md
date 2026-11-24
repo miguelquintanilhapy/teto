@@ -29,6 +29,182 @@ Limites, risco, projeção, alertas e conciliação são código próprio em
 gratuitos** de mais de um fornecedor, com failover, escalonamento por qualidade
 e validação determinística da resposta.
 
+## Estrutura
+
+```
+src/
+  core/      regras do MEI: puras, sem I/O, 100% testáveis
+  server/    extração com IA (cadeia de provedores), avaliação, casos de uso
+  app/       interface e rotas (Next.js)
+supabase/    migrações do banco
+fixtures/    notas sintéticas, gabarito e respostas gravadas dos modelos (eval)
+scripts/     verificações de ambiente, gerador de notas e runner do eval
+docs/        arquitetura, modelo de dados, regras do MEI, plano
+```
+
+## Configuração passo a passo
+
+Siga na ordem. Quem só vai **rodar** o projeto usa o mesmo Supabase do time (passo 4,
+opção B). Quem cria o projeto do zero usa a opção A.
+
+### 1. Requisitos
+
+- **Node 24** (`node -v`) e **npm**. Há um `.nvmrc` com a versão.
+- **Git**.
+
+### 2. Clonar e instalar
+
+```bash
+git clone https://github.com/miguelquintanilhapy/teto.git
+cd teto
+npm install
+```
+
+### 3. Criar o `.env.local`
+
+O arquivo `.env.local` **não vem no repositório** (de propósito: ele guarda chaves).
+Crie a partir do modelo:
+
+```powershell
+# Windows (PowerShell)
+Copy-Item .env.example .env.local
+```
+
+```bash
+# macOS / Linux
+cp .env.example .env.local
+```
+
+Preencha cada variável. **Sem aspas e sem espaço antes ou depois do `=`.**
+
+| Variável | De onde vem | Observações |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase: botão **Connect**, ou Settings → Data API | Termina em `.supabase.co`. **Sem `/rest/v1`**. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase: Settings → API Keys → **Publishable key** | Começa com `sb_publishable_`. Pode ficar no navegador. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase: Settings → API Keys → **Secret key** | Começa com `sb_secret_`. **Acesso total ao banco**: só no servidor, nunca no Git. |
+| `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Use uma conta **Gmail pessoal**. Contas corporativas (Workspace) costumam bloquear. Não ative cobrança. |
+| `OPENROUTER_API_KEY` | [openrouter.ai/keys](https://openrouter.ai/keys) | Sugestão: expiração de 90 dias e limite de crédito baixo (US$ 0,10). Usamos só modelos `:free`. |
+| `MODEL_CHAIN` | Lista fixa do time | **Uma linha só**, sem espaços (veja abaixo). |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys | Opcional até os alertas por e-mail entrarem. Pode ficar vazio. |
+| `CRON_SECRET` | Você inventa | **Mínimo de 16 caracteres.** Veja como gerar abaixo. |
+| `EXTRACTION_DAILY_QUOTA` | Padrão `200` | Teto diário de extrações com IA, para proteger a cota gratuita. |
+
+Valor atual do `MODEL_CHAIN` (do modelo mais leve ao mais forte):
+
+```
+MODEL_CHAIN=gemini:gemini-3.1-flash-lite,gemini:gemini-3.8-flash,openrouter:nvidia/nemotron-3.5-super-vl:free
+```
+
+Para gerar um `CRON_SECRET` no PowerShell:
+
+```powershell
+-join ((48..57)+(97..122) | Get-Random -Count 32 | ForEach-Object {[char]$_})
+```
+
+> Se faltar ou estiver errada qualquer variável, o app e os scripts param com a lista
+> de **todos** os problemas de uma vez (`Configuração inválida: ...`).
+
+### 4. Banco de dados (Supabase)
+
+**Opção A: você cria o projeto**
+
+1. Em [supabase.com/dashboard](https://supabase.com/dashboard), crie um projeto novo
+   (plano Free). Guarde a senha do banco. Prefira a região **South America (São Paulo)**,
+   que tem menos latência para usuários no Brasil. (O projeto atual do time está em
+   *West US (Oregon)*; para o hackathon isso só soma alguns milissegundos e não precisa mudar.)
+2. Abra o **SQL Editor** → **New query**, cole **todo** o arquivo
+   [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) e clique em **Run**.
+   **Rode uma vez só**: repetir dá erro de "already exists".
+3. Pegue a URL e as chaves (tabela do passo 3).
+
+**Opção B: o projeto já existe (a equipe usa o mesmo)**
+
+1. Peça ao dono do projeto para convidar você: clique no nome da organização no topo do
+   Supabase → **Team** → **Invite members** (papel **Developer**).
+2. Aceite o convite que chega por e-mail (olhe também o spam) e entre com a sua conta.
+3. No projeto `teto`, pegue a URL e as chaves em **Project Settings → API Keys**.
+   **Não peça a chave secreta por mensagem.** Se não conseguir ver a *Secret key* ou abrir
+   o *SQL Editor*, avise o dono: o papel pode precisar subir para *Administrator*.
+4. **Não rode a migração de novo.**
+
+**Conferir** (as duas opções):
+
+```bash
+npm run check:supabase
+```
+
+Deve listar as 10 tabelas como `OK`, o bucket `documents` como privado e terminar com
+`Tudo certo.`
+
+### 5. Chaves de IA
+
+```bash
+npm run check:ai
+```
+
+Faz **uma chamada real por modelo** (gasta 1 requisição da cota gratuita de cada um).
+Para testar só um provedor: `npm run check:ai -- gemini`.
+
+### 6. Rodar e validar
+
+```bash
+npm run dev     # http://localhost:3000
+npm run check   # lint + tipos + testes (o mesmo que a CI roda)
+npm run eval    # avaliação da extração, repetindo respostas gravadas (sem rede)
+```
+
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm test` | Testes unitários (Vitest) |
+| `npm run typecheck` | Checagem de tipos |
+| `npm run lint` | ESLint |
+| `npm run check` | Lint + tipos + testes (o mesmo que a CI roda) |
+| `npm run check:supabase` | Confere a conexão e o schema do banco (não imprime chaves) |
+| `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
+| `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
+| `npm run eval:record` | Regrava as respostas chamando os modelos de verdade (usa a cota gratuita) |
+| `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
+
+## Problemas comuns
+
+| Sintoma | Causa provável | O que fazer |
+|---|---|---|
+| `Configuração inválida: ...` | Variável faltando ou com formato errado no `.env.local` | Corrija cada item listado e salve o arquivo |
+| `NEXT_PUBLIC_SUPABASE_URL deve terminar em .supabase.co` | A URL veio com `/rest/v1` no final | Apague tudo depois de `.supabase.co` |
+| `check:supabase` com `FALHA` nas tabelas | Migração não aplicada, ou URL/chave de outro projeto | Rode o `0001_init.sql` (só no projeto novo) e confira a URL |
+| `check:ai` com `503 ... high demand` | Sobrecarga temporária do Google | Não é erro nosso. Tente de novo mais tarde; a cadeia já usa o próximo modelo |
+| `check:ai` com `429` | Cota do plano gratuito esgotada | Espere o limite zerar (o do Google zera à meia-noite no fuso do Pacífico) |
+| `check:ai` com `403` ou `401` | Chave inválida, expirada ou conta bloqueada | Gere outra chave. Conta de empresa pode estar bloqueada |
+| "permission denied" no AI Studio | Conta corporativa (Workspace) | Use um Gmail pessoal, em janela anônima, e aceite os termos |
+| `npm install` falha com `ETARGET typescript-eslint` | Publicação parcial do pacote no npm | O `package.json` já fixa a versão; rode `npm install` de novo |
+| `eval` diz "sem gravação" | O prompt mudou e as gravações antigas deixaram de valer | `npm run eval:record` (usa a cota gratuita) |
+| Notas do `fixtures:generate` com fonte diferente | O gerador usa fontes do sistema (Arial, Courier New, Segoe Script) | Só para regenerar. As imagens já estão no repositório |
+
+## Regras de segurança do time
+
+- **Nunca** commite o `.env.local` (o `.gitignore` já o bloqueia; confira com `git status`).
+- **Nunca** cole chaves em chat, issue, PR ou print. Se vazar, gere outra no painel do provedor.
+- Ative a **verificação em duas etapas (MFA)** nas contas do GitHub e do Supabase: o projeto guarda a chave secreta do banco.
+- A chave `SUPABASE_SERVICE_ROLE_KEY` ignora todas as proteções do banco: só no servidor.
+- **Só dados sintéticos** em testes, avaliação e demo. Os planos gratuitos de IA podem usar o
+  conteúdo enviado para melhorar os produtos.
+- Alterações de comportamento da IA (prompt, schema) sobem a versão do prompt e exigem
+  regravar o eval.
+
+## Como trabalhamos
+
+- **Acesso ao repositório:** o dono do repositório convida cada integrante em
+  GitHub → **Settings → Collaborators → Add people**. Sem isso não dá para enviar branches
+  nem abrir PRs. Cada integrante deve commitar com o próprio nome e e-mail
+  (`git config user.name` e `git config user.email`), para o histórico mostrar a contribuição dos três.
+- Branches curtas (vida de um dia) e pull request para a `main`; a CI precisa passar antes do merge.
+- Mensagens de commit no formato `feat:`, `fix:`, `docs:`, `test:`, `chore:`.
+- `git pull --rebase` antes de começar uma tarefa e antes de abrir o PR.
+- Merge com "merge commit" ou "rebase", sem squash, para manter o histórico dos três.
+
 ## Documentação
 
 | Documento | Conteúdo |
@@ -48,46 +224,16 @@ e validação determinística da resposta.
 - Demonstração com perfil único e dados fictícios, sem login.
 - A projeção é linear e não considera sazonalidade.
 
-```
-src/
-  core/      regras do MEI: puras, sem I/O, 100% testáveis
-  server/    extração com IA (cadeia de provedores), casos de uso
-  app/       interface e rotas (Next.js)
-docs/        arquitetura, regras do MEI, engenharia de IA
-```
-
-## Rodando localmente
-
-Requisitos: Node 24 e npm.
-
-```bash
-npm install
-cp .env.example .env.local   # preencha as chaves
-npm run dev                  # http://localhost:3000
-```
-
-| Comando | O que faz |
-|---|---|
-| `npm test` | Testes unitários (Vitest) |
-| `npm run typecheck` | Checagem de tipos |
-| `npm run lint` | ESLint |
-| `npm run check` | Lint + tipos + testes (o mesmo que a CI roda) |
-| `npm run check:supabase` | Confere a conexão e o schema do banco (não imprime chaves) |
-| `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
-| `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
-| `npm run eval:record` | Regrava as respostas chamando os modelos de verdade |
-| `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
-
 ## Estado atual
 
 - [x] Núcleo de regras do MEI com testes
 - [x] Roteador de modelos em cadeia com testes (failover, cooldown, orçamento de tempo, cota diária)
 - [x] Validação de ambiente e migração inicial do banco
 - [x] Adaptadores dos provedores de IA (Gemini e OpenRouter)
+- [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
 - [ ] Persistência (Supabase) e rotas de API
 - [ ] Interface (upload, confirmação, painel, simulador)
 - [ ] Alertas por e-mail e cron
-- [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
 
 ## Nota técnica
 

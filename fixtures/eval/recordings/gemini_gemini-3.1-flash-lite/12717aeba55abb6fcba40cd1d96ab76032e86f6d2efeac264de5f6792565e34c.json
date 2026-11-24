@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.1-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "12717aeba55abb6fcba40cd1d96ab76032e86f6d2efeac264de5f6792565e34c",
+  "recordedAt": "2026-11-23T19:58:56.673Z",
+  "latencyMs": 2749,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-09-12",
+    "totalCents": 7640,
+    "issuerTaxId": "56.789.012/0001-00",
+    "recipientTaxId": "234.567.891-73",
+    "accessKey": "35260556789012000100550010000112201888511807",
+    "description": "Café especial 1kg e filtro de papel",
+    "confidence": 1
+  }
+}

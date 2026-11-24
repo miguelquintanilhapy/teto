@@ -238,7 +238,7 @@ describe("regras de negócio da extração", () => {
     expect(checkBusinessRules({ ...GOOD, issueDate: "2026-02-30" }, rules)).toContain("data de emissão inválida");
     expect(checkBusinessRules({ ...GOOD, issueDate: "2026-06-01" }, rules)).toContain("data de emissão no futuro");
     expect(checkBusinessRules({ ...GOOD, totalCents: 0 }, rules)).toContain("valor deve ser positivo");
-    expect(checkBusinessRules({ ...GOOD, accessKey: "123" }, rules)).toContain("chave de acesso deve ter 44 dígitos");
+    expect(checkBusinessRules({ ...GOOD, accessKey: "123" }, rules)).toContain("chave de acesso inválida (44 dígitos com dígito verificador correto)");
   });
 
   it("valida o schema e rejeita campos extras de tipo errado", () => {
