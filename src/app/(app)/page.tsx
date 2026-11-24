@@ -7,8 +7,7 @@ import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
 import { MonthlyChart } from "@/components/panel/monthly-chart";
 import { QuickEntry } from "@/components/panel/quick-entry";
-import { getTransactionsDeps } from "@/server/composition";
-import { loadPanel } from "@/server/panel";
+import { loadPanelSafe } from "@/server/panel-safe";
 
 export default function PainelPage() {
   return (
@@ -33,17 +32,15 @@ function Mensagem({ titulo, texto }: { titulo: string; texto: string }) {
 }
 
 async function PainelConteudo() {
-  let panel;
-  try {
-    panel = await loadPanel(getTransactionsDeps());
-  } catch (e) {
-    // A causa vai para o log do servidor, e não para a tela.
-    console.error("painel: falha ao carregar", e instanceof Error ? e.message.slice(0, 200) : "erro desconhecido");
-    return <Mensagem titulo="Não foi possível carregar o painel" texto="Tente de novo em instantes." />;
+  const r = await loadPanelSafe("painel");
+  if (!r.ok) {
+    return r.reason === "no_profile" ? (
+      <Mensagem titulo="Perfil de demonstração não encontrado" texto="Rode npm run seed para criar os dados de demonstração." />
+    ) : (
+      <Mensagem titulo="Não foi possível carregar o painel" texto="Tente de novo em instantes." />
+    );
   }
-  if (!panel) {
-    return <Mensagem titulo="Perfil de demonstração não encontrado" texto="Rode npm run seed para criar os dados de demonstração." />;
-  }
+  const panel = r.panel;
 
   const { dashboard, profile, months, today } = panel;
   const year = yearOf(today);
