@@ -76,7 +76,7 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
         error: null,
       });
     } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return setStage({ name: "choose", error: null });
+      if (e instanceof DOMException && e.name === "AbortError") return; // quem cancelou já escolheu a próxima tela
       setStage({ name: "choose", error: "Sem conexão com o servidor. Confira a internet e tente de novo." });
     }
   }
@@ -84,6 +84,18 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
   function cancelReading() {
     abortRef.current?.abort();
     setStage({ name: "choose", error: null });
+  }
+
+  /** O usuário não quis esperar a IA: abre o formulário em branco. */
+  function skipToManual() {
+    abortRef.current?.abort();
+    setStage({
+      name: "review",
+      values: EMPTY,
+      notice: { duplicate: false, lowTrust: false, manual: true },
+      saving: false,
+      error: null,
+    });
   }
 
   async function confirm(values: ReviewValues, notice: ReviewNotice, kind: "receita" | "despesa", explicit: boolean) {
@@ -121,7 +133,7 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
   return (
     <SheetShell title={TITLES[stage.name]}>
       {stage.name === "choose" && <ChooseStep onFile={handleFile} error={stage.error} />}
-      {stage.name === "reading" && <ReadingStep fileName={stage.fileName} onCancel={cancelReading} />}
+      {stage.name === "reading" && <ReadingStep fileName={stage.fileName} onCancel={cancelReading} onManual={skipToManual} />}
       {stage.name === "review" && (
         <ReviewStep
           ctx={ctx}
