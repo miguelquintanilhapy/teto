@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { buildDashboard, yearOf } from "@/core";
+import { maskTaxId } from "@/lib/format";
 import type { Clock } from "@/server/clock";
 import type { ProfileRecord, ProfilesRepo } from "@/server/extraction/service";
 import {
@@ -50,8 +51,9 @@ function view(t: TransactionRecord) {
     kind: t.kind,
     source: t.source,
     status: t.status,
-    counterpartyTaxId: t.counterpartyTaxId,
-    accessKey: t.accessKey,
+    // Dados pessoais saem mascarados: sem autenticação, a API não entrega o CPF inteiro nem a chave completa.
+    counterparty: maskTaxId(t.counterpartyTaxId),
+    accessKeySuffix: t.accessKey ? t.accessKey.slice(-8) : null,
     description: t.description,
   };
 }

@@ -55,9 +55,11 @@ describe("POST /api/transactions", () => {
       kind: "receita",
       status: "confirmada",
       amountCents: 1_250_00,
-      counterpartyTaxId: "12345678000195",
+      counterparty: "CNPJ 12.345.678/••••-••",
     });
     expect(JSON.stringify(json)).not.toMatch(/profileId|profile_id|confidence/);
+    // Dado pessoal nunca sai inteiro: nem o CNPJ da outra parte.
+    expect(JSON.stringify(json)).not.toContain("12345678000195");
     expect(transactions.rows).toHaveLength(1);
     expect(transactions.events).toHaveLength(1);
   });

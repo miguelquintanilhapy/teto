@@ -1,5 +1,6 @@
 import { buildDashboard, monthlyRevenue, yearOf, type Cents, type Dashboard, type ISODate } from "@/core";
 import type { TransactionsHandlerDeps } from "@/server/http/transactions-handler";
+import { maskTaxId } from "@/lib/format";
 import { toCore, type TransactionRecord } from "@/server/transactions/service";
 
 /** Lançamento como a interface precisa: sem identificadores internos do banco. */
@@ -11,7 +12,8 @@ export interface TransactionView {
   source: "nota" | "pix" | "manual";
   status: "pendente" | "confirmada" | "cancelada";
   description: string;
-  counterpartyTaxId: string | null;
+  /** A outra parte já mascarada (CPF ou CNPJ): o documento inteiro nunca sai do servidor. */
+  counterparty: string;
   issueDate: ISODate | null;
   /** Só o final da chave de acesso: o suficiente para reconhecer a nota. */
   accessKeySuffix: string | null;
@@ -36,7 +38,7 @@ const view = (t: TransactionRecord): TransactionView => ({
   source: t.source,
   status: t.status,
   description: t.description,
-  counterpartyTaxId: t.counterpartyTaxId,
+  counterparty: maskTaxId(t.counterpartyTaxId),
   issueDate: t.issueDate,
   accessKeySuffix: t.accessKey ? t.accessKey.slice(-8) : null,
   confidence: t.confidence,

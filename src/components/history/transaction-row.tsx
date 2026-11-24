@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Warning } from "@phosphor-icons/react/dist/ssr";
-import { formatMoney, maskTaxId } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import type { TransactionView } from "@/server/panel";
 
 const SOURCE: Record<TransactionView["source"], string> = {
@@ -26,7 +26,7 @@ export function TransactionRow({ t }: { t: TransactionView }) {
       <div className="min-w-0 flex-1">
         <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{t.description || "Sem descrição"}</p>
         <p className="t-sub truncate text-label-2">
-          {SOURCE[t.source]} · {maskTaxId(t.counterpartyTaxId)}
+          {SOURCE[t.source]} · {t.counterparty}
         </p>
         {pending && (
           <p className="t-caption mt-0.5 flex items-center gap-1 font-semibold text-warn-text">

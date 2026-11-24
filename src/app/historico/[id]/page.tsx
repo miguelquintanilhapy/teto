@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { TransactionActions } from "@/components/history/transaction-actions";
 import { SheetShell } from "@/components/send/sheet-shell";
-import { formatFullShortDate, formatMoney, maskTaxId } from "@/lib/format";
+import { formatFullShortDate, formatMoney } from "@/lib/format";
 import { describeEvent, limitImpact, sourceLabel, STATUS_LABEL } from "@/lib/transaction-detail";
 import { getTransactionEvents } from "@/server/panel-cache";
 import { loadPanelSafe } from "@/server/panel-safe";
@@ -70,7 +70,7 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
         <Row label="Data" value={formatFullShortDate(t.date)} />
         {t.issueDate && t.issueDate !== t.date && <Row label="Emissão" value={formatFullShortDate(t.issueDate)} />}
         <Row label="Origem" value={sourceLabel(t.source)} />
-        <Row label={income ? "Cliente" : "Fornecedor"} value={maskTaxId(t.counterpartyTaxId)} />
+        <Row label={income ? "Cliente" : "Fornecedor"} value={t.counterparty} />
         <Row label="Descrição" value={t.description || "Sem descrição"} />
         {t.accessKeySuffix && <Row label="Chave de acesso" value={`…${t.accessKeySuffix}`} />}
         {t.confidence !== null && <Row label="Confiança da IA" value={`${Math.round(t.confidence * 100)}%`} />}
