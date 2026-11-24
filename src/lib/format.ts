@@ -29,6 +29,14 @@ export function wholeReais(cents: Cents): string {
   return brl.format(Math.trunc(cents / 100));
 }
 
+/** Valor curto para rótulos de gráfico: 6700 reais viram "6,7 mil"; abaixo de mil, o valor inteiro. */
+export function formatCompact(cents: Cents): string {
+  const reais = Math.round(cents / 100);
+  if (reais < 1000) return String(reais);
+  const mil = reais / 1000;
+  return `${mil.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+}
+
 /** Percentual inteiro: 0.889 vira "89%". */
 export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;

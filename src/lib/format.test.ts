@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   centsPart,
+  formatCompact,
   formatDayMonth,
   formatFullShortDate,
   formatMoney,
@@ -55,6 +56,15 @@ describe("formatação de datas e percentuais", () => {
 
   it("usa a inicial do mês no gráfico", () => {
     expect([2, 3, 4, 5].map(monthInitial)).toEqual(["M", "A", "M", "J"]);
+  });
+});
+
+describe("formatCompact", () => {
+  it("encurta valores de rótulo de gráfico", () => {
+    expect(formatCompact(6_700_00)).toBe("6,7 mil");
+    expect(formatCompact(10_000_00)).toBe("10 mil");
+    expect(formatCompact(850_00)).toBe("850");
+    expect(formatCompact(0)).toBe("0");
   });
 });
 
