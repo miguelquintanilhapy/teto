@@ -20,7 +20,7 @@ export interface TransactionView {
 
 export interface PanelData {
   today: ISODate;
-  profile: { name: string; taxId: string; openingDate: ISODate };
+  profile: { name: string; taxId: string; openingDate: ISODate; email: string };
   dashboard: Dashboard;
   /** Receita confirmada de cada mês do ano (índice 0 = janeiro). */
   months: Cents[];
@@ -55,7 +55,7 @@ export async function loadPanel(deps: TransactionsHandlerDeps): Promise<PanelDat
   const core = rows.map(toCore);
   return {
     today,
-    profile: { name: profile.name, taxId: profile.taxId, openingDate: profile.openingDate },
+    profile: { name: profile.name, taxId: profile.taxId, openingDate: profile.openingDate, email: profile.email },
     dashboard: buildDashboard({ transactions: core, today, openingDate: profile.openingDate }),
     months: monthlyRevenue(core, year, today),
     transactions: rows.map(view).sort((a, b) => b.date.localeCompare(a.date)),
