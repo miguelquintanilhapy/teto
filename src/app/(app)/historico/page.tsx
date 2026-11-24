@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { HistoryList } from "@/components/history/history-list";
 import { loadPanelSafe } from "@/server/panel-safe";
@@ -5,7 +6,12 @@ import { loadPanelSafe } from "@/server/panel-safe";
 export default function HistoricoPage() {
   return (
     <main>
-      <h1 className="t-large-title mt-2 mb-3">Histórico</h1>
+      <div className="mt-2 mb-3 flex items-center justify-between gap-3">
+        <h1 className="t-large-title">Histórico</h1>
+        <Link href="/extrato" className="glass shrink-0 rounded-full px-4 py-2.5 text-[0.9375rem] font-semibold">
+          Conciliar extrato
+        </Link>
+      </div>
       <Suspense fallback={<HistoricoSkeleton />}>
         <Conteudo />
       </Suspense>

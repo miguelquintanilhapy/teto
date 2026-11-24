@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
+import { readLaunchParams } from "@/lib/reconciliation";
 import { readConfirmResponse, readUploadResponse } from "@/lib/send-api";
 import { impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
 import { checkFile, ChooseStep } from "./choose-step";
@@ -39,9 +40,11 @@ const TITLES: Record<Stage["name"], string | undefined> = {
 export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
   const router = useRouter();
   const [ctx, setCtx] = useState(initialCtx);
+  const params = useSearchParams();
+  const prefill = startManual ? readLaunchParams((k) => params.get(k), initialCtx.today) : null;
   const first = (): Stage =>
     startManual
-      ? { name: "review", values: EMPTY, notice: { duplicate: false, lowTrust: false, manual: true, chosen: true }, saving: false, error: null }
+      ? { name: "review", values: prefill ? { ...EMPTY, amountCents: prefill.amountCents, date: prefill.date, description: prefill.description } : EMPTY, notice: { duplicate: false, lowTrust: false, manual: true, chosen: true }, saving: false, error: null }
       : { name: "choose", error: null };
   const [stage, setStage] = useState<Stage>(first);
   const abortRef = useRef<AbortController | null>(null);
