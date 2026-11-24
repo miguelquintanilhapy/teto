@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useSessionValue, writeSessionValue } from "@/components/prefs/use-session";
 import { CheckCircle, FileCsv, Warning } from "@phosphor-icons/react/dist/ssr";
 import { formatFullShortDate, formatMoney, formatReais } from "@/lib/format";
 import { launchHref, reconcileStatement, type ReceiptLike } from "@/lib/reconciliation";
 import { parseStatementCsv, type ParsedStatement } from "@/lib/statement";
 
 const MAX_BYTES = 2 * 1024 * 1024;
+const SESSION_KEY = "teto-extrato";
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
@@ -25,9 +27,22 @@ function Section({ title, count, children }: { title: string; count: number; chi
  * navegador, e nunca é enviado ao servidor.
  */
 export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
-  const [parsed, setParsed] = useState<ParsedStatement | null>(null);
-  const [fileName, setFileName] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // O extrato lido fica só nesta aba: ao lançar uma entrada e voltar, ele continua aqui, já reconciliado
+  // com a receita nova. Some ao fechar a aba ou em "Limpar".
+  const raw = useSessionValue(SESSION_KEY);
+  const stored = useMemo<{ fileName: string; parsed: ParsedStatement } | null>(() => {
+    if (!raw) return null;
+    try {
+      const v = JSON.parse(raw) as { fileName: string; parsed: ParsedStatement };
+      return Array.isArray(v.parsed?.entries) ? v : null;
+    } catch {
+      return null;
+    }
+  }, [raw]);
+  const parsed = stored?.parsed ?? null;
+  const fileName = stored?.fileName ?? "";
 
   const view = useMemo(() => (parsed && parsed.error === null ? reconcileStatement(parsed.entries, receipts) : null), [parsed, receipts]);
 
@@ -41,9 +56,11 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
       return setError("Envie o extrato em CSV. Em PDF o Teto ainda não lê extratos.");
     }
     const result = parseStatementCsv(await file.text());
-    setFileName(file.name);
-    setParsed(result);
-    if (result.error) setError(result.error);
+    if (result.error) {
+      writeSessionValue(SESSION_KEY, null);
+      return setError(result.error);
+    }
+    writeSessionValue(SESSION_KEY, JSON.stringify({ fileName: file.name, parsed: result }));
   }
 
   return (
@@ -57,7 +74,7 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
           Envie o extrato em CSV. O Teto mostra as entradas que não têm nota, que podem ser receita ainda não lançada.
         </p>
         <p className="t-sub mt-2 text-label-2">O arquivo é lido neste aparelho e não é enviado a nenhum servidor.</p>
-        <label className="mt-4 flex h-[3.375rem] w-full cursor-pointer items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-label">
+        <label className="pressable mt-4 flex h-[3.375rem] w-full cursor-pointer items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-label">
           {parsed ? "Escolher outro extrato" : "Escolher extrato (CSV)"}
           <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={onFile} className="sr-only" />
         </label>
@@ -74,7 +91,10 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
         <div aria-live="polite">
           <p className="t-sub mt-4 px-2 text-label-2">
             {fileName}: {view.creditCount} entradas ({formatReais(view.creditTotalCents)}) e {parsed.entries.length - view.creditCount} saídas
-            {parsed.skipped > 0 && `. ${parsed.skipped} linhas não deram para ler.`}
+            {parsed.skipped > 0 && `. ${parsed.skipped} linhas não deram para ler.`}{" "}
+            <button type="button" onClick={() => writeSessionValue(SESSION_KEY, null)} className="min-h-11 font-semibold text-label underline underline-offset-2">
+              Limpar
+            </button>
           </p>
 
           <Section title="Entradas sem nota" count={view.unmatchedCredits.length}>
@@ -94,7 +114,7 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
                           {c.description && ` · ${c.description}`}
                         </p>
                       </div>
-                      <Link href={launchHref(c)} className="shrink-0 rounded-full bg-primary px-4 py-2 text-[0.9375rem] font-bold text-on-primary">
+                      <Link href={launchHref(c)} className="pressable inline-flex min-h-11 shrink-0 items-center rounded-full bg-primary px-4 text-[0.9375rem] font-bold text-on-primary">
                         Lançar
                       </Link>
                     </li>

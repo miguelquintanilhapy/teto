@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { formatDayMonth } from "@/lib/format";
@@ -37,7 +38,14 @@ function applyFilter(list: TransactionView[], filter: FilterId): TransactionView
  */
 export function HistoryList({ transactions }: { transactions: TransactionView[] }) {
   const initial = useSearchParams().get("status");
-  const [filter, setFilter] = useState<FilterId>(isFilter(initial) ? initial : "todas");
+  const [filter, setFilterState] = useState<FilterId>(isFilter(initial) ? initial : "todas");
+
+  // O filtro vai para o endereço sem navegar: sobrevive ao recarregar e ao compartilhar o link.
+  function setFilter(next: FilterId) {
+    setFilterState(next);
+    const url = next === "todas" ? "/historico" : `/historico?status=${next}`;
+    window.history.replaceState(window.history.state, "", url);
+  }
 
   const list = applyFilter(transactions, filter);
   const groups = new Map<string, TransactionView[]>();
@@ -54,7 +62,7 @@ export function HistoryList({ transactions }: { transactions: TransactionView[] 
               type="button"
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
-              className={`shrink-0 rounded-full px-4 py-2 text-[0.9375rem] font-semibold ${
+              className={`pressable hoverable min-h-11 shrink-0 rounded-full px-4 py-2 text-[0.9375rem] font-semibold ${
                 active ? "bg-primary text-on-primary" : "bg-card text-label"
               }`}
             >
@@ -70,6 +78,11 @@ export function HistoryList({ transactions }: { transactions: TransactionView[] 
           <p className="t-body mt-1 text-label-2">
             {filter === "pendente" ? "Nenhuma nota aguardando conferência." : "Nenhum lançamento nesta lista ainda."}
           </p>
+          {filter === "todas" && (
+            <Link href="/enviar" className="pressable mt-4 flex h-12 items-center justify-center rounded-full bg-primary text-[1.0625rem] font-bold text-on-primary">
+              Enviar a primeira nota
+            </Link>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-5">

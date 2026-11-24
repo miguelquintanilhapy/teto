@@ -32,7 +32,7 @@ async function patch(id: string, body: Record<string, unknown>): Promise<{ ok: t
   }
 }
 
-const secondary = "flex h-[3.375rem] w-full items-center justify-center rounded-full bg-card text-[1.1875rem] font-semibold";
+const secondary = "pressable flex h-[3.375rem] w-full items-center justify-center rounded-full bg-card text-[1.1875rem] font-semibold";
 
 /** Corrigir e cancelar. Cancelar pede confirmação e diz o que muda no limite. */
 export function TransactionActions({ t, today }: { t: Editable; today: string }) {
@@ -44,6 +44,7 @@ export function TransactionActions({ t, today }: { t: Editable; today: string })
   const [attempted, setAttempted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const errors = attempted ? reviewErrors({ amountCents: amount, date }, today) : {};
 
@@ -54,7 +55,17 @@ export function TransactionActions({ t, today }: { t: Editable; today: string })
     setSaving(false);
     if (!r.ok) return setError(r.message);
     router.refresh();
+    setSaved(true);
     after();
+  }
+
+  function discard() {
+    setAmount(t.amountCents);
+    setDate(t.date);
+    setDescription(t.description);
+    setAttempted(false);
+    setError(null);
+    setMode("idle");
   }
 
   function save() {
@@ -87,8 +98,8 @@ export function TransactionActions({ t, today }: { t: Editable; today: string })
           >
             {saving ? "Salvando…" : "Salvar correção"}
           </button>
-          <button type="button" onClick={() => setMode("idle")} disabled={saving} className={secondary}>
-            Cancelar
+          <button type="button" onClick={discard} disabled={saving} className={secondary}>
+            Descartar alterações
           </button>
         </div>
       </section>
@@ -130,7 +141,12 @@ export function TransactionActions({ t, today }: { t: Editable; today: string })
 
   return (
     <div className="mt-6 flex flex-col gap-3">
-      <button type="button" onClick={() => setMode("editing")} className={secondary}>
+      {saved && (
+        <p role="status" className="t-body rounded-card bg-card p-4 text-ok-text">
+          Correção salva e registrada no histórico.
+        </p>
+      )}
+      <button type="button" onClick={() => { setSaved(false); setMode("editing"); }} className={secondary}>
         Corrigir valor, data ou descrição
       </button>
       <button
