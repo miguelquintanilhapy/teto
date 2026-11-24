@@ -44,11 +44,9 @@ export async function handleSaveProfile(req: Request, deps: ProfileHandlerDeps):
     if (!deps.allowEdit && (await deps.profiles.getDemoProfileId()) !== null) {
       return json({ error: "edit_disabled", message: "A edição do cadastro está desativada neste ambiente." }, 403);
     }
-    const saved = await deps.profiles.saveDemoProfile(check.value);
-    return json({
-      status: "saved",
-      profile: { name: saved.name, taxId: saved.taxId, openingDate: saved.openingDate, email: saved.email },
-    });
+    await deps.profiles.saveDemoProfile(check.value);
+    // Só a confirmação: o CNPJ e o e-mail não voltam na resposta.
+    return json({ status: "saved" });
   } catch (e) {
     const message = e instanceof Error ? e.message : "erro desconhecido";
     if (message.includes("CNPJ já está cadastrado")) {

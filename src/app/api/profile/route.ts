@@ -1,5 +1,6 @@
 import { revalidateTag } from "next/cache";
 import { getTransactionsDeps } from "@/server/composition";
+import { getEnv } from "@/server/env";
 import { handleSaveProfile } from "@/server/http/profile-handler";
 import { FORBIDDEN_ORIGIN, isSameOrigin } from "@/server/http/origin";
 import { PANEL_TAG } from "@/server/panel-cache";
@@ -16,7 +17,7 @@ export async function PUT(request: Request): Promise<Response> {
       { status: 500, headers: { "Cache-Control": "no-store" } },
     );
   }
-  const res = await handleSaveProfile(request, deps);
+  const res = await handleSaveProfile(request, { profiles: deps.profiles, clock: deps.clock, allowEdit: getEnv().allowProfileEdit });
   // O perfil define o limite e o tipo das notas: descarta o cache do painel já.
   if (res.status === 200) revalidateTag(PANEL_TAG, { expire: 0 });
   return res;

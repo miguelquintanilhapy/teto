@@ -3,9 +3,10 @@ import { fixedClock } from "@/server/clock";
 import { InMemoryProfilesRepo } from "@/server/extraction/memory";
 import { handleSaveProfile } from "./profile-handler";
 
-const deps = (id: string | null = null) => ({
+const deps = (id: string | null = null, allowEdit = true) => ({
   profiles: new InMemoryProfilesRepo(id),
   clock: fixedClock("2026-11-24T15:00:00Z"),
+  allowEdit,
 });
 
 const put = (body: unknown) =>
@@ -29,7 +30,9 @@ describe("PUT /api/profile", () => {
     const res = await handleSaveProfile(put(valid), d);
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toBe("no-store");
-    expect((await res.json()).profile).toMatchObject({ taxId: "11222333000181", name: "Doces da Marta MEI" });
+    const body = await res.json();
+    expect(body).toEqual({ status: "saved" }); // nada de CNPJ nem e-mail de volta
+    expect(JSON.stringify(body)).not.toContain("marta@example.com");
     expect(await d.profiles.getDemoProfile()).toMatchObject({ taxId: "11222333000181" });
   });
 
@@ -37,6 +40,15 @@ describe("PUT /api/profile", () => {
     const d = deps("p1");
     await handleSaveProfile(put({ ...valid, name: "Bolos da Marta" }), d);
     expect((await d.profiles.getDemoProfile())?.name).toBe("Bolos da Marta");
+  });
+
+  it("com a edição desativada, o primeiro cadastro passa e a troca de um cadastro existente é recusada", async () => {
+    expect((await handleSaveProfile(put(valid), deps(null, false))).status).toBe(200);
+    const locked = deps("p1", false);
+    const res = await handleSaveProfile(put({ ...valid, taxId: "12.345.678/0001-95" }), locked);
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toBe("edit_disabled");
+    expect((await locked.profiles.getDemoProfile())?.taxId).toBe("11222333000181"); // nada mudou
   });
 
   it("devolve o erro de cada campo, com 422", async () => {
