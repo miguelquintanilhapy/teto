@@ -33,7 +33,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           <h2 id="hero-title" className="text-base font-medium text-label-2">
             Faturamento de {year}
           </h2>
-          <p className="t-display mt-0.5 mb-2.5">
+          <p className="t-display sensitive mt-0.5 mb-2.5">
             R$&nbsp;{wholeReais(accumulatedCents)}
             <span className="sr-only">{centsPart(accumulatedCents)}</span>
           </p>
@@ -43,7 +43,9 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           </p>
           <p className="mt-1 text-base leading-snug text-label-2">
             {formatPercent(usedRatio)} do limite.{" "}
-            {headroomCents > 0 ? `Ainda cabem ${formatReais(headroomCents)}.` : "O limite do ano já foi atingido."}
+            <span className="sensitive">
+              {headroomCents > 0 ? `Ainda cabem ${formatReais(headroomCents)}.` : "O limite do ano já foi atingido."}
+            </span>
           </p>
         </div>
         <dl className="t-caption mt-3.5 flex flex-col gap-1.5 text-label-2">

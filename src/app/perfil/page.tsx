@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { monthOf, rulesFor, yearOf } from "@/core";
+import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
+import { ThemeControl } from "@/components/prefs/theme-control";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatPercent, formatReais, monthName } from "@/lib/format";
 import { loadPanelSafe } from "@/server/panel-safe";
@@ -72,6 +74,16 @@ async function Conteudo() {
           </p>
         </div>
       </section>
+
+      <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Aparência</h2>
+      <div className="divide-y divide-sep rounded-card bg-card">
+        <div className="px-5 py-3.5">
+          <p className="t-row mb-2.5">Tema</p>
+          <ThemeControl />
+        </div>
+        <PrivacyToggle variant="row" />
+      </div>
+      <p className="t-sub mt-2 px-5 text-label-2">Estas escolhas ficam só neste aparelho.</p>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Regras de {year}</h2>
       <div className="divide-y divide-sep rounded-card bg-card">

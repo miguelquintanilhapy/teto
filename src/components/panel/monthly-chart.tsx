@@ -78,7 +78,9 @@ export function MonthlyChart({
           ))}
         </div>
       </div>
-      <p className="mt-1.5 mb-3.5 text-[0.9375rem] text-label-2">{formatReais(total)} em {year}</p>
+      <p className="mt-1.5 mb-3.5 text-[0.9375rem] text-label-2">
+        <span className="sensitive">{formatReais(total)}</span> em {year}
+      </p>
 
       <div role="img" aria-label={`Receita confirmada. ${summary}`} className="flex h-[9.375rem] items-end gap-2">
         {bars.map((b) => (
@@ -88,7 +90,7 @@ export function MonthlyChart({
               b.current ? "text-label" : "text-label-2"
             }`}
           >
-            {b.current && b.cents > 0 && <span className="text-[0.6875rem] font-bold whitespace-nowrap">{formatCompact(b.cents)}</span>}
+            {b.current && b.cents > 0 && <span className="sensitive text-[0.6875rem] font-bold whitespace-nowrap">{formatCompact(b.cents)}</span>}
             <div
               className="w-full rounded-t-[0.4375rem] rounded-b-[0.1875rem] bg-label"
               style={{ height: `${Math.max(3, (b.cents / max) * 100)}%`, opacity: b.current ? 1 : 0.22 }}

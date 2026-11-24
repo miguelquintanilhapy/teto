@@ -5,6 +5,7 @@ import { monthOf, yearOf } from "@/core";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
+import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
 import { MonthlyChart } from "@/components/panel/monthly-chart";
 import { QuickEntry } from "@/components/panel/quick-entry";
 import { loadPanelSafe } from "@/server/panel-safe";
@@ -56,9 +57,12 @@ async function PainelConteudo() {
             {profile.name} · {year}
           </p>
         </div>
-        <Link href="/perfil" aria-label="Perfil e regras" className="glass grid size-11 shrink-0 place-items-center rounded-full text-label">
-          <User size={20} weight="bold" aria-hidden="true" />
-        </Link>
+        <div className="flex shrink-0 gap-2">
+          <PrivacyToggle />
+          <Link href="/perfil" aria-label="Perfil e regras" className="glass grid size-11 shrink-0 place-items-center rounded-full text-label">
+            <User size={20} weight="bold" aria-hidden="true" />
+          </Link>
+        </div>
       </header>
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />

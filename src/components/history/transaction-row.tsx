@@ -34,7 +34,7 @@ export function TransactionRow({ t }: { t: TransactionView }) {
         )}
         {cancelled && <p className="t-caption mt-0.5 text-label-2">Cancelada</p>}
       </div>
-      <p className={`shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap ${income && !cancelled ? "text-ok-text" : ""} ${cancelled ? "text-label-2 line-through" : ""}`}>
+      <p className={`sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap ${income && !cancelled ? "text-ok-text" : ""} ${cancelled ? "text-label-2 line-through" : ""}`}>
         <span className="sr-only">{income ? "Receita " : "Despesa "}</span>
         {sign} {formatMoney(t.amountCents)}
       </p>
