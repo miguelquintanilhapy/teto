@@ -14,7 +14,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [x] Persistência da extração: cooldown e cota no Postgres, serviço com idempotência por hash e `POST /api/documents`
 - [x] Confirmação de lançamentos e painel: `/api/transactions` e `/api/dashboard`, com a direção decidida pelo código
 - [ ] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento (frente B)
-- [ ] Interface, alertas e e-mail (frente C)
+- [x] Interface: painel, enviar nota, simulador, histórico e perfil ([INTERFACE.md](INTERFACE.md))
+- [ ] Alertas e e-mail (frente C)
 - [ ] Questões de negócio do MEI confirmadas em fonte oficial
 
 ## Como trabalhamos
