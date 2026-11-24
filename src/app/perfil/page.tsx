@@ -5,6 +5,7 @@ import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
 import { ThemeControl } from "@/components/prefs/theme-control";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatPercent, formatReais, monthName } from "@/lib/format";
+import { getEnv } from "@/server/env";
 import { loadPanelSafe } from "@/server/panel-safe";
 
 export const metadata = { title: "Perfil · Teto" };
@@ -75,9 +76,11 @@ async function Conteudo() {
           </p>
         </div>
       </section>
-      <Link href="/perfil/editar" className="mt-3 flex h-12 items-center justify-center rounded-full bg-card text-[1.0625rem] font-semibold">
-        Editar cadastro
-      </Link>
+      {getEnv().allowProfileEdit && (
+        <Link href="/perfil/editar" className="mt-3 flex h-12 items-center justify-center rounded-full bg-card text-[1.0625rem] font-semibold">
+          Editar cadastro
+        </Link>
+      )}
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Aparência</h2>
       <div className="divide-y divide-sep rounded-card bg-card">

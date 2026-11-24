@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { BellRinging, CheckCircle, Clock, Circle } from "@phosphor-icons/react/dist/ssr";
 import { rulesFor, type AlertKind } from "@/core";
 import { SheetShell } from "@/components/send/sheet-shell";
-import { formatFullShortDate, formatPercent, maskEmail } from "@/lib/format";
+import { formatFullShortDate, formatPercent } from "@/lib/format";
 import { getAlertsOverview } from "@/server/alerts/overview";
 import { loadPanelSafe } from "@/server/panel-safe";
 
@@ -57,7 +57,7 @@ async function Conteudo() {
           O Teto manda um e-mail quando você cruza cada faixa do limite, uma vez por faixa e por ano. Se várias faixas forem cruzadas de uma vez, vai só o aviso mais grave.
         </p>
         <p className="t-sub mt-3 text-label-2">
-          Destino: <span className="font-semibold text-label">{maskEmail(overview.email)}</span>
+          Destino: <span className="font-semibold text-label">{overview.email}</span>
           {!overview.emailConfigured && " · o envio de e-mail ainda não está configurado neste ambiente."}
         </p>
       </section>

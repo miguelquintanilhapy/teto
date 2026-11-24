@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { yearOf } from "@/core";
 import { getAlertsDeps } from "@/server/composition";
+import { maskEmail } from "@/lib/format";
 import { PANEL_TAG } from "@/server/panel-cache";
 import type { AlertRow } from "./ports";
 
@@ -26,6 +27,6 @@ export async function getAlertsOverview(): Promise<AlertsOverview | null> {
     year,
     rows: await deps.alerts.list(profile.id, year),
     emailConfigured: deps.sender !== null,
-    email: profile.email,
+    email: maskEmail(profile.email),
   };
 }
