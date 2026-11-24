@@ -90,13 +90,26 @@ export class ExtractionRouter {
     this.today = opts.today ?? (() => todayInSaoPaulo(new Date()));
   }
 
+  /**
+   * Consome a cota do dia. Se o banco da cota estiver fora do ar, libera a
+   * extração (fail-open): o teto existe para poupar a cota gratuita, e uma falha
+   * dele não pode derrubar o produto inteiro.
+   */
+  private async consumeQuota(quota: QuotaGuard): Promise<boolean> {
+    try {
+      return await quota.tryConsume(this.today());
+    } catch {
+      return true;
+    }
+  }
+
   async extract(doc: DocumentInput): Promise<ExtractionResult> {
     const timeoutMs = this.opts.timeoutMs ?? DEFAULTS.timeoutMs;
     const totalBudgetMs = this.opts.totalBudgetMs ?? DEFAULTS.totalBudgetMs;
     const cooldownMs = this.opts.cooldownMs ?? DEFAULTS.cooldownMs;
     const minConfidence = this.opts.minConfidence ?? DEFAULTS.minConfidence;
 
-    if (this.opts.quota && !(await this.opts.quota.tryConsume(this.today()))) {
+    if (this.opts.quota && !(await this.consumeQuota(this.opts.quota))) {
       throw new QuotaExceededError();
     }
 
@@ -112,7 +125,8 @@ export class ExtractionRouter {
         continue;
       }
 
-      const blockedUntil = await this.cooldown.blockedUntil(provider.id);
+      // Se o banco do cooldown falhar, segue sem ele: melhor tentar o provedor do que derrubar a extração.
+      const blockedUntil = await this.cooldown.blockedUntil(provider.id).catch(() => null);
       if (blockedUntil !== null && blockedUntil > started) {
         attempts.push({ providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0 });
         continue;
@@ -130,7 +144,9 @@ export class ExtractionRouter {
       } catch (err) {
         const e = toProviderError(err);
         if (e.kind === "rate_limit" || e.kind === "unavailable" || e.kind === "timeout") {
-          await this.cooldown.block(provider.id, this.now() + (e.retryAfterMs ?? cooldownMs), e.kind);
+          await this.cooldown
+            .block(provider.id, this.now() + (e.retryAfterMs ?? cooldownMs), e.kind)
+            .catch(() => undefined); // falha ao registrar o cooldown não pode esconder o erro do provedor
         }
         attempts.push({ providerId: provider.id, outcome: "error", errorKind: e.kind, latencyMs: this.now() - started });
         continue;
