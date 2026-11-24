@@ -1,4 +1,5 @@
-import { ChartLineUp } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import { CaretRight, ChartLineUp } from "@phosphor-icons/react/dist/ssr";
 import type { Dashboard } from "@/core";
 import { forecastView } from "@/lib/copy";
 
@@ -17,6 +18,13 @@ export function Forecast({ dashboard }: { dashboard: Dashboard }) {
         {headline}
       </h2>
       <p className="mt-2 text-[0.96875rem] leading-[1.38] text-label-2">{body}</p>
+      <Link
+        href="/simular"
+        className="mt-4 flex items-center justify-between border-t border-sep pt-3.5 text-[1.1875rem] font-semibold"
+      >
+        Simular uma venda
+        <CaretRight size={17} weight="bold" className="text-label-2" aria-hidden="true" />
+      </Link>
     </section>
   );
 }
