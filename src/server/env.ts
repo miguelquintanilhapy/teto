@@ -35,6 +35,8 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   RESEND_API_KEY: z.string().optional(),
+  /** Remetente dos alertas. Sem domínio verificado no Resend, use o remetente de teste deles. */
+  ALERT_FROM: z.string().optional(),
   CRON_SECRET: z.string().min(16, "use ao menos 16 caracteres"),
   EXTRACTION_DAILY_QUOTA: z.coerce.number().int().positive().default(200),
 });
@@ -47,6 +49,7 @@ export interface Env {
   supabaseAnonKey: string;
   supabaseServiceRoleKey: string;
   resendApiKey?: string;
+  alertFrom: string;
   cronSecret: string;
   extractionDailyQuota: number;
 }
@@ -90,6 +93,7 @@ export function parseEnv(source: Record<string, string | undefined>): EnvResult 
       supabaseAnonKey: d.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       supabaseServiceRoleKey: d.SUPABASE_SERVICE_ROLE_KEY,
       resendApiKey: d.RESEND_API_KEY,
+      alertFrom: d.ALERT_FROM?.trim() || "Teto <onboarding@resend.dev>",
       cronSecret: d.CRON_SECRET,
       extractionDailyQuota: d.EXTRACTION_DAILY_QUOTA,
     },

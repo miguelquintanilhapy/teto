@@ -9,6 +9,9 @@ import {
   SupabaseProfilesRepo,
 } from "@/server/extraction/stores/supabase-repos";
 import { systemClock } from "@/server/clock";
+import { ResendEmailSender } from "@/server/alerts/resend";
+import { SupabaseAlertsRepo } from "@/server/alerts/supabase-repo";
+import type { AlertsRepo, EmailSender } from "@/server/alerts/ports";
 import type { TransactionsHandlerDeps } from "@/server/http/transactions-handler";
 import type { UploadHandlerDeps } from "@/server/http/upload-handler";
 import { SupabaseTransactionsRepo } from "@/server/transactions/supabase-repo";
@@ -26,6 +29,28 @@ export function getTransactionsDeps(): TransactionsHandlerDeps {
     clock: systemClock,
   };
   return cachedTransactions;
+}
+
+export interface AlertsDeps extends TransactionsHandlerDeps {
+  alerts: AlertsRepo;
+  /** Nulo quando não há chave do Resend: os alertas ficam registrados e saem quando configurarem. */
+  sender: EmailSender | null;
+  cronSecret: string;
+}
+
+let cachedAlerts: AlertsDeps | undefined;
+
+/** Dependências dos alertas por e-mail e do cron. */
+export function getAlertsDeps(): AlertsDeps {
+  if (cachedAlerts) return cachedAlerts;
+  const env = getEnv();
+  cachedAlerts = {
+    ...getTransactionsDeps(),
+    alerts: new SupabaseAlertsRepo(getAdminClient()),
+    sender: env.resendApiKey ? new ResendEmailSender(env.resendApiKey, env.alertFrom) : null,
+    cronSecret: env.cronSecret,
+  };
+  return cachedAlerts;
 }
 
 let cached: UploadHandlerDeps | undefined;
