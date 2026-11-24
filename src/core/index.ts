@@ -9,3 +9,4 @@ export * from "./das";
 export * from "./alerts";
 export * from "./reconcile";
 export * from "./documents";
+export * from "./dashboard";
