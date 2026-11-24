@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { readConfirmResponse, readUploadResponse } from "@/lib/send-api";
-import { directionOf, impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
+import { impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
 import { checkFile, ChooseStep } from "./choose-step";
 import { DoneStep } from "./done-step";
 import { ReadingStep } from "./reading-step";
@@ -86,19 +86,19 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
     setStage({ name: "choose", error: null });
   }
 
-  async function confirm(values: ReviewValues, notice: ReviewNotice) {
+  async function confirm(values: ReviewValues, notice: ReviewNotice, kind: "receita" | "despesa", explicit: boolean) {
     setStage({ name: "review", values, notice, saving: true, error: null });
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(toConfirmBody(values)),
+        body: JSON.stringify(toConfirmBody(values, explicit ? kind : undefined)),
       });
       const out = readConfirmResponse(res.status, await res.json().catch(() => null));
       if (out.kind === "error") return setStage({ name: "review", values, notice, saving: false, error: out.message });
 
       // Mesma regra do servidor (pelo núcleo): na confirmação nova, só receita soma.
-      const direction = notice.manual ? "receita" : directionOf(ctx, values);
+      const direction = kind;
       const duplicate = out.kind === "duplicate";
       const impact = impactOf(ctx, values.amountCents, direction);
       if (!duplicate && impact.addedCents > 0) setCtx((c) => ({ ...c, accumulatedCents: impact.afterCents }));
@@ -129,7 +129,7 @@ export function SendFlow({ ctx: initialCtx }: { ctx: SendContext }) {
           notice={stage.notice}
           saving={stage.saving}
           error={stage.error}
-          onConfirm={(v) => confirm(v, stage.notice)}
+          onConfirm={(v, kind, explicit) => confirm(v, stage.notice, kind, explicit)}
         />
       )}
       {stage.name === "done" && (
