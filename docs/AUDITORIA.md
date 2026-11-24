@@ -32,10 +32,10 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 
 ## Desenho: questões abertas (negócio)
 
-- [ ] Data que conta para o limite: emissão ou recebimento
-- [ ] Valores atuais do limite, tolerância e DAS
-- [ ] Alíquotas para estimar o custo do estouro
-- [ ] Modelos e limites exatos dos tiers gratuitos
+- [ ] Data que conta para o limite: emissão ou recebimento (**sem regra oficial achada**; ver mei-rules.md)
+- [x] Valores atuais do limite, tolerância e DAS (confirmados em 24/11/2026; o teto sobe em 2027 e 2028 pela LC 238/2026)
+- [ ] Alíquotas para estimar o custo do estouro (o excedente usa alíquotas efetivas por anexo; o 6% segue como estimativa)
+- [x] Modelos e limites exatos dos tiers gratuitos (modelos definidos; limites lidos do painel, a reconferir)
 
 ## Implementação: estado atual
 
@@ -46,8 +46,8 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | CI com lint, tipos e testes | ✅ |
 | Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ (falta a porta `Notifier` e aplicar a migração no Supabase) |
 | Adaptadores Gemini e OpenRouter | ✅ (Gemini confirmado ao vivo em parte; ver EVAL-RESULTS) |
-| Migração e repositórios do Supabase | 🟡 |
-| Rotas de API e validação de upload | 🟡 |
+| Migração e repositórios do Supabase (perfil, documentos, extrações, storage, cooldown, cota) | ✅ transações ainda 🟡 |
+| Upload (`POST /api/documents`): validação por assinatura do arquivo, hash, persistência e extração, testado ponta a ponta no Supabase real | ✅ demais rotas 🟡 |
 | Interface (upload, confirmação, painel, simulador) | 🟡 |
 | Alertas por e-mail e cron | 🟡 |
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |

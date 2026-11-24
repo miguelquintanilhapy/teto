@@ -227,6 +227,44 @@ describe("ExtractionRouter: orçamento, capacidades, cooldown compartilhado e co
   });
 });
 
+describe("ExtractionRouter: resiliência quando o banco de apoio falha", () => {
+  const brokenCooldown = {
+    blockedUntil: async () => {
+      throw new Error("banco fora do ar");
+    },
+    block: async () => {
+      throw new Error("banco fora do ar");
+    },
+  };
+
+  it("segue sem o cooldown se o banco do cooldown falhar", async () => {
+    const a = fake("a", async () => GOOD);
+    const router = new ExtractionRouter({ providers: [a], now: () => 1_000, today: () => "2026-05-12", cooldownStore: brokenCooldown });
+    await expect(router.extract(DOC)).resolves.toMatchObject({ status: "accepted", providerId: "a" });
+  });
+
+  it("não esconde o erro do provedor se registrar o cooldown falhar", async () => {
+    const a = fake("a", async () => {
+      throw new ProviderError("rate_limit", "429");
+    });
+    const b = fake("b", async () => GOOD);
+    const router = new ExtractionRouter({ providers: [a, b], now: () => 1_000, today: () => "2026-05-12", cooldownStore: brokenCooldown });
+    const r = await router.extract(DOC);
+    expect(r.providerId).toBe("b");
+    expect(r.attempts[0]).toMatchObject({ providerId: "a", outcome: "error", errorKind: "rate_limit" });
+  });
+
+  it("libera a extração (fail-open) se o banco da cota falhar", async () => {
+    const quota = {
+      tryConsume: async () => {
+        throw new Error("banco fora do ar");
+      },
+    };
+    const router = new ExtractionRouter({ providers: [fake("a", async () => GOOD)], now: () => 1_000, today: () => "2026-05-12", quota });
+    await expect(router.extract(DOC)).resolves.toMatchObject({ status: "accepted" });
+  });
+});
+
 describe("regras de negócio da extração", () => {
   const rules = { minConfidence: 0.7, today: "2026-05-12" };
 

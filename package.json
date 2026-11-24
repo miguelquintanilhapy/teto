@@ -15,9 +15,12 @@
     "check:ai": "tsx --env-file=.env.local scripts/check-ai.mts",
     "fixtures:generate": "tsx scripts/generate-fixtures.mts",
     "eval": "tsx scripts/eval.mts",
-    "eval:record": "tsx --env-file=.env.local scripts/eval.mts --mode record"
+    "eval:record": "tsx --env-file=.env.local scripts/eval.mts --mode record",
+    "seed": "tsx --env-file=.env.local scripts/seed-demo.mts",
+    "check:db": "tsx --env-file=.env.local scripts/check-db.mts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
