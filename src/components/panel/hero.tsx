@@ -39,14 +39,11 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           </p>
           <p className={`flex items-center gap-2 text-[1.0625rem] font-bold ${TONE_TEXT[tone]}`}>
             <StatusIcon size={20} weight="fill" aria-hidden="true" />
-            <span>
-              {label} <span className="font-medium text-label-2">· {formatPercent(usedRatio)}</span>
-            </span>
+            {label}
           </p>
           <p className="mt-1 text-base leading-snug text-label-2">
-            {headroomCents > 0
-              ? `Ainda cabem ${formatReais(headroomCents)} neste ano.`
-              : "O limite do ano já foi atingido."}
+            {formatPercent(usedRatio)} do limite.{" "}
+            {headroomCents > 0 ? `Ainda cabem ${formatReais(headroomCents)}.` : "O limite do ano já foi atingido."}
           </p>
         </div>
         <dl className="t-caption mt-3.5 flex flex-col gap-1.5 text-label-2">
