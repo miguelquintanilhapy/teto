@@ -11,9 +11,9 @@ const TONE_TEXT: Record<Tone, string> = {
 };
 
 const TONE_TINT: Record<Tone, string> = {
-  ok: "color-mix(in srgb, var(--ok) 20%, transparent)",
-  warn: "color-mix(in srgb, var(--warn) 22%, transparent)",
-  danger: "color-mix(in srgb, var(--danger) 22%, transparent)",
+  ok: "color-mix(in srgb, var(--ok) var(--tint), transparent)",
+  warn: "color-mix(in srgb, var(--warn) var(--tint), transparent)",
+  danger: "color-mix(in srgb, var(--danger) var(--tint), transparent)",
 };
 
 /** O número do ano e a sala do limite. A cor do estado tinge o cartão inteiro. */
@@ -33,7 +33,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           <h2 id="hero-title" className="text-base font-medium text-label-2">
             Faturamento de {year}
           </h2>
-          <p className="t-display sensitive mt-0.5 mb-2.5">
+          <p className="t-display sensitive mt-0.5 mb-2.5 text-[clamp(1.75rem,9.5vw,2.5rem)]">
             R$&nbsp;{wholeReais(accumulatedCents)}
             <span className="sr-only">{centsPart(accumulatedCents)}</span>
           </p>
@@ -42,7 +42,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
             {label}
           </p>
           <p className="mt-1 text-base leading-snug text-label-2">
-            {formatPercent(usedRatio)} do limite.{" "}
+            <span className="sensitive">{formatPercent(usedRatio)}</span> do limite.{" "}
             <span className="sensitive">
               {headroomCents > 0 ? `Ainda cabem ${formatReais(headroomCents)}.` : "O limite do ano já foi atingido."}
             </span>

@@ -40,8 +40,8 @@ export function PrivacyToggle({ variant = "button" }: { variant?: "button" | "ro
       type="button"
       onClick={toggle}
       aria-pressed={hidden}
-      aria-label={hidden ? "Mostrar valores" : "Ocultar valores"}
-      className="glass grid size-11 shrink-0 place-items-center rounded-full text-label"
+      aria-label="Ocultar valores"
+      className="glass pressable grid size-11 shrink-0 place-items-center rounded-full text-label"
     >
       <Icon size={20} weight="bold" aria-hidden="true" />
     </button>

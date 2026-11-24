@@ -9,7 +9,7 @@ export function Forecast({ dashboard }: { dashboard: Dashboard }) {
   return (
     <section aria-labelledby="forecast-title" className="rounded-card bg-card p-5">
       <p className="mb-2.5 flex items-center gap-2.5 text-[0.9375rem] font-semibold text-label-2">
-        <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-warn">
+        <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-label">
           <ChartLineUp size={19} weight="fill" aria-hidden="true" />
         </span>
         Previsão
@@ -17,10 +17,10 @@ export function Forecast({ dashboard }: { dashboard: Dashboard }) {
       <h2 id="forecast-title" className="t-title">
         {headline}
       </h2>
-      <p className="mt-2 text-[0.96875rem] leading-[1.38] text-label-2">{body}</p>
+      <p className="sensitive mt-2 text-[0.96875rem] leading-[1.38] text-label-2">{body}</p>
       <Link
         href="/simular"
-        className="mt-4 flex items-center justify-between border-t border-sep pt-3.5 text-[1.1875rem] font-semibold"
+        className="pressable hoverable -mx-2 mt-3 flex min-h-12 items-center justify-between rounded-xl border-t border-sep px-2 pt-2 text-[1.1875rem] font-semibold"
       >
         Simular uma venda
         <CaretRight size={17} weight="bold" className="text-label-2" aria-hidden="true" />

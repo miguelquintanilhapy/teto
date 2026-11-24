@@ -11,7 +11,7 @@ export function QuickEntry() {
         </span>
         Lançar sem nota
       </h2>
-      <Link href="/lancar" className="flex min-h-[3.25rem] items-center gap-2.5 rounded-[1.625rem] bg-track py-1.5 pr-1.5 pl-[1.125rem]">
+      <Link href="/lancar" className="pressable flex min-h-[3.25rem] items-center gap-2.5 rounded-[1.625rem] bg-track py-1.5 pr-1.5 pl-[1.125rem]">
         <span className="flex-1 text-[1.0625rem] text-label-2">Informe valor, data e tipo</span>
         <span className="grid size-10 place-items-center rounded-full bg-primary text-on-primary">
           <ArrowUp size={20} weight="bold" aria-hidden="true" />

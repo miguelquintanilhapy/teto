@@ -28,7 +28,7 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
       <Link
         href="/historico?status=pendente"
         aria-label={`${pendingCount} ${pendingCount === 1 ? "nota" : "notas"}: ${pendingLabel(pendingCount)}`}
-        className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4"
+        className="pressable flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4"
       >
         <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-label-2">
           <Tile>

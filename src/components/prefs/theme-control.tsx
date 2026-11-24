@@ -40,12 +40,12 @@ export function ThemeControl() {
           role="radio"
           aria-checked={theme === id}
           onClick={() => choose(id)}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-[0.8125rem] py-2.5 ${
-            theme === id ? "bg-card-raised text-label shadow-sm" : "text-label-2"
+          className={`pressable flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[0.8125rem] px-1 py-2.5 ${
+            theme === id ? "bg-raised text-label shadow-sm" : "text-label-2"
           }`}
         >
-          <Icon size={18} weight={theme === id ? "fill" : "regular"} aria-hidden="true" />
-          {label}
+          <Icon size={18} weight={theme === id ? "fill" : "regular"} aria-hidden="true" className="shrink-0 max-[360px]:hidden" />
+          <span className="truncate">{label}</span>
         </button>
       ))}
     </div>
