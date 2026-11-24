@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Suspense } from "react";
+import { User } from "@phosphor-icons/react/dist/ssr";
 import { monthOf, yearOf } from "@/core";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
@@ -49,11 +51,16 @@ async function PainelConteudo() {
 
   return (
     <>
-      <header className="mt-2 mb-4">
-        <h1 className="t-large-title">Painel</h1>
-        <p className="t-body mt-0.5 text-label-2">
-          {profile.name} · {year}
-        </p>
+      <header className="mt-2 mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="t-large-title">Painel</h1>
+          <p className="t-body mt-0.5 truncate text-label-2">
+            {profile.name} · {year}
+          </p>
+        </div>
+        <Link href="/perfil" aria-label="Perfil e regras" className="glass grid size-11 shrink-0 place-items-center rounded-full text-label">
+          <User size={20} weight="bold" aria-hidden="true" />
+        </Link>
       </header>
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />
