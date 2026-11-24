@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { getTransactionsDeps } from "@/server/composition";
 import { loadPanel, type PanelData } from "@/server/panel";
+import type { TransactionEvent } from "@/server/transactions/service";
 
 /** Etiqueta que invalida o painel quando um lançamento muda. */
 export const PANEL_TAG = "panel";
@@ -19,4 +20,12 @@ export async function getPanel(): Promise<PanelData | null> {
   cacheTag(PANEL_TAG);
   cacheLife({ stale: 60, revalidate: 30, expire: 3600 });
   return loadPanel(getTransactionsDeps());
+}
+
+/** Histórico de alterações de um lançamento, no mesmo cache e com a mesma etiqueta do painel. */
+export async function getTransactionEvents(id: string): Promise<TransactionEvent[]> {
+  "use cache";
+  cacheTag(PANEL_TAG);
+  cacheLife({ stale: 60, revalidate: 30, expire: 3600 });
+  return getTransactionsDeps().transactions.listEvents(id);
 }

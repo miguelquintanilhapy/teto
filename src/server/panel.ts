@@ -12,6 +12,10 @@ export interface TransactionView {
   status: "pendente" | "confirmada" | "cancelada";
   description: string;
   counterpartyTaxId: string | null;
+  issueDate: ISODate | null;
+  /** Só o final da chave de acesso: o suficiente para reconhecer a nota. */
+  accessKeySuffix: string | null;
+  confidence: number | null;
 }
 
 export interface PanelData {
@@ -33,6 +37,9 @@ const view = (t: TransactionRecord): TransactionView => ({
   status: t.status,
   description: t.description,
   counterpartyTaxId: t.counterpartyTaxId,
+  issueDate: t.issueDate,
+  accessKeySuffix: t.accessKey ? t.accessKey.slice(-8) : null,
+  confidence: t.confidence,
 });
 
 /**
