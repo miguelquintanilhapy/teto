@@ -22,7 +22,7 @@ async function Conteudo() {
   if (!getEnv().allowProfileEdit) {
     return (
       <p role="status" className="t-body rounded-card bg-card p-5">
-        A edição do cadastro está desativada neste ambiente.
+        O cadastro está protegido contra alterações nesta versão do app.
       </p>
     );
   }

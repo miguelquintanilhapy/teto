@@ -31,7 +31,7 @@ async function Conteudo() {
   return (
     <>
       <section className="mb-5 px-1">
-        <h1 className="t-large-title">Cadastre seu MEI</h1>
+        <h2 className="t-large-title">Cadastre seu MEI</h2>
         <p className="t-body mt-2 text-label-2">
           Com o CNPJ e a data de abertura, o Teto calcula o seu limite e avisa antes de você estourar.
         </p>

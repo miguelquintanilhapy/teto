@@ -152,7 +152,7 @@ async function Conteudo() {
           </ul>
         </>
       )}
-      <p className="t-sub mt-4 px-5 text-label-2">Versão do prompt: {recent[0]?.promptVersion ?? "—"}. A qualidade medida no conjunto de notas de teste está em docs/EVAL-RESULTS.md.</p>
+      <p className="t-sub mt-4 px-5 text-label-2">As instruções dadas à IA têm versão ({recent[0]?.promptVersion ?? "—"}), e a qualidade é medida em notas de teste antes de cada mudança.</p>
     </>
   );
 }

@@ -58,7 +58,7 @@ async function Conteudo() {
         </p>
         <p className="t-sub mt-3 text-label-2">
           Destino: <span className="font-semibold text-label">{overview.email}</span>
-          {!overview.emailConfigured && " · o envio de e-mail ainda não está configurado neste ambiente."}
+          {!overview.emailConfigured && " · o envio de e-mail ainda não foi configurado."}
         </p>
       </section>
 
@@ -84,7 +84,7 @@ async function Conteudo() {
           );
         })}
       </ul>
-      <p className="t-sub mt-3 px-5 text-label-2">O lembrete do vencimento do DAS ainda não existe: precisa de uma data por mês, e o cadastro de alertas hoje guarda uma por ano.</p>
+      <p className="t-sub mt-3 px-5 text-label-2">O lembrete do vencimento do DAS ainda não foi criado. Por enquanto, a data do próximo DAS aparece no Painel.</p>
     </>
   );
 }

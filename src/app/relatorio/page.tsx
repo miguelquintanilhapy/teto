@@ -37,7 +37,7 @@ async function Conteudo() {
   return (
     <article className="print:text-black">
       <header className="mb-4 px-1">
-        <h1 className="t-title">{panel.profile.name}</h1>
+        <h2 className="t-title">{panel.profile.name}</h2>
         <p className="t-sub text-label-2">
           Receitas de {year} · gerado em {panel.today.split("-").reverse().join("/")}
         </p>
@@ -55,7 +55,8 @@ async function Conteudo() {
       {rows.length === 0 ? (
         <p className="t-body rounded-card bg-card p-5 text-label-2">Ainda não há receita confirmada neste ano.</p>
       ) : (
-        <table className="w-full overflow-hidden rounded-card bg-card text-left">
+        <div className="overflow-hidden rounded-card bg-card">
+        <table className="w-full text-left">
           <caption className="sr-only">Receita confirmada por mês</caption>
           <thead>
             <tr className="t-sub text-label-2">
@@ -81,6 +82,7 @@ async function Conteudo() {
             </tr>
           </tfoot>
         </table>
+        </div>
       )}
 
       {(report.cancelledCount > 0 || report.pendingCount > 0 || report.expenseCents > 0) && (

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { NoProfile } from "@/components/no-profile";
 import { TransactionActions } from "@/components/history/transaction-actions";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatFullShortDate, formatMoney } from "@/lib/format";
@@ -36,9 +37,15 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
   const r = await loadPanelSafe("detalhe");
   if (!r.ok) {
     return (
-      <p role="alert" className="t-body rounded-card bg-card p-5">
-        {r.reason === "no_profile" ? "Perfil de demonstração não encontrado." : "Não foi possível carregar o lançamento. Tente de novo em instantes."}
-      </p>
+      <>
+        {r.reason === "no_profile" ? (
+          <NoProfile />
+        ) : (
+          <p role="alert" className="t-body rounded-card bg-card p-5">
+            Não foi possível carregar o lançamento. Tente de novo em instantes.
+          </p>
+        )}
+      </>
     );
   }
   const t = r.panel.transactions.find((x) => x.id === id);

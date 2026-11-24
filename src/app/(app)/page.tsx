@@ -10,6 +10,8 @@ import { MonthlyChart } from "@/components/panel/monthly-chart";
 import { QuickEntry } from "@/components/panel/quick-entry";
 import { loadPanelSafe } from "@/server/panel-safe";
 
+export const metadata = { title: "Painel · Teto" };
+
 export default function PainelPage() {
   return (
     <main>
@@ -86,8 +88,17 @@ async function PainelConteudo() {
 
 function PainelSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Carregando o painel">
-      <h1 className="t-large-title mt-2 mb-4">Painel</h1>
+    <div aria-busy="true" aria-label="Carregando o painel" className="animate-pulse motion-reduce:animate-none">
+      <header className="mt-2 mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="t-large-title">Painel</h1>
+          <div className="mt-1.5 h-5 w-48 rounded bg-card" />
+        </div>
+        <div className="flex gap-2">
+          <div className="size-11 rounded-full bg-card" />
+          <div className="size-11 rounded-full bg-card" />
+        </div>
+      </header>
       <div className="flex flex-col gap-3">
         <div className="h-[16.5rem] rounded-card bg-card" />
         <div className="h-44 rounded-card bg-card" />

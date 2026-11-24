@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
+import { NoProfile } from "@/components/no-profile";
 import { monthOf, rulesFor, yearOf } from "@/core";
 import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
 import { ThemeControl } from "@/components/prefs/theme-control";
@@ -41,11 +43,15 @@ async function Conteudo() {
   const r = await loadPanelSafe("perfil");
   if (!r.ok) {
     return (
-      <p role="alert" className="t-body rounded-card bg-card p-5">
-        {r.reason === "no_profile"
-          ? "Perfil de demonstração não encontrado. Rode npm run seed."
-          : "Não foi possível carregar o perfil. Tente de novo em instantes."}
-      </p>
+      <>
+        {r.reason === "no_profile" ? (
+          <NoProfile />
+        ) : (
+          <p role="alert" className="t-body rounded-card bg-card p-5">
+            Não foi possível carregar o perfil. Tente de novo em instantes.
+          </p>
+        )}
+      </>
     );
   }
 
@@ -114,21 +120,21 @@ async function Conteudo() {
           <span className="t-row block">Alertas por e-mail</span>
           <span className="t-sub block text-label-2">Avisos ao cruzar cada faixa do limite</span>
         </span>
-        <span aria-hidden="true" className="text-label-2">›</span>
+        <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
       </Link>
       <Link href="/relatorio" className="mb-3 flex items-center justify-between rounded-card bg-card px-5 py-4">
         <span>
           <span className="t-row block">Relatório do ano</span>
           <span className="t-sub block text-label-2">Receita mês a mês, em CSV ou PDF</span>
         </span>
-        <span aria-hidden="true" className="text-label-2">›</span>
+        <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
       </Link>
       <Link href="/ia" className="mb-3 flex items-center justify-between rounded-card bg-card px-5 py-4">
         <span>
           <span className="t-row block">Como a IA lê suas notas</span>
           <span className="t-sub block text-label-2">Modelos, tempos, falhas e a cota de hoje</span>
         </span>
-        <span aria-hidden="true" className="text-label-2">›</span>
+        <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
       </Link>
       <div className="rounded-card bg-card p-5">
         <p className="t-body">Todos os dados desta demonstração são fictícios.</p>
