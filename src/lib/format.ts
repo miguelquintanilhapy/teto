@@ -82,3 +82,15 @@ export function maskTaxId(taxId: string | null): string {
   if (d.length === 14) return `CNPJ ${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/••••-••`;
   return "documento inválido";
 }
+
+/** Máscara de CNPJ enquanto se digita: "11222333000181" vira "11.222.333/0001-81". */
+export function formatCnpjInput(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 14);
+  const parts = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 8), d.slice(8, 12), d.slice(12, 14)];
+  let out = parts[0]!;
+  if (parts[1]) out += `.${parts[1]}`;
+  if (parts[2]) out += `.${parts[2]}`;
+  if (parts[3]) out += `/${parts[3]}`;
+  if (parts[4]) out += `-${parts[4]}`;
+  return out;
+}
