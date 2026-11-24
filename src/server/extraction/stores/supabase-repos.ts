@@ -11,6 +11,7 @@ import {
   type FileStorage,
   type NewDocument,
   type NewExtraction,
+  type ProfileRecord,
   type ProfilesRepo,
 } from "../service";
 
@@ -153,5 +154,18 @@ export class SupabaseProfilesRepo implements ProfilesRepo {
       .maybeSingle();
     if (error) throw new Error(`profiles: ${error.message}`);
     return data ? (data as { id: string }).id : null;
+  }
+
+  async getDemoProfile(): Promise<ProfileRecord | null> {
+    const { data, error } = await this.db
+      .from("mei_profiles")
+      .select("id, name, tax_id, opening_date")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`profiles: ${error.message}`);
+    if (!data) return null;
+    const r = data as { id: string; name: string; tax_id: string; opening_date: string };
+    return { id: r.id, name: r.name, taxId: r.tax_id.replace(/D/g, ""), openingDate: r.opening_date };
   }
 }

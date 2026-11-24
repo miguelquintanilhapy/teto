@@ -60,9 +60,19 @@ export interface FileStorage {
   put(path: string, bytes: Uint8Array, mimeType: string): Promise<void>;
 }
 
+export interface ProfileRecord {
+  id: string;
+  name: string;
+  /** CNPJ do MEI, só dígitos. Serve para decidir se um documento é receita ou despesa. */
+  taxId: string;
+  /** Data de abertura (YYYY-MM-DD): define o limite proporcional no ano de abertura. */
+  openingDate: string;
+}
+
 export interface ProfilesRepo {
   /** Perfil único da demonstração; null se ainda não foi criado (npm run seed). */
   getDemoProfileId(): Promise<string | null>;
+  getDemoProfile(): Promise<ProfileRecord | null>;
 }
 
 export interface Extractor {
