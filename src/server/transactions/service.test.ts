@@ -4,7 +4,7 @@ import { InMemoryTransactionsRepo } from "./memory";
 import { confirmTransaction, toCore, type ConfirmInput } from "./service";
 
 const MEI = "11222333000181";
-const PROFILE = { id: "p1", name: "Doces da Marta MEI", taxId: MEI, openingDate: "2026-03-01" };
+const PROFILE = { id: "p1", name: "Doces da Marta MEI", taxId: MEI, openingDate: "2026-03-01", email: "marta@example.com" };
 const CLIENT_CNPJ = "12.345.678/0001-95";
 const SUPPLIER_CNPJ = "34.567.890/0001-30";
 const TODAY = "2026-11-24";

@@ -67,12 +67,16 @@ export interface ProfileRecord {
   taxId: string;
   /** Data de abertura (YYYY-MM-DD): define o limite proporcional no ano de abertura. */
   openingDate: string;
+  /** Recebe os alertas do limite. */
+  email: string;
 }
 
 export interface ProfilesRepo {
   /** Perfil único da demonstração; null se ainda não foi criado (npm run seed). */
   getDemoProfileId(): Promise<string | null>;
   getDemoProfile(): Promise<ProfileRecord | null>;
+  /** Cria o perfil único da demonstração ou atualiza o que já existe. */
+  saveDemoProfile(input: Omit<ProfileRecord, "id">): Promise<ProfileRecord>;
 }
 
 export interface Extractor {

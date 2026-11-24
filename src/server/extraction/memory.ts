@@ -53,10 +53,13 @@ export class InMemoryFileStorage implements FileStorage {
 }
 
 export class InMemoryProfilesRepo implements ProfilesRepo {
-  constructor(
-    private readonly id: string | null,
-    private readonly details: Partial<Omit<ProfileRecord, "id">> = {},
-  ) {}
+  private id: string | null;
+  private details: Partial<Omit<ProfileRecord, "id">>;
+
+  constructor(id: string | null, details: Partial<Omit<ProfileRecord, "id">> = {}) {
+    this.id = id;
+    this.details = details;
+  }
 
   async getDemoProfileId(): Promise<string | null> {
     return this.id;
@@ -69,6 +72,13 @@ export class InMemoryProfilesRepo implements ProfilesRepo {
       name: this.details.name ?? "Doces da Marta MEI",
       taxId: this.details.taxId ?? "11222333000181",
       openingDate: this.details.openingDate ?? "2026-03-01",
+      email: this.details.email ?? "marta@example.com",
     };
+  }
+
+  async saveDemoProfile(input: Omit<ProfileRecord, "id">): Promise<ProfileRecord> {
+    this.id ??= "p1";
+    this.details = { ...input };
+    return { id: this.id, ...input };
   }
 }
