@@ -238,7 +238,7 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 
 | Requisito | Meta |
 |---|---|
-| Extração de uma nota | p95 abaixo de 15 s; orçamento total de 25 s |
+| Extração de uma nota | p95 abaixo de 15 s; orçamento total de 40 s |
 | Painel | Carrega em menos de 2 s com o perfil de demo |
 | Responsivo | Usável em 360 px de largura, mobile-first |
 | Acessibilidade básica | Rótulos, contraste, navegação por teclado, foco visível |

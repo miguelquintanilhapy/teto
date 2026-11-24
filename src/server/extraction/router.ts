@@ -21,6 +21,8 @@ export interface RouterOptions {
   totalBudgetMs?: number;
   /** Quanto tempo um provedor fica fora da rotação após 429/queda. */
   cooldownMs?: number;
+  /** Cooldown quando o provedor responde "indisponível" (padrão: 3 min). */
+  unavailableCooldownMs?: number;
   minConfidence?: number;
   /** Estado de cooldown compartilhável entre instâncias (Postgres em produção). */
   cooldownStore?: CooldownStore;
@@ -65,9 +67,16 @@ export class AllProvidersFailedError extends Error {
 }
 
 const DEFAULTS = {
-  timeoutMs: 20_000,
-  totalBudgetMs: 25_000,
+  /** Provedores gratuitos variam muito: o mesmo modelo leva de 2 s a 10 s para a mesma nota. */
+  timeoutMs: 25_000,
+  totalBudgetMs: 40_000,
+  /** Cooldown de 429 e de timeout. */
   cooldownMs: 60_000,
+  /**
+   * Cooldown de "indisponível" (503, alta demanda): costuma durar minutos, e cada tentativa
+   * perdida custa vários segundos do orçamento do próximo usuário. Fica mais tempo fora.
+   */
+  unavailableCooldownMs: 180_000,
   minConfidence: 0.7,
 } as const;
 
@@ -107,6 +116,7 @@ export class ExtractionRouter {
     const timeoutMs = this.opts.timeoutMs ?? DEFAULTS.timeoutMs;
     const totalBudgetMs = this.opts.totalBudgetMs ?? DEFAULTS.totalBudgetMs;
     const cooldownMs = this.opts.cooldownMs ?? DEFAULTS.cooldownMs;
+    const unavailableCooldownMs = this.opts.unavailableCooldownMs ?? DEFAULTS.unavailableCooldownMs;
     const minConfidence = this.opts.minConfidence ?? DEFAULTS.minConfidence;
 
     if (this.opts.quota && !(await this.consumeQuota(this.opts.quota))) {
@@ -145,7 +155,11 @@ export class ExtractionRouter {
         const e = toProviderError(err);
         if (e.kind === "rate_limit" || e.kind === "unavailable" || e.kind === "timeout") {
           await this.cooldown
-            .block(provider.id, this.now() + (e.retryAfterMs ?? cooldownMs), e.kind)
+            .block(
+              provider.id,
+              this.now() + (e.retryAfterMs ?? (e.kind === "unavailable" ? unavailableCooldownMs : cooldownMs)),
+              e.kind,
+            )
             .catch(() => undefined); // falha ao registrar o cooldown não pode esconder o erro do provedor
         }
         attempts.push({ providerId: provider.id, outcome: "error", errorKind: e.kind, latencyMs: this.now() - started });
