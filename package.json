@@ -17,7 +17,8 @@
     "eval": "tsx scripts/eval.mts",
     "eval:record": "tsx --env-file=.env.local scripts/eval.mts --mode record",
     "seed": "tsx --env-file=.env.local scripts/seed-demo.mts",
-    "check:db": "tsx --env-file=.env.local scripts/check-db.mts"
+    "check:db": "tsx --env-file=.env.local scripts/check-db.mts",
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo-data.mts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
