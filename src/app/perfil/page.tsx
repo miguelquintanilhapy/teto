@@ -106,6 +106,13 @@ async function Conteudo() {
       </p>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Sobre</h2>
+      <Link href="/alertas" className="mb-3 flex items-center justify-between rounded-card bg-card px-5 py-4">
+        <span>
+          <span className="t-row block">Alertas por e-mail</span>
+          <span className="t-sub block text-label-2">Avisos ao cruzar cada faixa do limite</span>
+        </span>
+        <span aria-hidden="true" className="text-label-2">›</span>
+      </Link>
       <Link href="/relatorio" className="mb-3 flex items-center justify-between rounded-card bg-card px-5 py-4">
         <span>
           <span className="t-row block">Relatório do ano</span>
