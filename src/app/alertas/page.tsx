@@ -1,16 +1,18 @@
 import { Suspense } from "react";
 import { BellRinging, CheckCircle, Clock, Circle } from "@phosphor-icons/react/dist/ssr";
 import { rulesFor, type AlertKind } from "@/core";
+import Link from "next/link";
 import { SheetShell } from "@/components/send/sheet-shell";
+import { getEnv } from "@/server/env";
 import { formatFullShortDate, formatPercent } from "@/lib/format";
 import { getAlertsOverview } from "@/server/alerts/overview";
 import { loadPanelSafe } from "@/server/panel-safe";
 
-export const metadata = { title: "Alertas · Teto" };
+export const metadata = { title: "Avisos do limite · Teto" };
 
 export default function AlertasPage() {
   return (
-    <SheetShell title="Alertas" closeHref="/perfil">
+    <SheetShell title="Avisos do limite" closeHref="/perfil">
       <Suspense fallback={<div aria-busy="true" className="h-64 animate-pulse rounded-card bg-card motion-reduce:animate-none" />}>
         <Conteudo />
       </Suspense>
@@ -43,7 +45,7 @@ async function Conteudo() {
     { kind: "threshold_warning", title: `${formatPercent(cfg.warningRatio)} do limite`, text: "Atenção: ainda dá tempo de planejar." },
     { kind: "threshold_critical", title: `${formatPercent(cfg.criticalRatio)} do limite`, text: "Crítico: simule antes de aceitar vendas grandes." },
     { kind: "over_limit", title: "Passou do limite", text: "Você segue MEI até 20% acima, mas é desenquadrado em janeiro." },
-    { kind: "over_tolerance", title: `Passou de ${formatPercent(1 + cfg.toleranceRate)}`, text: "Desenquadramento retroativo. Procure um contador." },
+    { kind: "over_tolerance", title: `Passou de ${formatPercent(cfg.toleranceRate)} acima do limite`, text: "Desenquadramento retroativo. Procure um contador." },
   ];
 
   return (
@@ -60,6 +62,11 @@ async function Conteudo() {
           Destino: <span className="font-semibold text-label">{overview.email}</span>
           {!overview.emailConfigured && " · o envio de e-mail ainda não foi configurado."}
         </p>
+        {getEnv().allowProfileEdit && (
+          <Link href="/perfil/editar" className="pressable -mx-1 mt-1 inline-flex min-h-11 items-center px-1 text-[0.9375rem] font-semibold text-action">
+            Trocar o e-mail
+          </Link>
+        )}
       </section>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Faixas de {overview.year}</h2>
@@ -71,12 +78,12 @@ async function Conteudo() {
             ? { Icon: Circle, label: "Ainda não cruzada", cls: "text-label-2" }
             : row?.sentAt
               ? { Icon: CheckCircle, label: `Cruzada · e-mail enviado em ${formatFullShortDate(row.sentAt.slice(0, 10))}`, cls: "text-ok-text" }
-              : { Icon: Clock, label: overview.emailConfigured ? "Cruzada · e-mail na fila" : "Cruzada · e-mail aguardando configuração", cls: "text-warn-text" };
+              : { Icon: Clock, label: overview.emailConfigured ? "Cruzada · o e-mail será enviado" : "Cruzada · o envio de e-mail ainda não foi configurado", cls: "text-warn-text" };
           return (
             <li key={b.kind} className="flex gap-3.5 px-5 py-3.5">
               <status.Icon size={24} weight={crossed ? "fill" : "regular"} className={`mt-0.5 shrink-0 ${status.cls}`} aria-hidden="true" />
               <div className="min-w-0">
-                <p className="t-row">{b.title}</p>
+                <p className="text-[1.0625rem] font-medium">{b.title}</p>
                 <p className="t-sub text-label-2">{b.text}</p>
                 <p className={`t-sub mt-1 font-semibold ${status.cls}`}>{status.label}</p>
               </div>

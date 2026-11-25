@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/dist/ssr";
 import { yearOf } from "@/core";
+import { formatFullShortDate } from "@/lib/format";
 import { PrintButton } from "@/components/report/print-button";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatMoney, formatPercent, formatReais, monthName } from "@/lib/format";
@@ -39,7 +40,7 @@ async function Conteudo() {
       <header className="mb-4 px-1">
         <h2 className="t-title">{panel.profile.name}</h2>
         <p className="t-sub text-label-2">
-          Receitas de {year} · gerado em {panel.today.split("-").reverse().join("/")}
+          Receitas de {year} · gerado em {formatFullShortDate(panel.today)}
         </p>
       </header>
 
@@ -61,7 +62,7 @@ async function Conteudo() {
           <thead>
             <tr className="t-sub text-label-2">
               <th scope="col" className="px-5 pt-4 pb-2 font-semibold">Mês</th>
-              <th scope="col" className="px-2 pt-4 pb-2 text-right font-semibold">Notas</th>
+              <th scope="col" className="px-2 pt-4 pb-2 text-right font-semibold">Lançamentos</th>
               <th scope="col" className="px-5 pt-4 pb-2 text-right font-semibold">Receita</th>
             </tr>
           </thead>
@@ -88,7 +89,7 @@ async function Conteudo() {
       {(report.cancelledCount > 0 || report.pendingCount > 0 || report.expenseCents > 0) && (
         <p className="t-sub mt-3 px-5 text-label-2">
           {report.expenseCents > 0 && `Despesas confirmadas: ${formatMoney(report.expenseCents)} (não contam no limite). `}
-          {report.cancelledCount > 0 && `${report.cancelledCount} lançamento(s) cancelado(s) fora da soma. `}
+          {report.cancelledCount > 0 && `${report.cancelledCount} ${report.cancelledCount === 1 ? "lançamento cancelado fica" : "lançamentos cancelados ficam"} fora da soma. `}
           {report.pendingCount > 0 && `${report.pendingCount} para conferir, também fora da soma.`}
         </p>
       )}
