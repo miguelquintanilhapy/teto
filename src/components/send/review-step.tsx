@@ -16,6 +16,8 @@ export interface ReviewNotice {
   duplicate: boolean;
   /** A IA teve dúvida ou a validação achou problemas. */
   lowTrust: boolean;
+  /** A chave de acesso não passou no dígito verificador e foi ignorada; o resto da nota foi lido. */
+  keyDropped?: boolean;
   /** Não foi possível ler a nota: o usuário preenche tudo. */
   manual: boolean;
   /** O usuário escolheu lançar sem nota (nada falhou, então não há aviso). */
@@ -85,6 +87,12 @@ export function ReviewStep({
       {!manual && (
         <p className="t-sub mb-3 flex items-center gap-1.5 px-1 text-label-2">
           <Sparkle size={14} weight="fill" aria-hidden="true" /> Lida pela IA. Confira antes de confirmar.
+        </p>
+      )}
+      {notice.keyDropped && !notice.lowTrust && !manual && (
+        <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
+          <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
+          Não consegui ler a chave de acesso e a ignorei. O resto da nota foi lido: confira os dados.
         </p>
       )}
       {notice.lowTrust && !manual && (

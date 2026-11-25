@@ -95,3 +95,30 @@ describe("readConfirmResponse", () => {
     expect(r.kind === "error" && r.message).toContain("Tente de novo");
   });
 });
+
+describe("readUploadResponse: chave de acesso descartada", () => {
+  const body = (issues: string[]) => ({
+    status: "extracted",
+    document: { id: "d1" },
+    extraction: { data: { documentType: "nota_fiscal", totalCents: 10000, issueDate: "2026-05-10", confidence: 0.95 } },
+    issues,
+  });
+
+  it("tem aviso próprio e não vira 'a IA teve dúvida'", () => {
+    const r = readUploadResponse(200, body(["chave de acesso ilegível, ignorada"]));
+    expect(r.kind === "review" && r.keyDropped).toBe(true);
+    expect(r.kind === "review" && r.lowTrust).toBe(false);
+    expect(r.kind === "review" && r.issues).toEqual([]);
+  });
+
+  it("outros avisos continuam gerando dúvida", () => {
+    const r = readUploadResponse(200, body(["chave de acesso ilegível, ignorada", "confiança baixa"]));
+    expect(r.kind === "review" && r.keyDropped).toBe(true);
+    expect(r.kind === "review" && r.lowTrust).toBe(true);
+  });
+
+  it("sem aviso, nada disso aparece", () => {
+    const r = readUploadResponse(200, body([]));
+    expect(r.kind === "review" && r.keyDropped).toBe(false);
+  });
+});

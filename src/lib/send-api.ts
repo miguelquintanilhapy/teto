@@ -1,3 +1,4 @@
+import { ACCESS_KEY_DROPPED_NOTE } from "@/core/documents";
 import type { ReviewValues } from "./send";
 
 type Json = Record<string, unknown>;
@@ -9,7 +10,7 @@ const DOC_TYPES = ["nota_fiscal", "recibo", "comprovante_pix", "outro"] as const
 
 /** Resposta de POST /api/documents, reduzida ao que a tela usa. */
 export type UploadOutcome =
-  | { kind: "review"; values: ReviewValues; duplicate: boolean; issues: string[]; lowTrust: boolean }
+  | { kind: "review"; values: ReviewValues; duplicate: boolean; issues: string[]; lowTrust: boolean; keyDropped: boolean }
   | { kind: "manual"; documentId: string | null; reason: string }
   | { kind: "error"; message: string };
 
@@ -41,13 +42,17 @@ export function readUploadResponse(httpStatus: number, body: unknown): UploadOut
   const documentType = DOC_TYPES.find((t) => t === data.documentType) ?? null;
   const confidence = typeof data.confidence === "number" ? data.confidence : null;
   const total = typeof data.totalCents === "number" && Number.isFinite(data.totalCents) ? Math.trunc(data.totalCents) : 0;
-  const issues = Array.isArray(body.issues) ? body.issues.filter((i): i is string => typeof i === "string") : [];
+  const allIssues = Array.isArray(body.issues) ? body.issues.filter((i): i is string => typeof i === "string") : [];
+  // O aviso de chave descartada não é dúvida da IA sobre valor e data: tem aviso próprio.
+  const keyDropped = allIssues.includes(ACCESS_KEY_DROPPED_NOTE);
+  const issues = allIssues.filter((i) => i !== ACCESS_KEY_DROPPED_NOTE);
 
   return {
     kind: "review",
     duplicate: body.status === "duplicate",
     issues,
     lowTrust: confidence === null || confidence < 0.75 || issues.length > 0,
+    keyDropped,
     values: {
       documentId,
       documentType,
