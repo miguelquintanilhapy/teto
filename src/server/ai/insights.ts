@@ -58,7 +58,13 @@ export function summarizeExtractions(logs: ReadonlyArray<ExtractionLog>): Insigh
   for (const log of logs) {
     const real = log.attempts.filter((a) => !a.outcome.startsWith("skipped"));
     if (real.length > 1) chainFollowed += 1;
-    totals.push(log.attempts.reduce((s, a) => s + (a.latencyMs || 0), 0));
+    // Com tentativas em paralelo, o tempo da leitura é o fim da última, e não a soma. Registros antigos não têm início.
+    const timed = log.attempts.some((a) => a.startOffsetMs !== undefined);
+    totals.push(
+      timed
+        ? Math.max(0, ...log.attempts.map((a) => (a.startOffsetMs ?? 0) + (a.latencyMs || 0)))
+        : log.attempts.reduce((s, a) => s + (a.latencyMs || 0), 0),
+    );
     if (log.providerId) stats(log.providerId).finalProvider += 1;
 
     for (const a of log.attempts) {

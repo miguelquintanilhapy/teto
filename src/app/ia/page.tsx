@@ -45,6 +45,7 @@ function trail(log: ExtractionLog): string {
       const name = splitProvider(a.providerId).provider;
       if (a.outcome === "accepted") return `${name} leu em ${seconds(a.latencyMs)}`;
       if (a.outcome === "rejected") return `${name} respondeu, mas reprovou na validação`;
+      if (a.outcome === "cancelled") return `${name} foi dispensado (outro respondeu antes)`;
       return `${name}: ${errorLabel(a.errorKind ?? "unknown")}`;
     });
   const skipped = log.attempts.filter((a) => a.outcome.startsWith("skipped")).length;
