@@ -85,6 +85,10 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 (`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
 se desenhando. `:hover` só existe onde há mouse.
 
+A troca de tema imita o iPhone: a tela inteira se dissolve de uma aparência para a outra em 0,4 s
+(View Transitions API, com um fundido de cores por CSS onde ela não existe), e o marcador do seletor
+desliza de uma opção à outra. Com "reduzir movimento", a troca é instantânea.
+
 ## O que ainda não existe
 
 - Autenticação e vários MEIs (ver [SEGURANCA.md](SEGURANCA.md)).
