@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "c31638c77ab13402580d97996be37a4c605d8fa7e5ef4ec366427925d310e84d",
+  "recordedAt": "2026-11-25T18:40:42.332Z",
+  "latencyMs": 5271,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-03-05",
+    "totalCents": 38050,
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "123.456.789-09",
+    "accessKey": null,
+    "description": "Bolo decorado de 2 kg",
+    "confidence": 1
+  }
+}

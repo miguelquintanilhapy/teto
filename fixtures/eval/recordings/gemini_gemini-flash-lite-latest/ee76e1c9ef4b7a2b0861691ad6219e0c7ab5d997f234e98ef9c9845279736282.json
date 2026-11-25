@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "ee76e1c9ef4b7a2b0861691ad6219e0c7ab5d997f234e98ef9c9845279736282",
+  "recordedAt": "2026-11-25T18:53:03.738Z",
+  "latencyMs": 1963,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-11-04",
+    "totalCents": 154000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "23456789000195",
+    "accessKey": null,
+    "description": "Doces para formatura",
+    "confidence": 0.99
+  }
+}

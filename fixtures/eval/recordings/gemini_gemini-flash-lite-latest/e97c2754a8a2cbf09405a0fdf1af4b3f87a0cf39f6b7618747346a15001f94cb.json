@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "e97c2754a8a2cbf09405a0fdf1af4b3f87a0cf39f6b7618747346a15001f94cb",
+  "recordedAt": "2026-11-25T18:50:30.814Z",
+  "latencyMs": 1494,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-05-02",
+    "totalCents": 7500,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "23456789173",
+    "accessKey": null,
+    "description": "Caixa com 12 brigadeiros",
+    "confidence": 1
+  }
+}

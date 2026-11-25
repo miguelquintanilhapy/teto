@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "4d9d1b907bc581f85186aaf845029e8d71a231703d04d3578832fd14e0cd26e1",
+  "recordedAt": "2026-11-25T18:54:49.730Z",
+  "latencyMs": 2414,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-08-08",
+    "totalCents": 51500,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678909",
+    "accessKey": null,
+    "description": "Cesta de café da manhã",
+    "confidence": 1
+  }
+}

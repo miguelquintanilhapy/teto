@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "2248ac38fd9fb24f586f6432c9d51e5d220002df436afa58ab30eca84ad031aa",
+  "recordedAt": "2026-11-25T18:45:11.659Z",
+  "latencyMs": 2613,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-09-25",
+    "totalCents": 387000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "23456789000195",
+    "accessKey": "3526051122233300018155001000000202021015996382",
+    "description": "Bolo institucional (30 fatias) x 4",
+    "confidence": 1
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "providerId": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+  "promptVersion": "v3",
+  "docSha256": "fabe8ce2a69255d4a98f46ff9ca3240d5666f7ab686056e14fae662514970b19",
+  "recordedAt": "2026-11-25T18:48:30.977Z",
+  "latencyMs": 4489,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-09-19",
+    "totalCents": 89000,
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "12.345.678/0001-95",
+    "accessKey": null,
+    "description": "Doces para coquetel corporativo",
+    "confidence": 0.95
+  }
+}

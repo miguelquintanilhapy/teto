@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "9a6c795ce0281601da496f577c1d67db224466865dae6ae57488083a166c4a00",
+  "recordedAt": "2026-11-25T18:40:49.428Z",
+  "latencyMs": 2085,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-04-18",
+    "totalCents": 298000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "23456789000195",
+    "accessKey": null,
+    "description": "Doces para festa junina da escola",
+    "confidence": 1
+  }
+}

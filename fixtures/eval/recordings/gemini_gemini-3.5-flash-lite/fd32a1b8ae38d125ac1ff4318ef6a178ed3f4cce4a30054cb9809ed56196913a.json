@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "fd32a1b8ae38d125ac1ff4318ef6a178ed3f4cce4a30054cb9809ed56196913a",
+  "recordedAt": "2026-11-25T18:45:42.351Z",
+  "latencyMs": 1905,
+  "raw": {
+    "documentType": "comprovante_pix",
+    "issueDate": "2026-06-30",
+    "totalCents": 199999,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": null,
+    "accessKey": null,
+    "description": "Transferência Pix para Doces da Marta MEI",
+    "confidence": 0.95
+  }
+}

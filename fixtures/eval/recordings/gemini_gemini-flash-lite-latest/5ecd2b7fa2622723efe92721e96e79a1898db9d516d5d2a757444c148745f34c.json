@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "5ecd2b7fa2622723efe92721e96e79a1898db9d516d5d2a757444c148745f34c",
+  "recordedAt": "2026-11-25T18:53:26.690Z",
+  "latencyMs": 1627,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-10-27",
+    "totalCents": 432075,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "45678912364",
+    "accessKey": null,
+    "description": "Bolo de casamento (3 andares) + 60 docinhos",
+    "confidence": 1
+  }
+}
