@@ -1,6 +1,7 @@
 import { getAdminClient } from "@/server/db/client";
 import { getEnv } from "@/server/env";
 import { createRouterFromEnv } from "@/server/extraction/providers";
+import { CachedProfileIdRepo } from "@/server/extraction/profile-cache";
 import { PostgresCooldownStore, PostgresQuotaGuard } from "@/server/extraction/stores/postgres";
 import {
   SupabaseDocumentsRepo,
@@ -68,7 +69,7 @@ export function getUploadHandlerDeps(): UploadHandlerDeps {
     quota: new PostgresQuotaGuard(db, env.extractionDailyQuota),
   });
   cached = {
-    profiles: new SupabaseProfilesRepo(db),
+    profiles: new CachedProfileIdRepo(new SupabaseProfilesRepo(db)),
     upload: {
       documents: new SupabaseDocumentsRepo(db),
       extractions: new SupabaseExtractionsRepo(db),
