@@ -220,6 +220,9 @@ body {
     color: inherit !important;
     background: none !important;
   }
+  .privacy-hide {
+    visibility: visible !important;
+  }
   * {
     box-shadow: none !important;
     backdrop-filter: none !important;
@@ -242,6 +245,10 @@ body {
   -webkit-box-decoration-break: clone;
   user-select: none;
   -webkit-user-select: none;
+}
+/* A altura da sala e o preenchimento das barras revelariam o valor escondido: somem também. */
+:root[data-privacy="on"] .privacy-hide {
+  visibility: hidden;
 }
 
 @media (prefers-reduced-motion: no-preference) {

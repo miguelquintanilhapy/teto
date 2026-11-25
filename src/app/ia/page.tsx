@@ -100,7 +100,7 @@ async function Conteudo() {
         <p className="mb-3 text-[1.0625rem] font-semibold">
           {quota.used} de {quota.limit} leituras
         </p>
-        <LimitBar ratio={quotaRatio} tone={quotaTone} label={`${quota.used} de ${quota.limit} leituras usadas hoje`} />
+        <LimitBar ratio={quotaRatio} tone={quotaTone} fill={quotaTone === "ok" ? "bg-label-2" : undefined} label={`${quota.used} de ${quota.limit} leituras usadas hoje`} />
         <p className="t-sub mt-2.5 text-label-2">Ao chegar no teto, o Teto passa para o preenchimento manual, sem derrubar nada.</p>
       </section>
 

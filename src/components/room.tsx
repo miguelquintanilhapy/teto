@@ -29,7 +29,7 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
       <path d={roomPath} fill="var(--track)" stroke="var(--label-2)" strokeOpacity="0.45" strokeWidth="1.5" />
       <g clipPath={`url(#${clipId})`}>
         <rect
-          className="room-fill"
+          className="room-fill privacy-hide"
           x="10"
           y={TOP + H - fillH}
           width="84"
