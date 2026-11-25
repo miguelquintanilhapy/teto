@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { X } from "@phosphor-icons/react/dist/ssr";
+import { CloseButton } from "@/components/nav/close-button";
 
 /** Casca de tela modal: botão de fechar de vidro à esquerda e título centralizado, como num sheet do iOS. */
 export function SheetShell({
@@ -27,13 +27,7 @@ export function SheetShell({
             <X size={20} weight="bold" aria-hidden="true" />
           </button>
         ) : (
-          <Link
-            href={closeHref}
-            aria-label="Fechar"
-            className="glass pressable absolute left-0 grid size-11 place-items-center rounded-full text-label"
-          >
-            <X size={20} weight="bold" aria-hidden="true" />
-          </Link>
+          <CloseButton fallback={closeHref} className="glass pressable absolute left-0 grid size-11 place-items-center rounded-full text-label" />
         )}
         {title && <h1 className="text-[1.125rem] font-semibold">{title}</h1>}
       </header>
