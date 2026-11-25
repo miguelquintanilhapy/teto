@@ -15,7 +15,7 @@ export function SheetShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="page-enter mx-auto min-h-dvh w-full max-w-[430px] px-4 pt-[calc(env(safe-area-inset-top,0px)_+_1rem)] pb-40">
+    <main className="page-enter app-column mx-auto min-h-dvh w-full max-w-[430px] px-4 pt-[calc(env(safe-area-inset-top,0px)_+_1rem)] pb-40">
       <header className="no-print relative mb-5 flex h-11 items-center justify-center">
         {onClose ? (
           <button

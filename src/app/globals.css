@@ -16,6 +16,7 @@
   --tile: #f2f2f7;
   --label: #000000;
   --label-2: #636366;
+  --desk: #e3e3e8;
   /* Azul de interação: botões e links. Botão: texto branco a 5,07:1. Texto azul: tom próprio, a 5,2:1 no fundo. */
   --primary: #006ae0;
   --on-primary: #ffffff;
@@ -52,6 +53,7 @@
     --tile: #161618;
     --label: #ffffff;
     --label-2: #acacb1;
+  --desk: #111113;
     --primary: #0a6fdf; /* texto branco a 4,83:1 */
     --on-primary: #ffffff;
     --action-text: #409cff;
@@ -87,6 +89,7 @@
   --tile: #161618;
   --label: #ffffff;
   --label-2: #acacb1;
+  --desk: #111113;
   --primary: #0a6fdf; /* texto branco a 4,83:1 */
   --on-primary: #ffffff;
   --action-text: #409cff;
@@ -141,6 +144,22 @@
 
 html {
   background: var(--bg);
+}
+
+/*
+ * Em telas largas, o app continua uma coluna de celular, mas emoldurada: um fundo de mesa e a coluna com borda
+ * e sombra. O que fica fora dela deixa de parecer espaço abandonado.
+ */
+@media (min-width: 768px) {
+  html,
+  body {
+    background: var(--desk);
+  }
+  .app-column {
+    background: var(--bg);
+    border-inline: 1px solid var(--sep);
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.18);
+  }
 }
 
 body {
