@@ -246,6 +246,11 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
+/* Depois da primeira visita da sessão, a sala e o gráfico aparecem prontos: animar a cada troca de aba cansava. */
+:root[data-seen] .room-fill,
+:root[data-seen] .bar-grow {
+  animation: none !important;
+}
 /* A altura da sala e o preenchimento das barras revelariam o valor escondido: somem também. */
 :root[data-privacy="on"] .privacy-hide {
   visibility: hidden;
