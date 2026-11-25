@@ -6,7 +6,7 @@ ficou**. Ver [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 
 ## Como foi verificado
 
-- 386 testes automatizados (núcleo, serviços, handlers HTTP, helpers de interface).
+- 406 testes automatizados (núcleo, serviços, handlers HTTP, helpers de interface).
 - Build de produção e servidor de produção: troca de aba medida em 11 a 21 ms.
 - Requisições hostis contra o servidor real: origem de outro site (`403`), `text/plain` (`415`), edição do
   cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
@@ -102,3 +102,23 @@ conferido no código antes de agir.
 | R$ 67.500 seria uma "faixa preventiva" | **Premissa errada do avaliador**: é o limite legal proporcional (abertura em março) |
 
 Não verificado por ele (nem por nós): desktop, 320 px, teclado, leitor de tela e contraste medido.
+
+## Terceira rodada: uso real e ajustes pedidos
+
+Feita em 25/11/2026, a partir de testes do dono do projeto no navegador e no celular, de vídeos e capturas do iOS
+e de duas telas de referência (Bolso e PicPay).
+
+| Achado | Situação |
+|---|---|
+| Sair de uma nota no X e tocar em "Enviar nota" trazia de volta a nota abandonada (o Next guarda a tela escondida, com o estado) | **Corrigido**: o fluxo descarta o estado ao sair. Reproduzido antes e confirmado depois |
+| Foto acima de 4 MB era recusada, e quem fotografa não sabe reduzir | **Corrigido**: reduzida no aparelho (32 MB viraram 1,1 MB em 0,35 s no teste). PDF grande segue recusado, com a saída dita |
+| Troca de tema instantânea, ao contrário do iPhone | **Corrigido**: dissolução de 0,4 s da tela inteira e marcador do seletor deslizando |
+| "Ocultar valores" com borrão ainda deixa adivinhar os dígitos | **Corrigido**: barra lisa |
+| Perfil pouco organizado e sem atalhos | **Corrigido**: grupos com ícones, lápis para editar, regras, instalar e primeiros passos, versão do app |
+| Botão preto e branco sem separar "o que se toca" de "o que informa" | **Corrigido**: azul de interação; âmbar e vermelho só para risco |
+| Receita em verde (o número que traz o risco aparecia como "bom") | **Corrigido**: receita neutra |
+| "Crítico" e "Acima do limite" com o mesmo vermelho | **Corrigido**: laranja-avermelhado para Crítico e Limite atingido; vermelho com ícone próprio |
+| Laranja do tema claro "barrento" | **Não dá para melhorar**: já é o mais claro que passa de 3:1 sobre o trilho (3,06). Os mais vivos reprovam |
+| Editar o perfil sumia em produção | **Esperado**: a edição é bloqueada de propósito (sem login). Em desenvolvimento aparece; em produção, `ALLOW_PROFILE_EDIT=true` |
+
+Ver também a segunda rodada (auditoria externa por gravação de tela), acima.

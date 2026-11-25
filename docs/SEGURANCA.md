@@ -68,6 +68,14 @@ fraca da política; o resto está fechado.
 - Alertas: reserva atômica (`update … where sent_at is null returning`) antes de enviar; falha devolve à fila.
 - Idempotência por hash do arquivo e por chave de acesso.
 
+## Verificado em 25/11/2026
+
+- `npm audit --omit=dev`: 0 vulnerabilidades. **Não roda na CI ainda.**
+- Requisições hostis contra o servidor de produção local: `Origin` de outro site (`403`), `text/plain` (`415`),
+  edição do cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
+- Console do navegador sem violação de CSP.
+- Rodada de testes automáticos: 406 (núcleo, serviços, handlers).
+
 ## Migração obrigatória
 
 Rode [`0002_one_transaction_per_document.sql`](../supabase/migrations/0002_one_transaction_per_document.sql)
