@@ -38,8 +38,19 @@ const TITLES: Record<Stage["name"], string | undefined> = {
   done: undefined,
 };
 
+/**
+ * Com o cache de componentes, o Next guarda a tela anterior escondida quando o usuário navega, com o estado
+ * dentro. Sem este invólucro, sair de uma nota (no X) e tocar em "Enviar nota" de novo trazia de volta a nota
+ * abandonada. Ao sair da tela, o fluxo descarta o estado: a próxima visita recomeça do zero.
+ */
+export function SendFlow(props: { ctx: SendContext; startManual?: boolean }) {
+  const [visit, setVisit] = useState(0);
+  useEffect(() => () => setVisit((v) => v + 1), []);
+  return <SendFlowSteps key={visit} {...props} />;
+}
+
 /** Fluxo em quatro passos: escolher, ler, conferir e confirmar. Só o código decide o que entra no limite. */
-export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
+function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
   const router = useRouter();
   const [ctx, setCtx] = useState(initialCtx);
   const params = useSearchParams();
