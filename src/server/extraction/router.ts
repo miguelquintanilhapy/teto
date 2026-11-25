@@ -23,6 +23,13 @@ export interface RouterOptions {
   cooldownMs?: number;
   /** Cooldown quando o provedor responde "indisponível" (padrão: 3 min). */
   unavailableCooldownMs?: number;
+  /**
+   * Se o provedor em andamento passa deste tempo sem responder, o PRÓXIMO da cadeia é disparado em paralelo
+   * (sem cancelar o primeiro). Quem devolver uma extração aceita primeiro vence e cancela o outro. Os modelos
+   * gratuitos variam de 2 s a 30 s para a mesma nota; esperar o primeiro morrer gastava o orçamento.
+   * `Infinity` desliga e deixa a cadeia estritamente sequencial (usado no eval).
+   */
+  hedgeAfterMs?: number;
   minConfidence?: number;
   /** Estado de cooldown compartilhável entre instâncias (Postgres em produção). */
   cooldownStore?: CooldownStore;
@@ -37,6 +44,7 @@ export type AttemptOutcome =
   | "accepted"
   | "rejected"
   | "error"
+  | "cancelled"
   | "skipped_cooldown"
   | "skipped_capability"
   | "skipped_budget";
@@ -46,6 +54,8 @@ export interface Attempt {
   providerId: string;
   outcome: AttemptOutcome;
   latencyMs: number;
+  /** Quando a tentativa começou, em ms desde o início da extração (tentativas em paralelo se sobrepõem). */
+  startOffsetMs?: number;
   errorKind?: ProviderErrorKind;
   issues?: string[];
 }
@@ -77,6 +87,8 @@ const DEFAULTS = {
    * perdida custa vários segundos do orçamento do próximo usuário. Fica mais tempo fora.
    */
   unavailableCooldownMs: 180_000,
+  /** A mediana dos modelos saudáveis é de 2 a 4 s; passou disso, vale ter um segundo na corrida. */
+  hedgeAfterMs: 7_000,
   minConfidence: 0.7,
 } as const;
 
@@ -117,6 +129,7 @@ export class ExtractionRouter {
     const totalBudgetMs = this.opts.totalBudgetMs ?? DEFAULTS.totalBudgetMs;
     const cooldownMs = this.opts.cooldownMs ?? DEFAULTS.cooldownMs;
     const unavailableCooldownMs = this.opts.unavailableCooldownMs ?? DEFAULTS.unavailableCooldownMs;
+    const hedgeAfterMs = this.opts.hedgeAfterMs ?? DEFAULTS.hedgeAfterMs;
     const minConfidence = this.opts.minConfidence ?? DEFAULTS.minConfidence;
 
     if (this.opts.quota && !(await this.consumeQuota(this.opts.quota))) {
@@ -127,66 +140,168 @@ export class ExtractionRouter {
     const attempts: Attempt[] = [];
     let best: { data: ExtractedReceipt; issues: string[]; providerId: string } | null = null;
 
-    for (const provider of this.opts.providers) {
-      const started = this.now();
+    // Quem ainda não foi tentado, na ordem da cadeia, e quem está em andamento agora.
+    const queue = [...this.opts.providers];
+    const flights = new Map<number, Flight>();
+    let nextId = 0;
+    let lastLaunch = startedAll;
 
-      if (!canHandle(provider, doc)) {
-        attempts.push({ providerId: provider.id, outcome: "skipped_capability", latencyMs: 0 });
-        continue;
-      }
+    /** Dispara o próximo provedor que pode ser usado. Devolve falso se a fila acabou sem disparar nada. */
+    const launchNext = async (): Promise<boolean> => {
+      while (queue.length > 0) {
+        const provider = queue.shift()!;
+        const started = this.now();
+        const offset = started - startedAll;
 
-      // Se o banco do cooldown falhar, segue sem ele: melhor tentar o provedor do que derrubar a extração.
-      const blockedUntil = await this.cooldown.blockedUntil(provider.id).catch(() => null);
-      if (blockedUntil !== null && blockedUntil > started) {
-        attempts.push({ providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0 });
-        continue;
-      }
-
-      const remaining = totalBudgetMs - (started - startedAll);
-      if (remaining <= 0) {
-        attempts.push({ providerId: provider.id, outcome: "skipped_budget", latencyMs: 0 });
-        break;
-      }
-
-      let raw: unknown;
-      try {
-        raw = await withTimeout((signal) => provider.extract(doc, signal), Math.min(timeoutMs, remaining));
-      } catch (err) {
-        const e = toProviderError(err);
-        if (e.kind === "rate_limit" || e.kind === "unavailable" || e.kind === "timeout") {
-          await this.cooldown
-            .block(
-              provider.id,
-              this.now() + (e.retryAfterMs ?? (e.kind === "unavailable" ? unavailableCooldownMs : cooldownMs)),
-              e.kind,
-            )
-            .catch(() => undefined); // falha ao registrar o cooldown não pode esconder o erro do provedor
+        if (!canHandle(provider, doc)) {
+          attempts.push({ providerId: provider.id, outcome: "skipped_capability", latencyMs: 0, startOffsetMs: offset });
+          continue;
         }
-        attempts.push({ providerId: provider.id, outcome: "error", errorKind: e.kind, latencyMs: this.now() - started });
+
+        // Se o banco do cooldown falhar, segue sem ele: melhor tentar o provedor do que derrubar a extração.
+        const blockedUntil = await this.cooldown.blockedUntil(provider.id).catch(() => null);
+        if (blockedUntil !== null && blockedUntil > started) {
+          attempts.push({ providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0, startOffsetMs: offset });
+          continue;
+        }
+
+        const remaining = totalBudgetMs - offset;
+        if (remaining <= 0) {
+          attempts.push({ providerId: provider.id, outcome: "skipped_budget", latencyMs: 0, startOffsetMs: offset });
+          queue.length = 0; // sem orçamento, ninguém mais entra
+          return false;
+        }
+
+        const id = nextId++;
+        const controller = new AbortController();
+        const state = { cancelled: false };
+        const flight: Flight = {
+          id,
+          provider,
+          controller,
+          state,
+          offset,
+          promise: this.runAttempt(provider, doc, controller, state, Math.min(timeoutMs, remaining), started, {
+            minConfidence,
+            cooldownMs,
+            unavailableCooldownMs,
+          }).then((settled) => ({ id, settled })),
+        };
+        flights.set(id, flight);
+        lastLaunch = started;
+        return true;
+      }
+      return false;
+    };
+
+    /** Cancela quem ficou para trás, sem tratar isso como falha do provedor (não gera cooldown). */
+    const cancelRest = () => {
+      for (const f of flights.values()) {
+        f.state.cancelled = true;
+        f.controller.abort();
+        attempts.push({ providerId: f.provider.id, outcome: "cancelled", latencyMs: this.now() - startedAll - f.offset, startOffsetMs: f.offset });
+      }
+      flights.clear();
+    };
+
+    await launchNext();
+
+    while (flights.size > 0) {
+      // Se ainda há provedores na fila, o próximo entra na corrida quando o último disparado passa do tempo.
+      let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
+      const racers: Array<Promise<{ id: number; settled: Settled } | "hedge">> = [...flights.values()].map((f) => f.promise);
+      if (queue.length > 0 && Number.isFinite(hedgeAfterMs)) {
+        const wait = Math.max(0, hedgeAfterMs - (this.now() - lastLaunch));
+        racers.push(new Promise<"hedge">((resolve) => (hedgeTimer = setTimeout(() => resolve("hedge"), wait))));
+      }
+      const event = await Promise.race(racers);
+      clearTimeout(hedgeTimer);
+
+      if (event === "hedge") {
+        await launchNext();
         continue;
       }
 
-      const latencyMs = this.now() - started;
-      const parsed = parseExtraction(raw);
-      if (!parsed.ok) {
-        attempts.push({ providerId: provider.id, outcome: "rejected", issues: parsed.issues, latencyMs });
-        continue;
+      const flight = flights.get(event.id);
+      if (!flight) continue;
+      flights.delete(event.id);
+      const settled = event.settled;
+      const base = { providerId: flight.provider.id, latencyMs: settled.latencyMs, startOffsetMs: flight.offset };
+
+      if (settled.kind === "error") {
+        attempts.push({ ...base, outcome: "error", errorKind: settled.errorKind });
+      } else if (settled.kind === "invalid") {
+        attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
+      } else if (settled.issues.length === 0) {
+        attempts.push({ ...base, outcome: "accepted" });
+        cancelRest();
+        return { status: "accepted", data: settled.data, issues: [], providerId: flight.provider.id, attempts };
+      } else {
+        attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
+        if (best === null || settled.issues.length < best.issues.length) {
+          best = { data: settled.data, issues: settled.issues, providerId: flight.provider.id };
+        }
       }
 
-      const issues = checkBusinessRules(parsed.data, { minConfidence, today: this.today() });
-      if (issues.length === 0) {
-        attempts.push({ providerId: provider.id, outcome: "accepted", latencyMs });
-        return { status: "accepted", data: parsed.data, issues: [], providerId: provider.id, attempts };
-      }
-      attempts.push({ providerId: provider.id, outcome: "rejected", issues, latencyMs });
-      if (best === null || issues.length < best.issues.length) {
-        best = { data: parsed.data, issues, providerId: provider.id };
-      }
+      // Quem falhou libera a vez na hora: não há motivo para esperar o tempo de hedge.
+      if (flights.size === 0) await launchNext();
     }
 
     if (best) return { status: "needs_review", ...best, attempts };
     throw new AllProvidersFailedError(attempts);
   }
+
+  /** Uma chamada a um provedor, até o veredito. Nunca lança: o resultado diz o que aconteceu. */
+  private async runAttempt(
+    provider: VisionProvider,
+    doc: DocumentInput,
+    controller: AbortController,
+    state: { cancelled: boolean },
+    ms: number,
+    started: number,
+    cfg: { minConfidence: number; cooldownMs: number; unavailableCooldownMs: number },
+  ): Promise<Settled> {
+    let raw: unknown;
+    try {
+      raw = await withTimeout((signal) => provider.extract(doc, signal), ms, controller);
+    } catch (err) {
+      const latencyMs = this.now() - started;
+      // Cancelado por nós (outro provedor já venceu): não é falha do provedor e não gera cooldown.
+      if (state.cancelled) return { kind: "error", errorKind: "unavailable", latencyMs, cancelled: true };
+      const e = toProviderError(err);
+      if (e.kind === "rate_limit" || e.kind === "unavailable" || e.kind === "timeout") {
+        await this.cooldown
+          .block(
+            provider.id,
+            this.now() + (e.retryAfterMs ?? (e.kind === "unavailable" ? cfg.unavailableCooldownMs : cfg.cooldownMs)),
+            e.kind,
+          )
+          .catch(() => undefined); // falha ao registrar o cooldown não pode esconder o erro do provedor
+      }
+      return { kind: "error", errorKind: e.kind, latencyMs };
+    }
+
+    const latencyMs = this.now() - started;
+    const parsed = parseExtraction(raw);
+    if (!parsed.ok) return { kind: "invalid", issues: parsed.issues, latencyMs };
+    const issues = checkBusinessRules(parsed.data, { minConfidence: cfg.minConfidence, today: this.today() });
+    return { kind: "answer", data: parsed.data, issues, latencyMs };
+  }
+}
+
+type Settled =
+  | { kind: "answer"; data: ExtractedReceipt; issues: string[]; latencyMs: number }
+  | { kind: "invalid"; issues: string[]; latencyMs: number }
+  | { kind: "error"; errorKind: ProviderErrorKind; latencyMs: number; cancelled?: boolean };
+
+interface Flight {
+  id: number;
+  provider: VisionProvider;
+  controller: AbortController;
+  /** Marcado pelo roteador quando ele mesmo cancela a tentativa (outro provedor venceu). */
+  state: { cancelled: boolean };
+  offset: number;
+  promise: Promise<{ id: number; settled: Settled }>;
 }
 
 function toProviderError(err: unknown): ProviderError {
@@ -194,17 +309,22 @@ function toProviderError(err: unknown): ProviderError {
   return new ProviderError("unavailable", err instanceof Error ? err.message : String(err));
 }
 
-async function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
-  const controller = new AbortController();
+async function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>, ms: number, controller: AbortController = new AbortController()): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
+      timedOut = true;
       controller.abort();
       reject(new ProviderError("timeout", `Sem resposta em ${ms} ms`));
     }, ms);
   });
   try {
     return await Promise.race([fn(controller.signal), timeout]);
+  } catch (err) {
+    // Alguns provedores rejeitam com AbortError antes de o nosso timeout rejeitar: ainda é um timeout.
+    if (timedOut) throw new ProviderError("timeout", `Sem resposta em ${ms} ms`);
+    throw err;
   } finally {
     clearTimeout(timer);
   }
