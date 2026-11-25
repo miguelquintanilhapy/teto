@@ -8,7 +8,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 | Rota | O que faz |
 |---|---|
 | `/` | Painel: faturamento do ano, faixa de risco, a sala do limite, previsão, DAS, notas para conferir, receita por mês e atalho para lançar sem nota |
-| `/enviar` | Escolher a nota, esperar a leitura, conferir os dados e confirmar |
+| `/enviar` | Escolher a nota (fotos grandes são reduzidas no aparelho), esperar a leitura, conferir os dados e confirmar |
 | `/lancar` | Lançar sem nota (também abre pré-preenchido a partir do extrato) |
 | `/simular` | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado |
 | `/historico` | Lançamentos do ano por dia, com filtros guardados no endereço |

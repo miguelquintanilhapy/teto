@@ -31,7 +31,8 @@ aberto. O risco é vandalismo dos dados fictícios; restaure com `npm run seed:d
 - Corpos JSON só como `application/json`, com tamanho conferido **de verdade** (não só o `Content-Length`).
 - Zod `.strict()` em todos os corpos: campo desconhecido (`status`, `id`, `profileId`) é recusado.
 - Identificadores como UUID. Valores em centavos inteiros e com teto. Datas validadas, sem futuro.
-- Upload: tipo pelos primeiros bytes (nunca pela extensão), 4 MB (abaixo do corte de 4,5 MB da Vercel),
+- Upload: tipo pelos primeiros bytes (nunca pela extensão), 4 MB (abaixo do corte de 4,5 MB da Vercel; o app reduz fotos grandes
+  no aparelho antes de enviar, mas o servidor confere o limite de qualquer jeito),
   armazenamento privado, caminho derivado do hash.
 - O **tipo do lançamento** (receita ou despesa) é do código. O cliente só escolhe quando o CNPJ do MEI não
   aparece; se contradisser o que o CNPJ mostra, `422 direction_conflict`. Assim ninguém tira receita do limite.

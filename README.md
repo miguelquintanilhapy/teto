@@ -168,7 +168,7 @@ npm run eval    # avaliação da extração, repetindo respostas gravadas (sem r
 ## API
 
 `POST /api/documents` recebe uma nota, recibo ou extrato e devolve os campos extraídos.
-Multipart com `file` (JPEG, PNG, WebP ou PDF, até 4 MB) e `kind` (`nota`, `recibo` ou `extrato`; padrão `nota`).
+Multipart com `file` (JPEG, PNG, WebP ou PDF, até 4 MB; o app reduz fotos grandes no aparelho antes de enviar) e `kind` (`nota`, `recibo` ou `extrato`; padrão `nota`).
 
 ```bash
 curl -X POST http://localhost:3000/api/documents \
