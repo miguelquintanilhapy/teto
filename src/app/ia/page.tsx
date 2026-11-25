@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { CaretDown } from "@phosphor-icons/react/dist/ssr";
 import { LimitBar } from "@/components/limit-bar";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatPercent } from "@/lib/format";
@@ -82,6 +83,17 @@ async function Conteudo() {
         </p>
       </section>
 
+      <section aria-label="Resumo das leituras" className="mt-3 rounded-card bg-card p-5">
+        <p className="t-body">
+          {summary.total === 0
+            ? "Ainda não houve leituras. Envie uma nota para ver como a IA se sai."
+            : `Nas últimas ${summary.total} leituras, ${summary.acceptRate === null ? "nenhuma" : formatPercent(summary.acceptRate)} foram aceitas direto, em ${seconds(summary.avgTotalMs)} em média.`}
+        </p>
+        <p className="t-sub mt-2 text-label-2">
+          Você sempre confere os dados antes de a nota entrar no limite. Se um modelo falha, o Teto tenta o próximo; se todos falham, você preenche à mão.
+        </p>
+      </section>
+
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Cota de hoje</h2>
       <section aria-label="Cota diária de leituras" className="rounded-card bg-card p-5">
         <p className="mb-3 text-[1.0625rem] font-semibold">
@@ -91,7 +103,12 @@ async function Conteudo() {
         <p className="t-sub mt-2.5 text-label-2">Ao chegar no teto, o Teto passa para o preenchimento manual, sem derrubar nada.</p>
       </section>
 
-      <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Últimas {summary.total} leituras</h2>
+      <details className="group mt-6">
+        <summary className="pressable flex min-h-12 cursor-pointer list-none items-center justify-between rounded-card bg-card px-5 py-3 text-[1.0625rem] font-semibold [&::-webkit-details-marker]:hidden">
+          Detalhes técnicos
+          <CaretDown size={17} weight="bold" className="text-label-2 transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+      <h2 className="mt-4 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Últimas {summary.total} leituras</h2>
       <div className="grid grid-cols-2 gap-3">
         <Stat label="Aceitas direto" value={summary.acceptRate === null ? "—" : formatPercent(summary.acceptRate)} />
         <Stat label="Tempo médio" value={seconds(summary.avgTotalMs)} />
@@ -152,6 +169,7 @@ async function Conteudo() {
           </ul>
         </>
       )}
+      </details>
       <p className="t-sub mt-4 px-5 text-label-2">As instruções dadas à IA têm versão ({recent[0]?.promptVersion ?? "—"}), e a qualidade é medida em notas de teste antes de cada mudança.</p>
     </>
   );
