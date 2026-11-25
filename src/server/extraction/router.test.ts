@@ -309,6 +309,200 @@ describe("ExtractionRouter: resiliência quando o banco de apoio falha", () => {
   });
 });
 
+describe("ExtractionRouter: segundo modelo em paralelo (hedging)", () => {
+  /** Provedor que responde depois de `ms`, respeita o cancelamento e conta se foi cancelado. */
+  const after = (id: string, ms: number, result: () => unknown) => {
+    const p = {
+      id,
+      calls: 0,
+      aborted: false,
+      extract(_doc: unknown, signal: AbortSignal) {
+        p.calls += 1;
+        return new Promise<unknown>((resolve, reject) => {
+          const t = setTimeout(() => {
+            try {
+              resolve(result());
+            } catch (e) {
+              reject(e);
+            }
+          }, ms);
+          signal.addEventListener("abort", () => {
+            clearTimeout(t);
+            p.aborted = true;
+            reject(new DOMException("cancelado", "AbortError"));
+          });
+        });
+      },
+    };
+    return p;
+  };
+
+  const real = (providers: VisionProvider[], extra: Partial<ConstructorParameters<typeof ExtractionRouter>[0]> = {}) =>
+    new ExtractionRouter({ providers, today: () => "2026-05-12", timeoutMs: 1_000, hedgeAfterMs: 30, ...extra });
+
+  it("dispara o segundo quando o primeiro demora, e o que responde antes vence", async () => {
+    const a = after("a", 400, () => GOOD);
+    const b = after("b", 5, () => GOOD);
+    const t0 = Date.now();
+    const r = await real([a, b]).extract(DOC);
+    expect(r.providerId).toBe("b");
+    expect(Date.now() - t0).toBeLessThan(250); // sem o paralelo, esperaria os 400 ms do primeiro
+    expect(a.aborted).toBe(true);
+    expect(r.attempts.map((t) => [t.providerId, t.outcome])).toEqual([
+      ["b", "accepted"],
+      ["a", "cancelled"],
+    ]);
+  });
+
+  it("o primeiro ainda pode vencer depois de o segundo entrar", async () => {
+    const a = after("a", 80, () => GOOD);
+    const b = after("b", 500, () => GOOD);
+    const r = await real([a, b]).extract(DOC);
+    expect(r.providerId).toBe("a");
+    expect(b.calls).toBe(1);
+    expect(b.aborted).toBe(true);
+  });
+
+  it("não dispara o segundo quando o primeiro responde a tempo", async () => {
+    const a = after("a", 5, () => GOOD);
+    const b = after("b", 5, () => GOOD);
+    const r = await real([a, b]).extract(DOC);
+    expect(r.providerId).toBe("a");
+    expect(b.calls).toBe(0);
+    expect(r.attempts).toHaveLength(1);
+  });
+
+  it("quando o primeiro falha, o segundo entra na hora, sem esperar o tempo de hedge", async () => {
+    const a = after("a", 5, () => {
+      throw new ProviderError("unavailable", "503");
+    });
+    const b = after("b", 5, () => GOOD);
+    const t0 = Date.now();
+    const r = await real([a, b], { hedgeAfterMs: 5_000 }).extract(DOC);
+    expect(r.providerId).toBe("b");
+    expect(Date.now() - t0).toBeLessThan(1_000);
+    expect(r.attempts.map((t) => [t.providerId, t.outcome, t.errorKind])).toEqual([
+      ["a", "error", "unavailable"],
+      ["b", "accepted", undefined],
+    ]);
+  });
+
+  it("quem foi cancelado porque outro venceu não entra em cooldown", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    const a = after("a", 400, () => GOOD);
+    const b = after("b", 5, () => GOOD);
+    await real([a, b], { cooldownStore: cooldown }).extract(DOC);
+    await new Promise((r) => setTimeout(r, 20)); // dá tempo de o cancelamento terminar
+    expect(await cooldown.blockedUntil("a")).toBeNull();
+  });
+
+  it("quem estoura o tempo continua indo para o cooldown, mesmo com o paralelo", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    const a = after("a", 400, () => GOOD);
+    const b = after("b", 60, () => GOOD);
+    await real([a, b], { cooldownStore: cooldown, timeoutMs: 40 }).extract(DOC).catch(() => undefined);
+    expect(await cooldown.blockedUntil("a")).not.toBeNull();
+  });
+
+  it("registra quando cada tentativa começou, e as tentativas em paralelo se sobrepõem", async () => {
+    const a = after("a", 400, () => GOOD);
+    const b = after("b", 5, () => GOOD);
+    const r = await real([a, b]).extract(DOC);
+    const byId = Object.fromEntries(r.attempts.map((t) => [t.providerId, t]));
+    expect(byId.a!.startOffsetMs).toBeLessThan(10);
+    expect(byId.b!.startOffsetMs).toBeGreaterThanOrEqual(25);
+  });
+
+  it("com hedgeAfterMs infinito a cadeia é estritamente sequencial", async () => {
+    const a = after("a", 80, () => GOOD);
+    const b = after("b", 5, () => GOOD);
+    const r = await real([a, b], { hedgeAfterMs: Infinity }).extract(DOC);
+    expect(r.providerId).toBe("a");
+    expect(b.calls).toBe(0);
+  });
+
+  it("devolve a melhor candidata para revisão se ninguém passa na validação", async () => {
+    const weak = { ...GOOD, issueDate: "2026-02-30" };
+    const a = after("a", 5, () => weak);
+    const b = after("b", 5, () => weak);
+    const r = await real([a, b]).extract(DOC);
+    expect(r.status).toBe("needs_review");
+    expect(r.attempts.filter((t) => t.outcome === "rejected")).toHaveLength(2);
+  });
+
+  it("falha por inteiro quando todos erram", async () => {
+    const boom = () => {
+      throw new ProviderError("unavailable", "503");
+    };
+    await expect(real([after("a", 5, boom), after("b", 5, boom)]).extract(DOC)).rejects.toBeInstanceOf(AllProvidersFailedError);
+  });
+});
+
+describe("ExtractionRouter: último recurso quando só sobrou quem está em cooldown", () => {
+  const T0 = 1_000;
+  const router = (providers: VisionProvider[], cooldown: InMemoryCooldownStore) =>
+    new ExtractionRouter({ providers, cooldownStore: cooldown, now: () => T0, today: () => "2026-05-12", timeoutMs: 50 });
+
+  it("se todos estão em cooldown, tenta mesmo assim, começando por quem sai dele primeiro", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    await cooldown.block("b", 3_000);
+    const a = fake("a", async () => GOOD);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.providerId).toBe("b"); // b sai do cooldown antes
+    expect(a.calls).toBe(0);
+    // quem foi retentado deixa de aparecer como "pulado"; quem nem chegou a ser tentado continua pulado
+    expect(r.attempts.map((t) => [t.providerId, t.outcome])).toEqual([
+      ["a", "skipped_cooldown"],
+      ["b", "accepted"],
+    ]);
+  });
+
+  it("quem estava em cooldown é a segunda opinião quando o outro só devolveu uma extração reprovada", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("b", 9_000);
+    const weak = { ...GOOD, issueDate: "2026-02-30" };
+    const a = fake("a", async () => weak);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.status).toBe("accepted");
+    expect(r.providerId).toBe("b");
+    expect(a.calls).toBe(1);
+    expect(b.calls).toBe(1);
+  });
+
+  it("não retenta quem estava em cooldown se alguém já foi aceito", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("b", 9_000);
+    const a = fake("a", async () => GOOD);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.providerId).toBe("a");
+    expect(b.calls).toBe(0);
+  });
+
+  it("se o provedor retentado também falha, a extração falha por inteiro (sem laço infinito)", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    const a = fake("a", async () => {
+      throw new ProviderError("unavailable", "503");
+    });
+    await expect(router([a], cooldown).extract(DOC)).rejects.toBeInstanceOf(AllProvidersFailedError);
+    expect(a.calls).toBe(1);
+  });
+
+  it("sem orçamento de tempo, não retenta ninguém", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    let t = 1_000;
+    const a = fake("a", async () => GOOD);
+    const r = new ExtractionRouter({ providers: [a], cooldownStore: cooldown, now: () => (t += 50_000), today: () => "2026-05-12", totalBudgetMs: 10_000 });
+    await expect(r.extract(DOC)).rejects.toBeInstanceOf(AllProvidersFailedError);
+    expect(a.calls).toBe(0);
+  });
+});
+
 describe("regras de negócio da extração", () => {
   const rules = { minConfidence: 0.7, today: "2026-05-12" };
 

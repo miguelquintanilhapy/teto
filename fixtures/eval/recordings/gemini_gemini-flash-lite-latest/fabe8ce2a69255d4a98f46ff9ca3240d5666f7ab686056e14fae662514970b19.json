@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "fabe8ce2a69255d4a98f46ff9ca3240d5666f7ab686056e14fae662514970b19",
+  "recordedAt": "2026-11-25T18:52:50.135Z",
+  "latencyMs": 1678,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-09-19",
+    "totalCents": 89000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678000195",
+    "accessKey": null,
+    "description": "Doces para coquetel corporativo",
+    "confidence": 0.99
+  }
+}

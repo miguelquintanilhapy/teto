@@ -125,6 +125,7 @@ for (const c of suite.cases) {
     providers: wrapped,
     today: () => EVAL_TODAY,
     cooldownMs: 3_000,
+    hedgeAfterMs: Infinity, // o eval precisa ser determinístico: nada de segundo modelo em paralelo
     ...(mode === "record" ? { timeoutMs: 90_000, totalBudgetMs: 300_000 } : {}),
   });
   let row: ChainCaseResult;

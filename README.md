@@ -103,11 +103,17 @@ Preencha cada variável. **Sem aspas e sem espaço antes ou depois do `=`.**
 | `EXTRACTION_DAILY_QUOTA` | Padrão `200` | Teto diário de extrações com IA, para proteger a cota gratuita. |
 | `DEMO_PROFILE_EMAIL` | Opcional | E-mail do perfil de demonstração (recebe os alertas). Só é lido pelo `npm run seed`. |
 
-Valor atual do `MODEL_CHAIN` (do modelo mais leve ao mais forte):
+Valor atual do `MODEL_CHAIN`, em ordem de tentativa. Se o primeiro modelo passa de 7 s sem responder, o
+seguinte entra **em paralelo** e o que responder primeiro (e passar na validação) vence:
 
 ```
-MODEL_CHAIN=gemini:gemini-3.1-flash-lite,gemini:gemini-3.8-flash,openrouter:nvidia/nemotron-3.5-super-vl:free
+MODEL_CHAIN=gemini:gemini-3.5-flash-lite,openrouter:nvidia/nemotron-3.5-super-vl:free,gemini:gemini-flash-lite-latest,gemini:gemini-3.6-flash
 ```
+
+Por que esta cadeia (medida em 25/11, ver [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md)): os modelos
+`gemini-3.1-flash-lite` e `gemini-3.8-flash`, usados antes, davam 503 "alta demanda" em quase todas as
+tentativas. O Nemotron (outra infraestrutura) é o mais estável; os `lite` são rápidos; o `3.6-flash` acerta bem,
+mas tem cota diária pequena e fica de reserva. **Se mudar a cadeia na Vercel, mude a variável lá também.**
 
 Para gerar um `CRON_SECRET` no PowerShell:
 
@@ -352,15 +358,23 @@ Avaliação em **26 notas sintéticas** com gabarito (prompt v3), repetindo resp
 
 | Resultado | Notas | Taxa |
 |---|---|---|
-| Aceita automaticamente e completa (data, valor, emissor e destinatário certos) | 22 | 85% |
-| Aceita automaticamente e **errada para o limite** (erro silencioso) | 1 | 4% |
+| Aceita automaticamente e completa (data, valor, emissor e destinatário certos) | 23 | 88% |
+| Aceita automaticamente e **errada para o limite** (erro silencioso) | 0 | 0% |
 | Enviada para revisão manual | 3 | 12% |
 | Falha total (nenhum modelo respondeu) | 0 | 0% |
 
-**Leia com cuidado:** as gravações são parciais (Flash-Lite 12 de 26, Nemotron 14 de 26, Flash 0 de 26, por
-sobrecarga do Google e cotas gratuitas), e o conjunto é pequeno e sintético. É um indicador, não uma garantia.
-Mesmo assim, o erro silencioso não vira erro de limite: nada entra no acumulado sem a confirmação do usuário.
-Detalhes por modelo e por campo em [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md).
+Por modelo, cada um sozinho: `gemini-3.5-flash-lite` 25 de 26 notas lidas (mediana 2,2 s), Nemotron 24 de 26
+(3,4 s) e `gemini-flash-lite-latest` 25 de 26 (1,7 s). Os três acertam o limite em 96% a 100% das notas.
+
+**Leia com cuidado:** o conjunto é pequeno e sintético, e cada resposta foi gravada **uma vez** (os modelos não
+são determinísticos). O `gemini-3.6-flash`, 4º da cadeia, tem cota diária pequena e **não foi gravado** (0 de 26).
+O ponto fraco é a **chave de acesso** de 44 dígitos: os modelos erram um dígito com frequência, e a validação
+(dígito verificador) manda a nota para conferência em vez de aceitá-la errada. Mesmo assim, nada entra no
+acumulado sem a confirmação do usuário. Detalhes em [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md).
+
+No app de verdade (6 notas fictícias, 25/11): mediana de **8,7 s por leitura** (a cadeia anterior levava 26 s), 3 aceitas direto,
+3 para conferência por dígito mal lido, nenhuma caiu para o preenchimento manual. Amostra pequena, num dia
+em que a cota gratuita do Nemotron e do `3.6-flash` já estava esgotada pelos meus próprios testes.
 
 ## Limitações conhecidas
 
@@ -395,7 +409,7 @@ Falta para o envio (prazo: 30/11, 23h59):
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
 - [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`
-- [ ] Gravações do eval completas (hoje parciais)
+- [ ] Gravar o `gemini-3.6-flash` no eval (a cota gratuita dele é de poucas leituras por dia) e repetir as gravações em outro horário
 
 Depois do hackathon:
 

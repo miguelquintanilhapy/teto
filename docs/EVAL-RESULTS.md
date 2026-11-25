@@ -3,20 +3,20 @@
 > Gerado por `npm run eval`. **Não edite à mão.** Notas 100% sintéticas e gabarito conhecido; as respostas dos modelos ficam gravadas em `fixtures/eval/recordings` para o resultado ser reprodutível.
 
 - Casos: **26** · prompt: **v3** · modo: replay
-- Cadeia: `gemini:gemini-3.1-flash-lite` → `gemini:gemini-3.8-flash` → `openrouter:nvidia/nemotron-3.5-super-vl:free`
-- Gravação mais recente: 2026-11-23
+- Cadeia: `gemini:gemini-3.5-flash-lite` → `openrouter:nvidia/nemotron-3.5-super-vl:free` → `gemini:gemini-flash-lite-latest` → `gemini:gemini-3.6-flash`
+- Gravação mais recente: 2026-11-25
 
 ## Cadeia completa (o que o usuário vive)
 
 | Resultado | Casos | Taxa |
 |---|---|---|
-| Aceita automaticamente e **completa** (data, valor, emissor e destinatário certos) | 22 | 85% |
+| Aceita automaticamente e **completa** (data, valor, emissor e destinatário certos) | 23 | 88% |
 | Aceita, certa para o limite, mas com dado de terceiro **faltando ou diferente** | 0 | 0% |
-| Aceita automaticamente e **errada para o limite** (erro silencioso) | 1 | 4% |
+| Aceita automaticamente e **errada para o limite** (erro silencioso) | 0 | 0% |
 | Enviada para revisão manual | 3 | 12% |
 | Falha total (nenhum modelo respondeu) | 0 | 0% |
 
-Tentativas por nota (média): 2,08. Quem respondeu: `gemini:gemini-3.1-flash-lite` 12, `openrouter:nvidia/nemotron-3.5-super-vl:free` 11.
+Tentativas por nota (média): 1,42. Quem respondeu: `gemini:gemini-3.5-flash-lite` 21, `openrouter:nvidia/nemotron-3.5-super-vl:free` 2.
 
 O número que mais importa é o **erro silencioso**: uma extração errada para o limite (data, valor ou direção) aceita sem revisão. Um dado de terceiro faltando (por exemplo, um CPF ilegível) não muda o acumulado e é contado à parte. Em todos os casos, a extração só entra no limite depois que o usuário confirma.
 
@@ -24,9 +24,10 @@ O número que mais importa é o **erro silencioso**: uma extração errada para 
 
 | Modelo | Gravações | JSON válido | Certo p/ o limite | Núcleo completo | Direção | Passa nas regras | p50 | p95 |
 |---|---|---|---|---|---|---|---|---|
-| `gemini:gemini-3.1-flash-lite` | 12/26 | 100% | 100% | 100% | 100% | 100% | 9,0 s | 56,4 s |
-| `gemini:gemini-3.8-flash` | 0/26 | n/d | n/d | n/d | n/d | n/d | n/d | n/d |
-| `openrouter:nvidia/nemotron-3.5-super-vl:free` | 14/26 | 100% | 93% | 93% | 93% | 79% | 2,7 s | 13,5 s |
+| `gemini:gemini-3.5-flash-lite` | 25/26 | 100% | 100% | 96% | 100% | 84% | 2,2 s | 6,9 s |
+| `openrouter:nvidia/nemotron-3.5-super-vl:free` | 24/26 | 100% | 96% | 96% | 96% | 88% | 3,4 s | 14,3 s |
+| `gemini:gemini-flash-lite-latest` | 25/26 | 100% | 100% | 96% | 100% | 84% | 1,7 s | 2,4 s |
+| `gemini:gemini-3.6-flash` | 0/26 | n/d | n/d | n/d | n/d | n/d | n/d | n/d |
 
 _Certo p/ o limite = data, valor e direção (receita/despesa) certos. Núcleo completo = além disso, emissor e destinatário certos. Direção é derivada pelo código._
 
@@ -34,9 +35,10 @@ _Certo p/ o limite = data, valor e direção (receita/despesa) certos. Núcleo c
 
 | Modelo | tipo | data | valor | emissor | destinatário | chave |
 |---|---|---|---|---|---|---|
-| `gemini:gemini-3.1-flash-lite` | 100% | 100% | 100% | 100% | 100% | 100% |
-| `gemini:gemini-3.8-flash` | n/d | n/d | n/d | n/d | n/d | n/d |
-| `openrouter:nvidia/nemotron-3.5-super-vl:free` | 100% | 100% | 100% | 93% | 93% | 79% |
+| `gemini:gemini-3.5-flash-lite` | 100% | 100% | 100% | 100% | 96% | 88% |
+| `openrouter:nvidia/nemotron-3.5-super-vl:free` | 100% | 100% | 100% | 96% | 96% | 88% |
+| `gemini:gemini-flash-lite-latest` | 100% | 100% | 100% | 100% | 96% | 88% |
+| `gemini:gemini-3.6-flash` | n/d | n/d | n/d | n/d | n/d | n/d |
 
 ## Por tipo de caso (cadeia)
 
@@ -61,19 +63,19 @@ _Certo p/ o limite = data, valor e direção (receita/despesa) certos. Núcleo c
 | ordem-invertida | 1/1 |
 | pf | 8/8 |
 | pix | 6/6 |
-| pj | 7/10 |
-| receita | 19/22 |
-| recibo | 3/4 |
+| pj | 8/10 |
+| receita | 20/22 |
+| recibo | 4/4 |
 | rotacionada | 1/1 |
 | rotulos-origem-destino | 1/1 |
 | terceiros | 1/1 |
-| valor-alto | 3/4 |
+| valor-alto | 4/4 |
 | valor-baixo | 1/1 |
 | varias-linhas | 1/1 |
 
 ## Erros silenciosos (afetam o limite)
 
-- `recibo-04` (openrouter:nvidia/nemotron-3.5-super-vl:free): divergiu em issuerTaxId, recipientTaxId, direção
+Nenhum nesta execução.
 
 ## Aceitas, certas para o limite, com dado de terceiro faltando ou diferente
 
@@ -81,33 +83,33 @@ Nenhuma nesta execução.
 
 ## Resultado por nota
 
-| Nota | Cadeia | `gemini:gemini-3.1-flash-lite` | `gemini:gemini-3.8-flash` | `openrouter:nvidia/nemotron-3.5-super-vl:free` |
-|---|---|---|---|---|
-| nfse-01 | ✓ | ✓ | · | · |
-| nfse-02 | ✓ | ✓ | · | · |
-| nfse-03 | ✓ | · | · | ✓ |
-| nfse-04 | ✓ | ✓ | · | · |
-| nfse-05 | ✓ | ✓ | · | · |
-| nfse-06 | ✓ | ✓ | · | · |
-| nfe-01 | revisão | · | · | ✓ |
-| recibo-01 | ✓ | ✓ | · | · |
-| recibo-02 | ✓ | ✓ | · | · |
-| recibo-03 | ✓ | · | · | ✓ |
-| pix-01 | ✓ | ✓ | · | · |
-| pix-02 | ✓ | · | · | ✓ |
-| cupom-01 | revisão | · | · | ✓ |
-| cupom-02 | ✓ | · | · | ✓ |
-| adv-01 | ✓ | ✓ | · | · |
-| adv-02 | ✓ | · | · | ✓ |
-| lowq-01 | ✓ | · | · | ✓ |
-| nfse-07 | ✓ | · | · | ✓ |
-| nfe-02 | revisão | · | · | ✓ |
-| recibo-04 | ✗ silencioso | · | · | ✗ |
-| pix-03 | ✓ | ✓ | · | · |
-| cupom-03 | ✓ | ✓ | · | · |
-| adv-03 | ✓ | · | · | ✓ |
-| pix-04 | ✓ | · | · | ✓ |
-| pix-05 | ✓ | · | · | ✓ |
-| pix-06 | ✓ | ✓ | · | · |
+| Nota | Cadeia | `gemini:gemini-3.5-flash-lite` | `openrouter:nvidia/nemotron-3.5-super-vl:free` | `gemini:gemini-flash-lite-latest` | `gemini:gemini-3.6-flash` |
+|---|---|---|---|---|---|
+| nfse-01 | ✓ | ✓ | ✓ | ✓ | · |
+| nfse-02 | ✓ | ✓ | ✓ | ✓ | · |
+| nfse-03 | ✓ | ✓ | ✓ | ✓ | · |
+| nfse-04 | ✓ | ✓ | ✓ | ✓ | · |
+| nfse-05 | ✓ | ✓ | ✓ | · | · |
+| nfse-06 | ✓ | ✓ | ✓ | ✓ | · |
+| nfe-01 | revisão | ✓ | ✓ | ✓ | · |
+| recibo-01 | ✓ | ✓ | ✓ | ✓ | · |
+| recibo-02 | ✓ | ✓ | ✓ | ✓ | · |
+| recibo-03 | ✓ | ✓ | ✓ | ✓ | · |
+| pix-01 | ✓ | ✗ | ✓ | ✗ | · |
+| pix-02 | ✓ | ✓ | ✓ | ✓ | · |
+| cupom-01 | revisão | ✓ | ✓ | ✓ | · |
+| cupom-02 | ✓ | · | ✓ | ✓ | · |
+| adv-01 | ✓ | ✓ | ✓ | ✓ | · |
+| adv-02 | ✓ | ✓ | ✓ | ✓ | · |
+| lowq-01 | ✓ | ✓ | ✓ | ✓ | · |
+| nfse-07 | ✓ | ✓ | ✓ | ✓ | · |
+| nfe-02 | revisão | ✓ | ✓ | ✓ | · |
+| recibo-04 | ✓ | ✓ | ✗ | ✓ | · |
+| pix-03 | ✓ | ✓ | ✓ | ✓ | · |
+| cupom-03 | ✓ | ✓ | · | ✓ | · |
+| adv-03 | ✓ | ✓ | ✓ | ✓ | · |
+| pix-04 | ✓ | ✓ | ✓ | ✓ | · |
+| pix-05 | ✓ | ✓ | ✓ | ✓ | · |
+| pix-06 | ✓ | ✓ | · | ✓ | · |
 
 Legenda: ✓ núcleo correto · ✓ incompleta = certa para o limite, falta dado de terceiro · ✗ errado · revisão = precisaria de conferência manual · · sem gravação.

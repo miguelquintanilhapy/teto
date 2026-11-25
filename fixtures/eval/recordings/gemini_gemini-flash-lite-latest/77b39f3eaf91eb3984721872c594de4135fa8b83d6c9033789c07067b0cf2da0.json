@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-flash-lite-latest",
+  "promptVersion": "v3",
+  "docSha256": "77b39f3eaf91eb3984721872c594de4135fa8b83d6c9033789c07067b0cf2da0",
+  "recordedAt": "2026-11-25T18:51:23.736Z",
+  "latencyMs": 2004,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-07-09",
+    "totalCents": 64090,
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "12.345.678/0001-95",
+    "accessKey": "352605112223330001815500100000020111015917191",
+    "description": "Kit sobremesas (100 un.)",
+    "confidence": 1
+  }
+}

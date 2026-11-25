@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "7dbbf7f25e42dace3e7fd102f190f13e03f8facba2d407ed943bdfde8bfb1f92",
+  "recordedAt": "2026-11-25T18:41:10.981Z",
+  "latencyMs": 5806,
+  "raw": {
+    "documentType": "nota_fiscal",
+    "issueDate": "2026-06-21",
+    "totalCents": 1040000,
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "56789012000100",
+    "accessKey": null,
+    "description": "Fornecimento mensal de sobremesas",
+    "confidence": 1
+  }
+}

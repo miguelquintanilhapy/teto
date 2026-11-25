@@ -1,0 +1,17 @@
+{
+  "providerId": "gemini:gemini-3.5-flash-lite",
+  "promptVersion": "v3",
+  "docSha256": "5f9ddbdcea2d5d271bac3aea34107e58b0a9ac4a3a36720e36ad5f0513becb97",
+  "recordedAt": "2026-11-25T18:42:23.441Z",
+  "latencyMs": 5351,
+  "raw": {
+    "documentType": "comprovante_pix",
+    "issueDate": "2026-04-27",
+    "totalCents": 30000,
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "***.567.891-**",
+    "accessKey": null,
+    "description": "Transferência Pix",
+    "confidence": 1
+  }
+}

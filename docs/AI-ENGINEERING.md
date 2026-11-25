@@ -28,7 +28,7 @@ Legenda de prioridade: **P1** entra no que for entregue; **P2** se der tempo;
 | Cache por hash do arquivo (o mesmo arquivo nunca é lido duas vezes) e limite por janela | `service.ts` | Implementação técnica |
 | Foto reduzida no aparelho antes de enviar (menos bytes, leitura mais rápida) | `src/lib/image-resize.ts` | Impacto |
 | Transparência na interface: modelos, cota, tempos, falhas e rastro de cada leitura | tela `/ia`, `src/server/ai` | Comunicação |
-| Cooldown por tipo de falha (60 s para taxa, 180 s para "alta demanda") e orçamento de 40 s | `router.ts` | Execução técnica |
+| Cooldown por tipo de falha (60 s para taxa, 90 s para "alta demanda"), orçamento de 40 s e **último recurso** (quem estava em cooldown é retentado se ninguém foi aceito) | `router.ts` | Execução técnica |
 
 ### O eval em ação: um erro real encontrado e corrigido
 
@@ -63,11 +63,76 @@ Outras proteções que o eval levou a implementar:
 
 ### Modelos escolhidos (plano gratuito)
 
-| Ordem | Modelo | Limites observados no AI Studio / OpenRouter |
+Cadeia atual, em ordem de tentativa (a escolha é de 25/11/2026; ver a medição logo abaixo):
+
+| Ordem | Modelo | Por que está aqui |
 |---|---|---|
-| 1 | `gemini-3.1-flash-lite` | ~15 RPM, ~250 mil TPM, ~500 RPD (lidos do gráfico; confirmar) |
-| 2 | `gemini-3.8-flash` | ~5 RPM, ~250 mil TPM, ~20 RPD (lidos do gráfico; confirmar) |
-| 3 | `nvidia/nemotron-3.5-super-vl:free` | limite diário baixo, a confirmar; latência p50 ~6,7 s e p95 ~50 s |
+| 1 | `gemini-3.5-flash-lite` | Rápido (mediana ~2 s), cota diária grande, acerto de 100% no limite. Cai com 503 em parte das tentativas |
+| 2 | `nvidia/nemotron-3.5-super-vl:free` (OpenRouter) | Outra infraestrutura (a falha não é correlacionada com a do Google). 16 de 16 notas lidas na medição |
+| 3 | `gemini-flash-lite-latest` | Mais um "lite" do Google, rápido; cobre quando o 1 está de fora |
+| 4 | `gemini-3.6-flash` | Acerta bem, mas a cota gratuita é de poucas leituras por dia: fica de **reserva** |
+
+### Como a cadeia foi escolhida (25/11/2026)
+
+As leituras reais no banco mostraram o problema: os dois modelos da cadeia anterior (`gemini-3.1-flash-lite` e
+`gemini-3.8-flash`) responderam **503 "alta demanda" em 3 de 3 tentativas**, o Nemotron estourou o tempo em 2 de 5, e
+a leitura mediana levava **26 s** (o orçamento é de 40 s).
+
+Bancada ao vivo, sem retentativa, em duas rodadas de 8 notas (16 no total, notas diferentes em cada rodada),
+comparando com o gabarito. "Núcleo" = data, valor, emissor e destinatário certos.
+
+| Modelo | Respondeu | Núcleo certo | Tempo (mediana) | O que falhou |
+|---|---|---|---|---|
+| `nvidia/nemotron-3.5-super-vl:free` | 16 de 16 | 100% | 3 a 6 s (pior caso 20 s) | nada |
+| `gemini-3.5-flash-lite` | 9 de 16 | 89% (8 de 9) | ~2 s | 503 e 429 |
+| `gemini-flash-lite-latest` | 11 de 16 | 100% | ~3 s | 503 |
+| `gemini-3.6-flash` | 8 de 16 | 100% | 4 a 32 s | 429 (cota) e timeout |
+| `gemini-3.5-flash` | 9 de 16 | 100% | 4 a 29 s | 429 (cota) |
+| `gemini-3.1-flash-lite` (antes) | 3 de 8 | 100% | 11 a 29 s | 503 |
+| `gemini-3.8-flash` (antes) | 0 de 8 | n/d | n/d | 503, timeout e 429 |
+| `gemini-3.7-flash` | 0 de 8 | n/d | n/d | 503 |
+| `nvidia/nemotron-3-nano-omni…:free` | 8 de 8 | 38% | ~2 s | respondia, mas errava muito |
+| Gemma e Ling no OpenRouter (grátis) | 0 a 1 de 8 | n/d | n/d | 429 o tempo todo |
+| `gemini-2.5-*` | 0 de 8 | n/d | n/d | 404: o Google não os oferece mais a contas novas |
+
+Limites da medição: são 16 notas, num único dia; os 503 do Google variam com a hora; as duas rodadas de
+`3.5-flash` e `3.6-flash` bateram na cota diária deles (eu as rodei com duas variantes cada, o que dobrou a carga).
+O raciocínio "baixo" do Gemini (`thinkingLevel`) ficou **sem conclusão** pelo mesmo motivo.
+
+### Por que quatro modelos (e não só três)
+
+Redundância só conta se as falhas são independentes. Os dois "lite" são da mesma família e tendem a cair juntos;
+o Nemotron é o único de outra infraestrutura; o `3.6-flash` cobre o resto, mas tem cota pequena. Na prática a
+redundância real é de uns 2,5 a 3 modelos. Cada modelo a mais custa pouco: quem falha rápido (503 em ~2 s) passa a
+vez na hora, o cooldown tira da rotação quem está caído, e o paralelo só dispara o seguinte depois de 7 s sem resposta.
+O que mais aumentaria a redundância seria um **segundo provedor independente**; hoje os outros modelos gratuitos do
+OpenRouter ficam em 429.
+
+### Segundo modelo em paralelo (hedging)
+
+Esperar o primeiro modelo morrer para tentar o seguinte gastava o orçamento de 40 s. Agora, se o modelo em
+andamento passa de 7 s sem responder (`hedgeAfterMs`), o **próximo** da cadeia é disparado em paralelo; o que
+devolver uma extração aceita primeiro vence e o outro é cancelado (sem entrar em cooldown). Se o primeiro falha, o
+seguinte entra na hora, sem esperar os 7 s. No eval o paralelo fica desligado (`hedgeAfterMs: Infinity`) para o
+resultado ser reproduzível. O custo é só cota gratuita, e só quando a leitura está lenta.
+
+### O que o teste no app mostrou (25/11/2026, 6 notas fictícias)
+
+Depois de ligar a cadeia nova, o teste de ponta a ponta achou o que a bancada não mostrava:
+
+1. **As reprovações eram legítimas:** os modelos leram um dígito errado da chave de acesso (3 vezes) e do CNPJ, e a
+   validação mandou para conferência. É o ponto fraco já visto no eval (chave: 1 de 4 notas certas).
+2. **Os dois "lite" erram o mesmo dígito** (mesma família), e o Nemotron, que poderia dar a segunda opinião, estava
+   em cooldown. Pior: quando todos entravam em cooldown, a extração desistia e ia para preenchimento manual.
+   Correção: o **último recurso** (acima) e o cooldown de "indisponível" de 180 s para 90 s.
+3. **O OpenRouter gratuito tem limite diário baixo** (pelo que consta na documentação deles, algumas dezenas de
+   requisições por dia sem crédito comprado; confira na conta). Nos meus testes o Nemotron passou a responder
+   429 e o `3.6-flash` também (cota diária). Em uso normal isso não acontece, mas na hora da gravação do vídeo
+   convém não gastar a cota antes.
+4. **Do tempo de uma leitura, 3 a 4 s não são da IA:** são gravar o arquivo no storage e no banco (o Supabase do
+   projeto está em Oregon). Fora do escopo desta mudança, mas é o próximo ganho de tempo.
+
+Resultado (6 notas): mediana 8,7 s por leitura (antes 26 s), 0 de 6 caíram para preenchimento manual.
 
 Os provedores gratuitos usam o conteúdo enviado para melhorar seus produtos:
 **só dados sintéticos** em testes, `eval` e demo.
