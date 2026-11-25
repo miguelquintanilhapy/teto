@@ -27,8 +27,20 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 - **O telhado da marca é o medidor.** A "sala" do painel mostra quanto do limite foi ocupado; o telhado cheio
   marca o limite e o pontilhado marca o limite com 20% a mais. É um medidor de capacidade, e não um anel de
   progresso (a Apple reserva o anel para atividade).
-- **A cor é o estado, e nunca vem sozinha.** A marca é preto e branco; a única cor viva é a da faixa de risco
-  (verde, âmbar, vermelho), sempre com ícone e texto.
+- **Cada cor tem um papel, e o estado nunca vem só em cor.** Branco e cinza são o conteúdo; **azul** é o que
+  se toca (botão principal, links, aba ativa); **âmbar e vermelho** são risco; **verde** é confirmação e
+  "dentro do limite". O risco sempre vem com ícone e texto. A primeira versão tinha botão preto e branco;
+  a revisão (com a análise de uma segunda opinião) trouxe o azul de volta, porque separar "o que eu toco" de
+  "o que o app me diz" deixa a tela mais fácil de aprender.
+
+  | Papel | Escuro | Claro |
+  |---|---|---|
+  | Fundo / cartão | `#000000` / `#242426` | `#f2f2f7` / `#ffffff` |
+  | Texto / texto secundário | `#ffffff` / `#acacb1` | `#000000` / `#636366` |
+  | Ação (botão) | `#0a84ff` | `#007aff` |
+  | Ação (texto e links) | `#409cff` | `#0062cc` (passa de 4,5:1) |
+  | Atenção / crítico | `#ff9f0a` / `#ff453a` | `#cc6600` / `#d70015` |
+  | Confirmação | `#30d158` | `#248a3d` |
 - **Vidro só na navegação.** Botões e barra de abas usam vidro; o conteúdo, não.
 - **Ação principal ao alcance do polegar.** "Enviar nota" fica escrito por extenso na barra flutuante.
 - **Conferir antes de somar.** A IA só lê. O tipo (receita ou despesa) é decidido pelo código a partir dos
