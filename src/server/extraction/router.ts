@@ -132,9 +132,14 @@ export class ExtractionRouter {
     const hedgeAfterMs = this.opts.hedgeAfterMs ?? DEFAULTS.hedgeAfterMs;
     const minConfidence = this.opts.minConfidence ?? DEFAULTS.minConfidence;
 
-    if (this.opts.quota && !(await this.consumeQuota(this.opts.quota))) {
-      throw new QuotaExceededError();
-    }
+    // Cota e cooldown de todos os provedores são consultas independentes: juntas custam uma ida e volta ao banco,
+    // e não uma por provedor, em fila. (Se o banco do cooldown falhar, segue sem ele.)
+    const [quotaOk, blockedList] = await Promise.all([
+      this.opts.quota ? this.consumeQuota(this.opts.quota) : Promise.resolve(true),
+      Promise.all(this.opts.providers.map((p) => this.cooldown.blockedUntil(p.id).catch(() => null))),
+    ]);
+    if (!quotaOk) throw new QuotaExceededError();
+    const blockedUntilById = new Map(this.opts.providers.map((p, i) => [p.id, blockedList[i] ?? null] as const));
 
     const startedAll = this.now();
     const attempts: Attempt[] = [];
@@ -162,8 +167,7 @@ export class ExtractionRouter {
           continue;
         }
 
-        // Se o banco do cooldown falhar, segue sem ele: melhor tentar o provedor do que derrubar a extração.
-        const blockedUntil = ignoreCooldown ? null : await this.cooldown.blockedUntil(provider.id).catch(() => null);
+        const blockedUntil = ignoreCooldown ? null : (blockedUntilById.get(provider.id) ?? null);
         if (blockedUntil !== null && blockedUntil > started) {
           const skip: Attempt = { providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0, startOffsetMs: offset };
           attempts.push(skip);
