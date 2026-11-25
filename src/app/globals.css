@@ -16,8 +16,11 @@
   --tile: #f2f2f7;
   --label: #000000;
   --label-2: #636366;
-  --primary: #000000;
+  /* Azul de interação: botões e links. O texto azul usa um tom próprio, mais escuro, para passar de 4,5:1. */
+  --primary: #007aff;
   --on-primary: #ffffff;
+  --action-text: #0062cc;
+  --glow: 0 10px 28px rgba(0, 122, 255, 0.32);
 
   --tint: 12%;
   --on-ok: #ffffff;
@@ -46,9 +49,11 @@
     --track: #3a3a3c;
     --tile: #161618;
     --label: #ffffff;
-    --label-2: #a1a1a6;
-    --primary: #ffffff;
-    --on-primary: #000000;
+    --label-2: #acacb1;
+    --primary: #0a84ff;
+    --on-primary: #ffffff;
+    --action-text: #409cff;
+    --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
 
     --tint: 22%;
     --on-ok: #000000;
@@ -77,9 +82,11 @@
   --track: #3a3a3c;
   --tile: #161618;
   --label: #ffffff;
-  --label-2: #a1a1a6;
-  --primary: #ffffff;
-  --on-primary: #000000;
+  --label-2: #acacb1;
+  --primary: #0a84ff;
+  --on-primary: #ffffff;
+  --action-text: #409cff;
+  --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
 
   --tint: 22%;
   --on-ok: #000000;
@@ -112,6 +119,7 @@
   --color-label-2: var(--label-2);
   --color-primary: var(--primary);
   --color-on-primary: var(--on-primary);
+  --color-action: var(--action-text);
   --color-ok: var(--ok);
   --color-on-ok: var(--on-ok);
   --color-ok-text: var(--ok-text);
