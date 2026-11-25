@@ -75,7 +75,7 @@ async function PainelConteudo() {
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />
         <QuickEntry />
-        <LimitExplainer dashboard={dashboard} openingDate={profile.openingDate} />
+        <LimitExplainer />
         <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
         <Bento dashboard={dashboard} />
         <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
