@@ -9,37 +9,51 @@ const SOURCE: Record<TransactionView["source"], string> = {
   manual: "Manual",
 };
 
-/** Uma linha do histórico. Receita entra com +, despesa com −, e o estado vem sempre escrito. */
-export function TransactionRow({ t }: { t: TransactionView }) {
+/**
+ * Uma linha do histórico. Receita entra com +, despesa com −, e o estado vem sempre escrito.
+ * A linha mostra só o que se lê de relance (descrição, tipo, origem, valor); CPF/CNPJ mascarado fica no detalhe.
+ */
+export function TransactionRow({ t, duplicate = false }: { t: TransactionView; duplicate?: boolean }) {
   const income = t.kind === "receita";
   const Icon = income ? ArrowDownLeft : ArrowUpRight;
   const cancelled = t.status === "cancelada";
   const pending = t.status === "pendente";
   const sign = income ? "+" : "−";
+  const kindLabel = income ? "Receita" : "Despesa";
 
   return (
     <li className="relative [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:right-5 [&:not(:first-child)]:before:left-[4rem] [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-sep">
       <Link href={`/historico/${t.id}`} className="pressable hoverable flex items-center gap-3.5 px-5 py-3">
-      <span className={`grid size-[1.875rem] shrink-0 place-items-center rounded-lg bg-tile ${income ? "text-label" : "text-label-2"}`}>
-        <Icon size={18} weight="bold" aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{t.description || (income ? "Receita" : "Despesa")}</p>
-        <p className="t-sub truncate text-label-2">
-          {SOURCE[t.source]} · {t.counterparty}
-        </p>
-        {pending && (
-          <p className="t-caption mt-0.5 flex items-center gap-1 font-semibold text-warn-text">
-            <Warning size={13} weight="fill" aria-hidden="true" />
-            Para conferir
+        <span className={`grid size-[1.875rem] shrink-0 place-items-center rounded-lg bg-tile ${income ? "text-label" : "text-label-2"}`}>
+          <Icon size={18} weight="bold" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p
+            className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "line-through" : ""} ${cancelled || !t.description ? "text-label-2" : ""}`}
+          >
+            {t.description || "Sem descrição"}
           </p>
-        )}
-        {cancelled && <p className="t-caption mt-0.5 text-label-2">Cancelada</p>}
-      </div>
-      <p className={`sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap ${cancelled ? "text-label-2 line-through" : ""}`}>
-        <span className="sr-only">{income ? "Receita " : "Despesa "}</span>
-        {sign} {formatMoney(t.amountCents)}
-      </p>
+          <p className="t-sub truncate text-label-2">
+            {kindLabel} · {SOURCE[t.source]}
+          </p>
+          {pending && (
+            <p className="t-caption mt-0.5 flex items-center gap-1 font-semibold text-warn-text">
+              <Warning size={13} weight="fill" aria-hidden="true" />
+              Para conferir
+            </p>
+          )}
+          {duplicate && !cancelled && (
+            <p className="t-caption mt-0.5 flex items-center gap-1 font-semibold text-warn-text">
+              <Warning size={13} weight="fill" aria-hidden="true" />
+              Possível duplicidade
+            </p>
+          )}
+          {cancelled && <p className="t-caption mt-0.5 text-label-2">Cancelada</p>}
+        </div>
+        <p className={`sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap ${cancelled ? "text-label-2 line-through" : ""}`}>
+          <span className="sr-only">{kindLabel} </span>
+          {sign} {formatMoney(t.amountCents)}
+        </p>
       </Link>
     </li>
   );
