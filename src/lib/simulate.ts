@@ -52,7 +52,7 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
     case "attention":
     case "critical":
       headline = result.changesBand ? `Esta venda leva você para ${band.label.toLowerCase()}.` : `Você continua em ${band.label.toLowerCase()}.`;
-      detail = `Depois dela, sobram ${formatReais(left)} até o limite e ${formatReais(Math.max(0, toleranceCents - after.accumulatedCents))} até o teto de 20% acima.`;
+      detail = `Depois dela, sobram ${formatReais(left)} até o limite e ${formatReais(Math.max(0, toleranceCents - after.accumulatedCents))} até o limite com tolerância.`;
       break;
     case "over_tolerance":
       headline = `Esta venda passa do limite em ${formatReais(over)}.`;
