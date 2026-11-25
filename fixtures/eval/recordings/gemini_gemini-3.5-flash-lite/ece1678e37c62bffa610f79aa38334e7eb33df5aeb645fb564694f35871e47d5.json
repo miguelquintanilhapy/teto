@@ -1,15 +1,15 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "ece1678e37c62bffa610f79aa38334e7eb33df5aeb645fb564694f35871e47d5",
-  "recordedAt": "2026-11-25T18:41:56.781Z",
-  "latencyMs": 6935,
+  "recordedAt": "2026-11-25T19:45:04.509Z",
+  "latencyMs": 1852,
   "raw": {
     "documentType": "recibo",
     "issueDate": "2026-03-22",
     "totalCents": 45000,
-    "issuerTaxId": "11.222.333/0001-81",
-    "recipientTaxId": "456.789.123-64",
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "45678912364",
     "accessKey": null,
     "description": "encomenda de docinhos para chá de bebê",
     "confidence": 1

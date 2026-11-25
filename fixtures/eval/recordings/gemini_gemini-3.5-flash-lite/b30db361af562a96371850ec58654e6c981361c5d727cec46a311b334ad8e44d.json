@@ -1,17 +1,17 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "b30db361af562a96371850ec58654e6c981361c5d727cec46a311b334ad8e44d",
-  "recordedAt": "2026-11-25T18:42:41.322Z",
-  "latencyMs": 1732,
+  "recordedAt": "2026-11-25T19:45:58.244Z",
+  "latencyMs": 3583,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-05-15",
     "totalCents": 51237,
     "issuerTaxId": "34567890000130",
     "recipientTaxId": "11222333000181",
-    "accessKey": "3526053456789000013055001000004512121357305283",
-    "description": "Farinha de trigo, açúcar refinado e leite condensado",
-    "confidence": 1
+    "accessKey": "35260534567890000130550010000045121357305283",
+    "description": "Farinha de trigo 25kg, Açúcar refinado 30kg, Leite condensado cx 27un",
+    "confidence": 0.99
   }
 }

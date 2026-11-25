@@ -1,9 +1,9 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "7b9e9d8c115330196870a58d25d2a4ac5622cccee2d8e567d5fc19d438bea4cf",
-  "recordedAt": "2026-11-25T18:46:36.338Z",
-  "latencyMs": 10476,
+  "recordedAt": "2026-11-25T19:48:15.744Z",
+  "latencyMs": 2343,
   "raw": {
     "documentType": "comprovante_pix",
     "issueDate": "2026-07-03",

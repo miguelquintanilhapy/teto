@@ -1,17 +1,17 @@
 {
   "providerId": "gemini:gemini-flash-lite-latest",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "5f9ddbdcea2d5d271bac3aea34107e58b0a9ac4a3a36720e36ad5f0513becb97",
-  "recordedAt": "2026-11-25T18:52:06.461Z",
-  "latencyMs": 1848,
+  "recordedAt": "2026-11-25T20:05:19.162Z",
+  "latencyMs": 1447,
   "raw": {
     "documentType": "comprovante_pix",
     "issueDate": "2026-04-27",
     "totalCents": 30000,
-    "issuerTaxId": "11.222.333/0001-81",
-    "recipientTaxId": "***.567.891-**",
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": null,
     "accessKey": null,
-    "description": "Transferência Pix",
-    "confidence": 0.99
+    "description": "Comprovante de Pix",
+    "confidence": 0.95
   }
 }
