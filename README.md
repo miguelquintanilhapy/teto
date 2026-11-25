@@ -386,7 +386,7 @@ Feito:
 
 Falta para o envio (prazo: 30/11, 23h59):
 
-- [ ] Aplicar a migração `0002` no Supabase do projeto e desligar a proteção por login da Vercel (link público)
+- [ ] Desligar a proteção por login da Vercel (link público). A migração `0002` já está aplicada no banco do projeto
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
 - [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`

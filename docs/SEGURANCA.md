@@ -76,9 +76,9 @@ fraca da política; o resto está fechado.
 - Console do navegador sem violação de CSP.
 - Rodada de testes automáticos: 406 (núcleo, serviços, handlers).
 
-## Migração obrigatória
+## Migração `0002` (já aplicada no banco do projeto)
 
-Rode [`0002_one_transaction_per_document.sql`](../supabase/migrations/0002_one_transaction_per_document.sql)
+Quem criar um banco novo precisa rodar [`0002_one_transaction_per_document.sql`](../supabase/migrations/0002_one_transaction_per_document.sql)
 no SQL Editor. Sem ela, o código ainda protege a maioria dos casos, mas só o banco fecha a corrida de dois
 toques simultâneos em "Confirmar".
 
