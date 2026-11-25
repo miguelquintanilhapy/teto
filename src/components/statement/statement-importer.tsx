@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSessionValue, writeSessionValue } from "@/components/prefs/use-session";
-import { CheckCircle, FileCsv, Warning } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircle, FileCsv, LockSimple, Warning } from "@phosphor-icons/react/dist/ssr";
 import { formatFullShortDate, formatMoney, formatReais } from "@/lib/format";
 import { launchHref, reconcileStatement, type ReceiptLike } from "@/lib/reconciliation";
 import { parseStatementCsv, type ParsedStatement } from "@/lib/statement";
@@ -70,10 +70,13 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
           <FileCsv size={30} weight="fill" aria-hidden="true" />
         </span>
         <h2 className="t-title mt-3">Compare o banco com as notas</h2>
-        <p className="t-body mt-2 text-label-2">
-          Envie o extrato em CSV. O Teto mostra as entradas que não têm nota, que podem ser receita ainda não lançada.
+        <p className="t-sub mt-2 flex items-center gap-1.5 font-semibold text-label">
+          <LockSimple size={15} weight="fill" aria-hidden="true" />
+          O extrato é lido só neste aparelho. Nada é enviado.
         </p>
-        <p className="t-sub mt-2 text-label-2">O arquivo é lido neste aparelho e não é enviado a nenhum servidor.</p>
+        <p className="t-body mt-2 text-label-2">
+          Escolha o extrato em CSV. Aparecem as entradas no banco que não têm nota: podem ser receita ainda não lançada.
+        </p>
         <label className="pressable mt-4 flex h-[3.375rem] w-full cursor-pointer items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-label">
           {parsed ? "Escolher outro extrato" : "Escolher extrato (CSV)"}
           <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={onFile} className="sr-only" />

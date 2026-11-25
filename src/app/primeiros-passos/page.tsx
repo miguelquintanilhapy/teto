@@ -65,10 +65,22 @@ async function Conteudo() {
           const Icon = s.done ? CheckCircle : Circle;
           return (
             <li key={s.title}>
+              {s.done ? (
+                <div className="flex items-start gap-3.5 px-5 py-4">
+                  <Icon size={26} weight="fill" className="mt-0.5 shrink-0 text-ok" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[1.0625rem] font-medium">
+                      {s.title}
+                      <span className="sr-only"> (feito)</span>
+                    </span>
+                    <span className="t-sub mt-0.5 block text-label-2">{s.text}</span>
+                  </span>
+                </div>
+              ) : (
               <Link href={s.href} className="pressable hoverable flex items-start gap-3.5 px-5 py-4">
                 <Icon size={26} weight={s.done ? "fill" : "regular"} className={`mt-0.5 shrink-0 ${s.done ? "text-ok" : "text-label-2"}`} aria-hidden="true" />
                 <span className="min-w-0 flex-1">
-                  <span className="t-row block">
+                  <span className="block text-[1.0625rem] font-medium">
                     {s.title}
                     <span className="sr-only">{s.done ? " (feito)" : " (a fazer)"}</span>
                   </span>
@@ -77,6 +89,7 @@ async function Conteudo() {
                 </span>
                 <CaretRight size={17} weight="bold" className="mt-1 shrink-0 text-label-2" aria-hidden="true" />
               </Link>
+              )}
             </li>
           );
         })}
