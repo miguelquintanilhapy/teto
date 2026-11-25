@@ -6,17 +6,19 @@ Janela: **23/11 a 30/11/2026**. O envio fecha em 30/11 às 23h59 e o repositóri
 Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) ·
 [auditoria](AUDITORIA.md).
 
-## Andamento (23/11)
+## Andamento (25/11)
 
 - [x] Fase 0 de fundação, mesclada na `main`
 - [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
 - [x] Harness de avaliação com notas sintéticas, gravação/replay e relatório
 - [x] Persistência da extração: cooldown e cota no Postgres, serviço com idempotência por hash e `POST /api/documents`
-- [x] Confirmação de lançamentos e painel: `/api/transactions` e `/api/dashboard`, com a direção decidida pelo código
-- [x] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento (frente B)
-- [x] Interface: painel, enviar nota, simulador, histórico e perfil ([INTERFACE.md](INTERFACE.md))
-- [x] Alertas e e-mail (frente C): serviço idempotente, cron diário e tela de alertas
-- [ ] Questões de negócio do MEI confirmadas em fonte oficial
+- [x] Confirmação de lançamentos e painel, com a direção decidida pelo código
+- [x] Extrato (importar CSV e conciliar), cancelar e corrigir lançamento
+- [x] Interface completa ([INTERFACE.md](INTERFACE.md)): 16 telas, tema claro e escuro, instalável
+- [x] Alertas e e-mail: serviço idempotente, cron diário e tela de alertas
+- [x] Revisões de UX, acessibilidade, segurança e cor ([REVISAO.md](REVISAO.md), [SEGURANCA.md](SEGURANCA.md))
+- [x] Questões de negócio do MEI: limite, tolerância e DAS confirmados em fonte oficial; **a data que conta (emissão ou recebimento) segue em aberto**
+- [ ] Aplicar a migração `0002` no banco, deixar o link da Vercel público, gravar o vídeo
 
 ## Como trabalhamos
 
@@ -33,18 +35,18 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 Decisões do desenho que viram código antes de a equipe se dividir:
 
 - [ ] Cadastrar o rascunho no painel do Hack Brasil
-- [ ] Criar chaves (AI Studio, OpenRouter) e conferir limites e modelos atuais
-- [ ] Criar projeto no Supabase e conta no Resend
+- [x] Criar chaves (AI Studio, OpenRouter) e conferir limites e modelos atuais
+- [x] Criar projeto no Supabase e conta no Resend
 - [x] `Transaction.status` (`pendente | confirmada | cancelada`) no `core`
 - [x] Porta `Clock` e cálculo de "hoje" em `America/Sao_Paulo`
 - [x] `rulesFor(year)` com a configuração versionada por ano
 - [x] `totalBudgetMs` e `capabilities` no roteador de extração
 - [x] Portas `CooldownStore` e `QuotaGuard`, com versões em memória
-- [ ] Porta `Notifier` (e-mail), com versão em memória (entra com os alertas)
+- [x] Porta de e-mail (`EmailSender`), com Resend e versão em memória
 - [x] Validação das variáveis de ambiente com Zod
 - [x] Remover o boilerplate do Next (página, `public/*.svg`, favicon)
-- [x] Migração inicial do Supabase a partir de `DATA-MODEL.md` (escrita; falta aplicar no projeto)
-- [ ] Implementações Postgres de `CooldownStore` e `QuotaGuard` (frente A/B)
+- [x] Migração inicial do Supabase a partir de `DATA-MODEL.md` (aplicada; a `0002` ainda precisa ser aplicada)
+- [x] Implementações Postgres de `CooldownStore` e `QuotaGuard`
 
 ## Frentes (cada pessoa é full-stack; a divisão é por fatia de produto)
 
@@ -89,14 +91,26 @@ alertas, `eval` básico, tratamento de erro na interface e o vídeo.
 ## Definição de pronto para o envio
 
 - [ ] Repositório público, criado após 4/11, sem fork, com commits dos três
-- [ ] `npm run check` verde na `main`; CI com `gitleaks` e `npm audit`
+- [x] `npm run check` verde (406 testes)
+- [ ] CI com `gitleaks` e `npm audit` (hoje roda lint, tipos, testes e o eval em replay)
 - [ ] Demo em HTTPS testada em outro dispositivo e em janela anônima
 - [ ] Vídeo de até 3 minutos, aberto sem login, mostrando o produto funcionando
-- [ ] README com demo, arquitetura, tabela do eval, limitações e como rodar
-- [ ] Regras do MEI confirmadas em fonte oficial e registradas
-- [ ] Nenhuma chave no histórico; nenhum dado real de terceiros
+- [ ] README com demo, arquitetura, tabela do eval, limitações e como rodar (falta só o link da demo)
+- [ ] Regras do MEI confirmadas em fonte oficial e registradas (feito, menos a data que conta)
+- [ ] Nenhuma chave no histórico; nenhum dado real de terceiros (conferir com `gitleaks` antes de enviar)
 - [ ] Nome, frase, descrição e trilha preenchidos no painel do hackathon
 - [ ] Último commit antes de 30/11 às 23h59
+
+## Pendências até o envio (ordem sugerida)
+
+1. Aplicar `supabase/migrations/0002_one_transaction_per_document.sql` no SQL Editor.
+2. Subir a branch `feat/interface-painel`, abrir o PR e mesclar na `main` (a CI precisa passar).
+3. Na Vercel: variáveis de ambiente (sem `ALLOW_PROFILE_EDIT`), desligar *Vercel Authentication* e testar o
+   link em janela anônima e em outro celular.
+4. Rodar `npm run seed:demo -- --reset` e `npm run seed:demo` para a demo começar com dados limpos.
+5. Gravar o vídeo (roteiro abaixo), publicar sem login e colocar o link no README.
+6. Preencher nome, frase, descrição e trilha no painel do hackathon.
+7. Opcional se sobrar tempo: `gitleaks` e `npm audit` na CI, `LICENSE`, gravações completas do eval.
 
 ## Roteiro do vídeo (3 minutos)
 

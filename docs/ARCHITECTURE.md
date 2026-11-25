@@ -7,7 +7,8 @@
 
 Documentos relacionados: [modelo de dados](DATA-MODEL.md) ·
 [plano de execução](PLANO.md) · [regras do MEI](mei-rules.md) ·
-[engenharia de IA](AI-ENGINEERING.md) · [auditoria](AUDITORIA.md)
+[engenharia de IA](AI-ENGINEERING.md) · [auditoria](AUDITORIA.md) ·
+[interface](INTERFACE.md) · [segurança](SEGURANCA.md) · [revisão](REVISAO.md)
 
 Legenda de status: ✅ implementado · 🟡 projetado, a implementar · ❓ decisão em aberto.
 
@@ -50,7 +51,7 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `CooldownStore` | memória (testes), Postgres (produção) | ✅ |
 | `Clock` | sistema em `America/Sao_Paulo`, fixo (testes) | ✅ |
 | `Repositories` (perfil, transações, documentos…) | Supabase, memória (testes) | ✅ perfil, documentos, extrações, transações e storage |
-| `Notifier` | Resend, falso (testes) | 🟡 |
+| `EmailSender` (alertas) e `AlertsRepo` | Resend e Supabase, memória (testes) | ✅ |
 | `QuotaGuard` | Postgres (contador diário), memória | ✅ |
 
 ## 3. Núcleo (`src/core`)
@@ -66,6 +67,7 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `reconcile` | Cruzamento determinístico extrato × notas | ✅ |
 | `documents` | CPF, CNPJ, chave de acesso e `deriveDirection` (receita ou despesa, decidido no código) | ✅ |
 | `dashboard` | Resumo do painel: limite do ano, acumulado, faixa, custo estimado, projeção, DAS e alertas | ✅ |
+| `monthly` | Receita por mês e por trimestre (gráfico do painel e relatório) | ✅ |
 | `rules` | Configuração **versionada por ano** (`rulesFor`: limite, tolerância, alíquotas) | ✅ |
 
 ### Ajustes de fundação (Fase 0, implementados)
@@ -107,8 +109,10 @@ flowchart TD
 Decisões de projeto:
 
 - **Failover** trata falha técnica; **escalonamento** trata falha de qualidade.
-- **Orçamento total (`totalBudgetMs`)** além do timeout por chamada, para a cadeia
+- **Orçamento total (`totalBudgetMs`, 40 s)** além do timeout por chamada (25 s), para a cadeia
   nunca estourar o limite de tempo da função serverless. ✅
+- **Cooldown por tipo de falha:** 60 s para limite de taxa e 180 s quando o provedor responde
+  "alta demanda" (o Gemini devolve 503 com frequência), para não gastar o orçamento repetindo a mesma queda. ✅
 - **Capacidades por adaptador** (`supportsPdf`, `maxBytes`, `maxPages`): o
   roteador pula quem não consegue processar aquele arquivo. ✅
 - **Cooldown persistido** (`CooldownStore` no Postgres): em serverless, memória
@@ -125,6 +129,10 @@ Decisões de projeto:
 - **Direção decidida no código.** A IA devolve as duas partes (`issuerTaxId`: quem vendeu ou
   recebeu; `recipientTaxId`: quem comprou ou pagou). Se o documento é receita ou despesa do MEI
   é decidido por `deriveDirection`, comparando com o CNPJ do perfil. A IA não decide isso. ✅
+- **Limite por janela:** no máximo 30 documentos novos a cada 10 minutos (`429`), antes de gastar IA e
+  storage. Reenvio do mesmo arquivo não conta. ✅
+- **Foto reduzida no aparelho** (`src/lib/image-resize.ts`): fotos acima de 1,5 MB viram um JPEG de até ~3 MB
+  antes de subir, sem o usuário precisar saber de megabytes. O servidor continua conferindo os 4 MB. ✅
 - **Extração síncrona** com orçamento de tempo. Assíncrona (fila + polling) fica
   como evolução: exige infraestrutura que não cabe no prazo.
 
@@ -133,7 +141,7 @@ Decisões de projeto:
 - **Conjunto sintético:** 26 notas geradas por código (`scripts/generate-fixtures.mts`), com gabarito
   em `fixtures/eval/cases.json`: NFS-e, NF-e com chave de acesso, recibos (inclusive letra
   manuscrita), comprovantes Pix com documento mascarado, cupons de despesa, nota borrada e girada,
-  e **duas com injeção de prompt**. Dados 100% fictícios. ✅
+  e **três com injeção de prompt**. Dados 100% fictícios. ✅
 - **Gravação e replay (VCR):** cada resposta de modelo é gravada por hash do arquivo. A CI e os
   testes repetem as gravações, sem rede, sem chave e sem gastar cota. Mudou o prompt
   (`PROMPT_VERSION`), as gravações antigas deixam de valer. ✅
@@ -179,26 +187,34 @@ sequenceDiagram
 
 ### Conciliação
 
-Importa CSV do extrato em `bank_entries`, cruza com `reconcile` (determinístico) e
-apresenta "entradas sem nota". O usuário decide se cada uma vira receita
-(`origem = pix`), que então segue o fluxo normal de confirmação.
+O CSV do extrato é lido **no navegador** (`src/lib/statement.ts`), cruzado com as receitas por
+`reconcile`/`src/lib/reconciliation.ts` (determinístico) e mostra "entradas sem nota" e "notas sem entrada".
+O usuário decide se cada entrada vira receita (`source = pix`): o botão abre o formulário já preenchido, e a
+correção segue o fluxo normal de confirmação. O extrato não é gravado (as tabelas `bank_entries` e
+`reconciliation_links` ficam reservadas).
 
 ## 6. Segurança e privacidade
 
+O modelo de ameaças completo, o que um estranho consegue fazer e o que falta estão em
+[SEGURANCA.md](SEGURANCA.md). Resumo das decisões:
+
 | Tema | Decisão |
 |---|---|
-| Acesso a dados | Só o servidor acessa o banco. RLS **ativada sem políticas para `anon`** (nega tudo por padrão). Chave de serviço só no servidor. |
-| Identidade | Demo com **perfil único e público**, aviso na tela: "use apenas dados fictícios". `profile_id` em toda tabela, pronto para Supabase Auth + RLS por usuário (evolução). |
-| Upload | Tipos permitidos: JPEG, PNG, WebP, PDF. Limite de tamanho e de páginas. Conferência da **assinatura do arquivo**, não só da extensão. Nome sanitizado. |
-| Armazenamento | Bucket **privado**, acesso por URL assinada de curta duração. Limpeza periódica dos arquivos da demo. |
-| Entrada de dados | Toda rota valida corpo e parâmetros com Zod. |
-| Prompt injection | O documento é **dado, nunca instrução**. Saída restrita a schema e revalidada por código. Casos adversariais entram no `eval`. |
-| Segredos | Nenhuma chave com prefixo `NEXT_PUBLIC` além das públicas do Supabase. Varredura com `gitleaks` na CI. |
-| Cron | Rota protegida por `CRON_SECRET`. |
-| Cabeçalhos | CSP restritiva, `X-Content-Type-Options`, `Referrer-Policy`, `frame-ancestors` via `next.config`. |
-| Dependências | `npm audit` (produção) na CI. |
-| Logs | Sem dados pessoais nem conteúdo de documentos. Só identificadores, provedor, latência e resultado. |
-| Abuso da cota gratuita | **Teto diário global de extrações** (`QuotaGuard`). Ao atingir, o sistema degrada para entrada manual e para as notas de exemplo em cache. |
+| Acesso a dados | Só o servidor acessa o banco. RLS **ativada sem políticas para `anon`** (nega tudo por padrão). Chave de serviço só no servidor. ✅ |
+| Identidade | Demo com **perfil único e público**, **sem login**, aviso na tela. `profile_id` em toda tabela, pronto para Supabase Auth + RLS por usuário (evolução). Em produção, o cadastro existente não pode ser trocado (`ALLOW_PROFILE_EDIT`). ✅ |
+| Upload | JPEG, PNG, WebP e PDF, 4 MB, tipo conferido pelos **primeiros bytes** (não pela extensão), 30 novos por 10 min. ✅ |
+| Armazenamento | Bucket **privado**; caminho derivado do hash. ✅ |
+| Entrada de dados | Toda rota valida com Zod `.strict()`, exige `application/json` e confere o tamanho real do corpo. ✅ |
+| Origem | Rotas que gravam recusam `Origin` de outro site (`403`). ✅ |
+| Dado pessoal | CPF/CNPJ da outra parte, chave de acesso e e-mail saem **mascarados do servidor**. ✅ |
+| Prompt injection | O documento é **dado, nunca instrução**. Saída restrita a schema e revalidada por código; a IA não decide receita ou despesa. Casos adversariais no `eval`. ✅ |
+| Segredos | Nenhuma chave com prefixo `NEXT_PUBLIC` além das públicas do Supabase. Varredura com `gitleaks` ainda **não** está na CI. 🟡 |
+| Cron | `Authorization: Bearer <CRON_SECRET>`, comparação em tempo constante. ✅ |
+| Cabeçalhos | CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP e HSTS em `next.config.ts`. `script-src` tem `'unsafe-inline'` (o Next injeta o script de hidratação sem nonce). ✅ |
+| Dependências | `npm audit` de produção sem vulnerabilidades em 25/11; ainda **não** roda na CI. 🟡 |
+| Logs | Sem dados pessoais nem conteúdo de documentos; só a causa do erro, cortada em 200 caracteres. ✅ |
+| Abuso da cota gratuita | Teto diário global de extrações (`QuotaGuard`) e limite por janela. Ao atingir, degrada para entrada manual. ✅ |
+| Concorrência | Índice único por documento; reserva atômica de alertas. ✅ |
 | Privacidade (LGPD) | Dados sintéticos na demo, aviso explícito, sem coleta além do necessário. |
 
 ## 7. Degradação e falhas
@@ -216,22 +232,23 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 
 ## 8. Observabilidade
 
-- Log estruturado (uma linha JSON) por requisição, com `requestId`.
-- Tabela `extractions` alimenta a tela `/ia`: taxa de sucesso por provedor,
-  escalonamentos, latência p50/p95, cota do dia. 🟡
-- Rota `/api/health` para checar o deploy antes da gravação do vídeo. 🟡
-- Cada `Attempt` aparece também na interface ("lida pelo modelo X em 1,2 s").
+- Erros vão para o log do servidor (`console.error`, só a mensagem, cortada em 200 caracteres), sem dado pessoal.
+  **Não há** log estruturado por requisição com `requestId` nem rota `/api/health`: ficam como evolução.
+- A tabela `extractions` alimenta a tela `/ia` ✅: taxa de aceitação, tempo médio, trocas de modelo, falhas por
+  provedor, cooldowns e cota do dia, com o rastro de cada leitura.
+- Cada `Attempt` aparece na interface (`/ia`: "Gemini leu em 9,0 s → …").
 
 ## 9. Estratégia de testes
 
 | Nível | O quê | Ferramenta |
 |---|---|---|
-| Unitário | Regras do `core` ✅ | Vitest |
+| Unitário | Regras do `core` e lógica pura da interface (`src/lib`) ✅ | Vitest (406 testes, 39 arquivos) |
 | Propriedades | Mais receita nunca reduz a faixa; limite proporcional ≤ anual; acumulado independe da ordem | fast-check (se der tempo) |
 | Roteador | Failover, cooldown, escalonamento, timeout, orçamento ✅ | Provedores falsos |
 | Contrato dos adaptadores | Resposta real gravada → mesmo resultado esperado | Replay de fixtures |
 | Integração | Rotas de API com repositórios em memória e provedor falso | Vitest |
-| Fluxo completo (fumaça) | upload → extrai → confirma → painel muda | Vitest sobre os handlers |
+| Fluxo completo (fumaça) | upload → extrai → confirma → painel muda ✅ | Vitest sobre os handlers |
+| Interface | Verificada à mão no navegador (claro e escuro, 375 px). **Sem** testes automatizados de interface | — |
 | Avaliação da IA | Acerto por campo em notas sintéticas, incluindo adversariais | `npm run eval` (replay na CI, limiar de queda) |
 
 ## 10. Requisitos não funcionais
@@ -239,7 +256,7 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 | Requisito | Meta |
 |---|---|
 | Extração de uma nota | p95 abaixo de 15 s; orçamento total de 40 s |
-| Painel | Carrega em menos de 2 s com o perfil de demo |
+| Painel | Cacheado no servidor; trocar de aba leva ~15 ms em produção local |
 | Responsivo | Usável em 360 px de largura, mobile-first |
 | Acessibilidade básica | Rótulos, contraste, navegação por teclado, foco visível |
 | Idioma e formatos | pt-BR, `Intl` para moeda e datas |
@@ -260,14 +277,18 @@ apresenta "entradas sem nota". O usuário decide se cada uma vira receita
 | Acesso a dados só pelo servidor, RLS deny-all | Segurança por padrão, mesmo sem login | Cliente falando com o banco |
 | Extração síncrona com orçamento de tempo | Cabe no prazo e na função serverless | Fila e processamento assíncrono |
 | Teto diário de extrações | Protege a cota gratuita compartilhada | Sem limite |
+| Painel em `"use cache"` com etiqueta invalidada ao confirmar | Troca de aba instantânea sem dado velho depois de uma confirmação | Buscar no banco a cada visita |
+| Foto reduzida no aparelho antes de subir | O usuário não sabe de megabytes; envio e leitura mais rápidos | Recusar o que passa de 4 MB |
+| Extrato lido no navegador, sem gravar | Menos dado pessoal no servidor; cabe no prazo | Persistir em `bank_entries` |
 
-## 12. Limitações conhecidas (declarar no README)
+## 12. Limitações conhecidas (declaradas no README)
 
 - Cobre o **MEI comum**; categorias com limite diferente (por exemplo, MEI
   caminhoneiro) estão fora do escopo.
 - O custo do estouro é **estimativa**, não cálculo oficial; o Teto não substitui
   um contador.
-- Perfil único de demonstração, sem login. Autenticação por usuário é a evolução.
+- Perfil único de demonstração, sem login. Autenticação por usuário é a evolução (ver [SEGURANCA.md](SEGURANCA.md)).
+- Sem lembrete do DAS por e-mail e sem testes automatizados de interface.
 - Extração síncrona; notas em lote muito grandes não são o foco.
 - A projeção é linear e não considera sazonalidade.
 

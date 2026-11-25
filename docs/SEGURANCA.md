@@ -31,7 +31,8 @@ aberto. O risco é vandalismo dos dados fictícios; restaure com `npm run seed:d
 - Corpos JSON só como `application/json`, com tamanho conferido **de verdade** (não só o `Content-Length`).
 - Zod `.strict()` em todos os corpos: campo desconhecido (`status`, `id`, `profileId`) é recusado.
 - Identificadores como UUID. Valores em centavos inteiros e com teto. Datas validadas, sem futuro.
-- Upload: tipo pelos primeiros bytes (nunca pela extensão), 4 MB (abaixo do corte de 4,5 MB da Vercel),
+- Upload: tipo pelos primeiros bytes (nunca pela extensão), 4 MB (abaixo do corte de 4,5 MB da Vercel; o app reduz fotos grandes
+  no aparelho antes de enviar, mas o servidor confere o limite de qualquer jeito),
   armazenamento privado, caminho derivado do hash.
 - O **tipo do lançamento** (receita ou despesa) é do código. O cliente só escolhe quando o CNPJ do MEI não
   aparece; se contradisser o que o CNPJ mostra, `422 direction_conflict`. Assim ninguém tira receita do limite.
@@ -66,6 +67,14 @@ fraca da política; o resto está fechado.
 - Um documento vira no máximo um lançamento (índice único + tratamento da corrida).
 - Alertas: reserva atômica (`update … where sent_at is null returning`) antes de enviar; falha devolve à fila.
 - Idempotência por hash do arquivo e por chave de acesso.
+
+## Verificado em 25/11/2026
+
+- `npm audit --omit=dev`: 0 vulnerabilidades. **Não roda na CI ainda.**
+- Requisições hostis contra o servidor de produção local: `Origin` de outro site (`403`), `text/plain` (`415`),
+  edição do cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
+- Console do navegador sem violação de CSP.
+- Rodada de testes automáticos: 406 (núcleo, serviços, handlers).
 
 ## Migração obrigatória
 

@@ -10,7 +10,12 @@ const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 /** Confere o arquivo antes de gastar a rede. O servidor confere de novo pelos bytes. */
 export function checkFile(file: File): string | null {
   if (file.size === 0) return "O arquivo está vazio.";
-  if (file.size > MAX_BYTES) return "O arquivo passa do limite de 4 MB. Envie uma foto menor.";
+  if (file.size > MAX_BYTES) {
+    // Foto grande já foi reduzida antes de chegar aqui; o que sobra é PDF (não dá para reduzir) ou foto que o aparelho não soube abrir.
+    return file.type === "application/pdf"
+      ? "Este PDF passa de 4 MB. Tire uma foto da nota ou exporte um PDF menor."
+      : "Não consegui reduzir esta foto. Tire outra, mais perto da nota.";
+  }
   if (!ACCEPTED.includes(file.type)) return "Envie uma foto (JPG, PNG ou WebP) ou um PDF.";
   return null;
 }
@@ -47,7 +52,7 @@ export function ChooseStep({ onFile, error }: { onFile: (file: File) => void; er
         </p>
       )}
 
-      <p className="t-sub mt-4 px-2 text-center text-label-2">JPG, PNG, WebP ou PDF, até 4 MB.</p>
+      <p className="t-sub mt-4 px-2 text-center text-label-2">Foto, PNG, WebP ou PDF. Fotos grandes são reduzidas sozinhas.</p>
 
       <BottomAction>
         <label className={`${button} bg-primary text-on-primary shadow-[var(--glow)]`}>

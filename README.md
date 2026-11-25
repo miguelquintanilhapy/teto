@@ -14,12 +14,20 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
 
 ## O que faz
 
-- Lê foto ou PDF de notas e recibos com IA e pede confirmação com um clique.
-- Painel: receita acumulada, percentual do limite, folga e projeção de estouro.
-- Limite proporcional para quem abriu o MEI no meio do ano.
+- Lê foto, PDF ou XML de notas e recibos com IA, e **você confere** antes de qualquer valor entrar no limite.
+  Fotos grandes são reduzidas no próprio aparelho, sem o usuário precisar saber de megabytes.
+- Painel: faturamento do ano, faixa de risco (verde, âmbar, laranja-avermelhado, vermelho), a "sala" do limite,
+  previsão de quando o limite será ultrapassado (com a média usada), DAS e receita por mês.
+- Limite proporcional para quem abriu o MEI no meio do ano, e explicação das três faixas (limite, 20% acima,
+  acima disso) na própria tela.
 - Simulador: "e se eu aceitar uma venda de R$ X?", com o custo estimado.
-- Cruza o extrato bancário com as notas e aponta entradas sem nota.
-- Alertas de 80% e 100% do limite e lembrete do DAS.
+- Histórico com detalhe, correção e cancelamento (tudo registrado), lançamento sem nota e importação do
+  extrato bancário (CSV, lido no navegador) cruzada com as receitas.
+- Alertas por e-mail ao cruzar 80%, 90%, 100% e 120% do limite (idempotentes, com cron diário).
+- Relatório do ano em CSV e PDF, tema claro e escuro, "ocultar valores" e instalação na tela inicial do celular.
+- Tela "Como a IA lê": modelos, cota do dia, tempos e falhas, para a IA não ser uma caixa-preta.
+
+Mais detalhes das telas e das decisões de design em [docs/INTERFACE.md](docs/INTERFACE.md).
 
 ## Como funciona (resumo)
 
@@ -33,13 +41,16 @@ e validação determinística da resposta.
 
 ```
 src/
-  core/      regras do MEI: puras, sem I/O, 100% testáveis
-  server/    extração com IA (cadeia de provedores), avaliação, casos de uso
-  app/       interface e rotas (Next.js)
-supabase/    migrações do banco
-fixtures/    notas sintéticas, gabarito e respostas gravadas dos modelos (eval)
-scripts/     verificações de ambiente, gerador de notas e runner do eval
-docs/        arquitetura, modelo de dados, regras do MEI, plano
+  core/        regras do MEI: puras, sem I/O, 100% testáveis
+  server/      extração com IA (cadeia de provedores), avaliação, alertas, casos de uso e handlers HTTP
+  lib/         lógica pura da interface (textos, simulação, conciliação, relatório, redução de foto)
+  components/  componentes da interface
+  app/         telas e rotas (Next.js)
+public/brand/  logo e ícones
+supabase/      migrações do banco
+fixtures/      notas sintéticas, gabarito e respostas gravadas dos modelos (eval)
+scripts/       verificações de ambiente, gerador de notas, runner do eval e dados de demonstração
+docs/          arquitetura, modelo de dados, interface, segurança, regras do MEI, plano
 ```
 
 ## Configuração passo a passo
@@ -148,6 +159,14 @@ npm run check:db
 Deve listar as 10 tabelas como `OK`, o bucket `documents` como privado e terminar com
 `Tudo certo.`
 
+**Dados de demonstração** (receitas fictícias de março a outubro, para o painel não ficar vazio):
+
+```bash
+npm run seed:demo                 # cria
+npm run seed:demo -- --reset      # apaga os lançamentos e recomeça
+npm run seed:demo -- --total 60000  # escolhe o faturamento total, em reais
+```
+
 ### 5. Chaves de IA
 
 ```bash
@@ -165,10 +184,23 @@ npm run check   # lint + tipos + testes (o mesmo que a CI roda)
 npm run eval    # avaliação da extração, repetindo respostas gravadas (sem rede)
 ```
 
+## Publicar na Vercel
+
+1. Importe o repositório na Vercel (framework Next.js, sem configuração extra).
+2. Em **Settings → Environment Variables**, cadastre as mesmas variáveis do `.env.local`, **exceto**
+   `ALLOW_PROFILE_EDIT` (deixe sem valor: em produção ninguém troca o cadastro existente; veja
+   [docs/SEGURANCA.md](docs/SEGURANCA.md)). `CRON_SECRET` é obrigatório: a Vercel o envia no cron.
+3. Rode as duas migrações no Supabase (passo 4) antes do primeiro uso.
+4. Para o link ficar **público** (o hackathon exige abrir sem login), desligue em
+   **Settings → Deployment Protection** a opção *Vercel Authentication*. Com ela ligada, só quem tem conta
+   no time abre o endereço.
+5. O cron diário dos alertas está em [`vercel.json`](vercel.json) (`0 12 * * *`, 12h UTC).
+6. O Perfil mostra a versão publicada (os 7 primeiros caracteres do commit), para saber qual build está no ar.
+
 ## API
 
 `POST /api/documents` recebe uma nota, recibo ou extrato e devolve os campos extraídos.
-Multipart com `file` (JPEG, PNG, WebP ou PDF, até 4 MB) e `kind` (`nota`, `recibo` ou `extrato`; padrão `nota`).
+Multipart com `file` (JPEG, PNG, WebP ou PDF, até 4 MB; o app reduz fotos grandes no aparelho antes de enviar) e `kind` (`nota`, `recibo` ou `extrato`; padrão `nota`).
 
 ```bash
 curl -X POST http://localhost:3000/api/documents \
@@ -239,6 +271,7 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` / `npm start` | Build e servidor de produção (o que a Vercel roda) |
 | `npm test` | Testes unitários (Vitest) |
 | `npm run typecheck` | Checagem de tipos |
 | `npm run lint` | ESLint |
@@ -247,6 +280,7 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
 | `npm run check:db` | Testa no banco real a cota diária, o cooldown, o storage e o perfil de demo (apaga o que cria) |
 | `npm run seed` | Cria o perfil de demonstração fictício (idempotente; só quem criou o banco) |
+| `npm run seed:demo` | Cria receitas fictícias para o painel (`-- --reset` apaga, `-- --total N` define o total) |
 | `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
 | `npm run eval:record` | Regrava as respostas chamando os modelos de verdade (usa a cota gratuita) |
 | `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
@@ -264,6 +298,8 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | "permission denied" no AI Studio | Conta corporativa (Workspace) | Use um Gmail pessoal, em janela anônima, e aceite os termos |
 | `npm install` falha com `ETARGET typescript-eslint` | Publicação parcial do pacote no npm | O `package.json` já fixa a versão; rode `npm install` de novo |
 | A rota `/api/documents` devolve `503` "Perfil de demonstração não configurado" | Banco sem o perfil de demo | Rode `npm run seed` (só uma vez, só quem criou o banco) |
+| O lápis de editar o perfil não aparece | Em produção a edição do cadastro é bloqueada por padrão | Em desenvolvimento aparece sozinho. Em produção, `ALLOW_PROFILE_EDIT=true` (e refaça o build: a tela é pré-renderizada) |
+| O endereço da Vercel pede login | *Vercel Authentication* ligada no projeto | Settings → Deployment Protection → desligar, para o link ser público |
 | `eval` diz "sem gravação" | O prompt mudou e as gravações antigas deixaram de valer | `npm run eval:record` (usa a cota gratuita) |
 | Notas do `fixtures:generate` com fonte diferente | O gerador usa fontes do sistema (Arial, Courier New, Segoe Script) | Só para regenerar. As imagens já estão no repositório |
 
@@ -302,7 +338,24 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) | Resultados da avaliação da extração (gerado) |
 | [docs/INTERFACE.md](docs/INTERFACE.md) | Telas, decisões de design, acessibilidade e navegação fluida |
 | [docs/SEGURANCA.md](docs/SEGURANCA.md) | Modelo de ameaças, defesas, riscos aceitos e o que falta |
-| [docs/REVISAO.md](docs/REVISAO.md) | Revisão de UX, acessibilidade e segurança: o que foi corrigido e o que ficou |
+| [docs/REVISAO.md](docs/REVISAO.md) | Revisões de UX, acessibilidade, segurança e cor: o que foi corrigido e o que ficou |
+
+## Qualidade da extração (medida)
+
+Avaliação em **26 notas sintéticas** com gabarito (prompt v3), repetindo respostas gravadas dos modelos
+(`npm run eval`, sem rede). Resultado da cadeia completa, o que o usuário vive:
+
+| Resultado | Notas | Taxa |
+|---|---|---|
+| Aceita automaticamente e completa (data, valor, emissor e destinatário certos) | 22 | 85% |
+| Aceita automaticamente e **errada para o limite** (erro silencioso) | 1 | 4% |
+| Enviada para revisão manual | 3 | 12% |
+| Falha total (nenhum modelo respondeu) | 0 | 0% |
+
+**Leia com cuidado:** as gravações são parciais (Flash-Lite 12 de 26, Nemotron 14 de 26, Flash 0 de 26, por
+sobrecarga do Google e cotas gratuitas), e o conjunto é pequeno e sintético. É um indicador, não uma garantia.
+Mesmo assim, o erro silencioso não vira erro de limite: nada entra no acumulado sem a confirmação do usuário.
+Detalhes por modelo e por campo em [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md).
 
 ## Limitações conhecidas
 
@@ -312,22 +365,38 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
   lançamentos (com CPF/CNPJ mascarados), enviar notas (limitadas por janela e por cota diária) e cancelar ou
   corrigir lançamentos. Para uso real, autenticação é o primeiro passo.
 - A projeção é linear e não considera sazonalidade.
+- PDF acima de 4 MB é recusado (fotos grandes são reduzidas no aparelho, PDF não).
+- O lembrete do vencimento do DAS por e-mail não existe (a tabela de alertas guarda uma data por ano).
+- A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba.
+- A interface não tem testes automatizados (só a lógica tem, 406 testes); foi verificada à mão no navegador,
+  não em aparelho nem com leitor de tela. Ver [docs/REVISAO.md](docs/REVISAO.md).
 
 ## Estado atual
 
+Feito:
+
 - [x] Núcleo de regras do MEI com testes
-- [x] Roteador de modelos em cadeia com testes (failover, cooldown, orçamento de tempo, cota diária)
-- [x] Validação de ambiente e migração inicial do banco
-- [x] Adaptadores dos provedores de IA (Gemini e OpenRouter)
-- [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md))
-- [x] Upload e extração com persistência: `POST /api/documents` (validação, hash, Supabase, cadeia de IA)
-- [x] Confirmação de lançamentos e painel: `POST/GET /api/transactions` e `GET /api/dashboard`
-- [x] Cancelar e corrigir lançamento, com histórico de alterações
-- [x] Interface: painel, enviar nota, lançar sem nota, simulador, histórico e detalhe, extrato, relatório, alertas, transparência da IA, cadastro e perfil
-- [x] Extrato: importar CSV (no navegador) e conciliar com as receitas
+- [x] Roteador de modelos em cadeia (failover, cooldown, orçamento de tempo, cota diária) e adaptadores Gemini e OpenRouter
+- [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md)) e porta de qualidade na CI
+- [x] Upload e extração com persistência, confirmação de lançamentos, cancelar e corrigir (com histórico)
+- [x] Interface completa: painel, enviar nota, lançar sem nota, simulador, histórico e detalhe, extrato, relatório, alertas, transparência da IA, perfil, regras, instalar e primeiros passos
 - [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica
-- [ ] Autenticação e vários MEIs
+- [x] Revisões de UX, acessibilidade, segurança e cor ([REVISAO.md](docs/REVISAO.md), [SEGURANCA.md](docs/SEGURANCA.md))
+- [x] 406 testes automatizados (39 arquivos), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
+
+Falta para o envio (prazo: 30/11, 23h59):
+
+- [ ] Aplicar a migração `0002` no Supabase do projeto e desligar a proteção por login da Vercel (link público)
+- [ ] Link da demo pública e vídeo de até 3 minutos
+- [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
+- [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`
+- [ ] Gravações do eval completas (hoje parciais)
+
+Depois do hackathon:
+
+- [ ] Autenticação e vários MEIs (hoje: perfil único, sem login)
 - [ ] Lembrete do vencimento do DAS (precisa guardar uma data por mês)
+- [ ] Melhorar o funcionamento dos modelos (menos 503 do Gemini, mais cobertura de gravações)
 
 ## Nota técnica
 

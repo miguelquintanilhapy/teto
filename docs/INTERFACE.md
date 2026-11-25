@@ -8,7 +8,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 | Rota | O que faz |
 |---|---|
 | `/` | Painel: faturamento do ano, faixa de risco, a sala do limite, previsão, DAS, notas para conferir, receita por mês e atalho para lançar sem nota |
-| `/enviar` | Escolher a nota, esperar a leitura, conferir os dados e confirmar |
+| `/enviar` | Escolher a nota (fotos grandes são reduzidas no aparelho), esperar a leitura, conferir os dados e confirmar |
 | `/lancar` | Lançar sem nota (também abre pré-preenchido a partir do extrato) |
 | `/simular` | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado |
 | `/historico` | Lançamentos do ano por dia, com filtros guardados no endereço |
@@ -71,13 +71,16 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 - Os esqueletos têm a forma do conteúdo, e não um bloco vazio.
 - Limite conhecido: o cache é do perfil único de demonstração. Com várias contas, o identificador do usuário
   entra como argumento de `getPanel`.
+- O Next guarda a tela anterior escondida, **com o estado**. Por isso o fluxo de envio descarta o estado ao sair
+  (`SendFlow` remonta quando a tela é deixada); sem isso, "Enviar nota" trazia de volta a nota abandonada.
 
 ## Preferências do usuário
 
 - **Tema:** Sistema, Claro ou Escuro, guardado no aparelho. Um script curto aplica a escolha antes da primeira
   pintura (sem piscar) e ajusta a cor da barra do navegador.
-- **Ocultar valores:** troca os valores em dinheiro por uma barra lisa (um borrão ainda deixa adivinhar os dígitos) (painel, previsão, histórico, simulação, conferência e
-  confirmação) para abrir o app em público. O botão fica no cabeçalho do Painel e em Perfil.
+- **Ocultar valores:** troca os valores em dinheiro por uma barra lisa (um borrão ainda deixa adivinhar os dígitos)
+  no painel, na previsão, no histórico, na simulação, na conferência e na confirmação, para abrir o app em
+  público. O botão fica no cabeçalho do Painel e em Perfil. Na impressão, os valores voltam a aparecer.
 
 ## Acessibilidade
 
@@ -90,6 +93,19 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 - Um `h1` e um `main` por tela; título de página próprio; campos com o teclado certo (CNPJ numérico, e-mail).
 - A confirmação antes de descartar uma nota lida leva o foco à saída segura e fecha com Escape.
 - O que o leitor de tela anuncia na simulação espera a digitação parar.
+
+## Perfil
+
+Cartão do MEI (lápis para editar, só quando a edição está liberada, e o selo "Demonstração · dados fictícios"),
+**Preferências** (tema e ocultar valores, guardados só no aparelho), **Seu MEI** (alertas, relatório e
+exportação, regras do ano), **Ajuda** (como a IA lê, instalar no celular, primeiros passos) e, no rodapé, a
+versão publicada (commit). Referência de organização: a aba "Mais" do Bolso.
+
+## Envio de foto
+
+Fotos acima de 1,5 MB são reduzidas no aparelho (JPEG de até ~3 MB, lado maior entre 1280 e 2000 px, que
+ainda deixa o texto da nota legível). O usuário não vê limite de megabytes; só PDF acima de 4 MB é recusado,
+com a saída dita ("tire uma foto da nota ou exporte um PDF menor").
 
 ## Fonte e ícones
 
@@ -116,6 +132,8 @@ desliza de uma opção à outra. Com "reduzir movimento", a troca é instantâne
 ## O que ainda não existe
 
 - Autenticação e vários MEIs (ver [SEGURANCA.md](SEGURANCA.md)).
+- Teste em aparelho e com leitor de tela real (VoiceOver, TalkBack): a verificação foi por marcação e no navegador.
+- Tamanho de texto dinâmico do iOS dentro do app web.
 - Lembrete do vencimento do DAS por e-mail.
 - Modo offline.
 - Testes automatizados de interface (só a lógica tem testes). Ver [REVISAO.md](REVISAO.md).

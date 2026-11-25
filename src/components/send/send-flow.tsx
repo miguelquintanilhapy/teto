@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { shrinkImage } from "@/lib/image-resize";
 import { readLaunchParams } from "@/lib/reconciliation";
 import { readConfirmResponse, readUploadResponse } from "@/lib/send-api";
 import { impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
@@ -37,8 +38,19 @@ const TITLES: Record<Stage["name"], string | undefined> = {
   done: undefined,
 };
 
+/**
+ * Com o cache de componentes, o Next guarda a tela anterior escondida quando o usuário navega, com o estado
+ * dentro. Sem este invólucro, sair de uma nota (no X) e tocar em "Enviar nota" de novo trazia de volta a nota
+ * abandonada. Ao sair da tela, o fluxo descarta o estado: a próxima visita recomeça do zero.
+ */
+export function SendFlow(props: { ctx: SendContext; startManual?: boolean }) {
+  const [visit, setVisit] = useState(0);
+  useEffect(() => () => setVisit((v) => v + 1), []);
+  return <SendFlowSteps key={visit} {...props} />;
+}
+
 /** Fluxo em quatro passos: escolher, ler, conferir e confirmar. Só o código decide o que entra no limite. */
-export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
+function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
   const router = useRouter();
   const [ctx, setCtx] = useState(initialCtx);
   const params = useSearchParams();
@@ -66,13 +78,16 @@ export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendCo
     stepRef.current?.focus({ preventScroll: true });
   }, [stage.name]);
 
-  async function handleFile(file: File) {
-    const problem = checkFile(file);
-    if (problem) return setStage({ name: "choose", error: problem });
-
+  async function handleFile(original: File) {
     const controller = new AbortController();
     abortRef.current = controller;
-    setStage({ name: "reading", fileName: file.name });
+    setStage({ name: "reading", fileName: original.name });
+
+    // Foto grande é reduzida aqui, no aparelho: quem fotografa não precisa saber de megabytes.
+    const file = await shrinkImage(original);
+    if (controller.signal.aborted) return; // cancelou enquanto a foto era preparada
+    const problem = checkFile(file);
+    if (problem) return setStage({ name: "choose", error: problem });
 
     try {
       const form = new FormData();
