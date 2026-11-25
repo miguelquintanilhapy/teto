@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { shrinkImage } from "@/lib/image-resize";
 import { readLaunchParams } from "@/lib/reconciliation";
 import { readConfirmResponse, readUploadResponse } from "@/lib/send-api";
 import { impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
@@ -66,13 +67,16 @@ export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendCo
     stepRef.current?.focus({ preventScroll: true });
   }, [stage.name]);
 
-  async function handleFile(file: File) {
-    const problem = checkFile(file);
-    if (problem) return setStage({ name: "choose", error: problem });
-
+  async function handleFile(original: File) {
     const controller = new AbortController();
     abortRef.current = controller;
-    setStage({ name: "reading", fileName: file.name });
+    setStage({ name: "reading", fileName: original.name });
+
+    // Foto grande é reduzida aqui, no aparelho: quem fotografa não precisa saber de megabytes.
+    const file = await shrinkImage(original);
+    if (controller.signal.aborted) return; // cancelou enquanto a foto era preparada
+    const problem = checkFile(file);
+    if (problem) return setStage({ name: "choose", error: problem });
 
     try {
       const form = new FormData();
