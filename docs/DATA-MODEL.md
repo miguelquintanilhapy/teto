@@ -1,7 +1,8 @@
 # Modelo de dados
 
-Esboço do schema do Supabase (Postgres). **É projeto, não migração**: a
-migração real nasce a partir daqui em `supabase/migrations/`.
+Schema do Supabase (Postgres), implementado em `supabase/migrations/`:
+`0001_init.sql` (tabelas, restrições e RLS) e `0002_one_transaction_per_document.sql`
+(um documento vira no máximo um lançamento).
 
 Convenções:
 - Chave primária `uuid` (`gen_random_uuid()`).
@@ -87,6 +88,8 @@ Rastro do que a IA fez, uma linha por documento extraído.
 
 Restrições e índices:
 - Único parcial `(profile_id, access_key)` quando `access_key` não é nulo.
+- Único parcial `(profile_id, document_id)` quando `document_id` não é nulo (migração `0002`): dois toques
+  simultâneos em "Confirmar" não criam dois lançamentos do mesmo documento.
 - Índice `(profile_id, date)` para o acumulado e a projeção.
 - `CHECK (amount_cents > 0)`: estorno vira `status = 'cancelada'`.
 
@@ -102,6 +105,10 @@ Histórico imutável de alterações (confirmar, corrigir, cancelar).
 | created_at | timestamptz |
 
 ### `bank_entries`
+> **Reservada, ainda sem uso.** A importação do extrato roda inteira no navegador (o CSV é lido e conciliado
+> na tela e não é gravado), então `bank_entries` e `reconciliation_links` existem no schema, mas o app não
+> escreve nelas. Persistir o extrato é uma evolução possível.
+
 | Coluna | Tipo | Observação |
 |---|---|---|
 | id | uuid PK | |
@@ -122,10 +129,10 @@ Garante o pareamento um-para-um.
 |---|---|---|
 | id | uuid PK | |
 | profile_id | uuid FK | |
-| kind | text | `threshold_warning` · `threshold_critical` · `over_limit` · `over_tolerance` · `das_reminder` |
+| kind | text | `threshold_warning` (80%) · `threshold_critical` (90%) · `over_limit` (100%) · `over_tolerance` (120%) · `das_reminder` (reservado: o lembrete do DAS não está implementado, porque aqui só cabe uma data por ano) |
 | reference_year | integer | |
 | created_at | timestamptz | quando foi gerado |
-| sent_at | timestamptz nulo | nulo = ainda não enviado (cron tenta de novo) |
+| sent_at | timestamptz nulo | nulo = ainda não enviado (cron tenta de novo). A reserva é atômica (`update … where sent_at is null returning`): cron e confirmação não enviam o mesmo alerta duas vezes |
 
 Único `(profile_id, kind, reference_year)` → idempotência dos alertas.
 
@@ -144,7 +151,7 @@ Garante o pareamento um-para-um.
 
 ## Storage
 
-- Bucket `documents`, **privado**.
+- Bucket `documents`, **privado**. Limite do app: 4 MB por arquivo (a Vercel corta em 4,5 MB).
 - Caminho: `{profile_id}/{content_hash}.{ext}`.
 - Acesso só por URL assinada de curta duração.
 - Rotina de limpeza dos arquivos da demo.
@@ -156,3 +163,5 @@ Garante o pareamento um-para-um.
 3. Confirmação e gravação do evento ocorrem **na mesma transação** do banco.
 4. Alerta enviado não é retirado quando o valor cai; o painel mostra o estado atual.
 5. Nenhum dado pessoal real: tudo sintético.
+6. Um documento vira no máximo um lançamento (índice único da `0002`).
+7. CPF e CNPJ da outra parte e a chave de acesso saem **mascarados** do servidor para a tela; o dado inteiro fica só no banco.
