@@ -74,6 +74,11 @@ export function monthInitial(monthIndex: number): string {
   return MESES[monthIndex]!.charAt(0).toUpperCase();
 }
 
+/** "mar", "abr": rótulo do eixo do gráfico, sem a ambiguidade das iniciais. */
+export function monthShort(monthIndex: number): string {
+  return MESES_CURTOS[monthIndex]!;
+}
+
 export function monthName(monthIndex: number): string {
   return MESES[monthIndex]!;
 }
