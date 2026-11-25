@@ -5,21 +5,22 @@ import { NoProfile } from "@/components/no-profile";
 import { monthOf, rulesFor, yearOf } from "@/core";
 import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
 import { ThemeControl } from "@/components/prefs/theme-control";
-import { SheetShell } from "@/components/send/sheet-shell";
 import { SettingsGroup, SettingsLink, SettingsTile } from "@/components/settings";
 import { formatPercent, formatReais, monthName } from "@/lib/format";
 import { getEnv } from "@/server/env";
 import { loadPanelSafe } from "@/server/panel-safe";
 
-export const metadata = { title: "Perfil · Teto" };
+export const metadata = { title: "Mais · Teto" };
 
-export default function PerfilPage() {
+/** Aba "Mais": o MEI, as preferências e o que não cabe nas outras abas. */
+export default function MaisPage() {
   return (
-    <SheetShell title="Perfil">
-      <Suspense fallback={<div aria-busy="true" className="h-40 rounded-card bg-card" />}>
+    <main>
+      <h1 className="t-large-title mt-2 mb-4">Mais</h1>
+      <Suspense fallback={<div aria-busy="true" className="h-40 animate-pulse rounded-card bg-card motion-reduce:animate-none" />}>
         <Conteudo />
       </Suspense>
-    </SheetShell>
+    </main>
   );
 }
 
@@ -31,16 +32,12 @@ function maskCnpj(taxId: string): string {
 async function Conteudo() {
   const r = await loadPanelSafe("perfil");
   if (!r.ok) {
-    return (
-      <>
-        {r.reason === "no_profile" ? (
-          <NoProfile />
-        ) : (
-          <p role="alert" className="t-body rounded-card bg-card p-5">
-            Não foi possível carregar o perfil. Tente de novo em instantes.
-          </p>
-        )}
-      </>
+    return r.reason === "no_profile" ? (
+      <NoProfile />
+    ) : (
+      <p role="alert" className="t-body rounded-card bg-card p-5">
+        Não foi possível carregar o perfil. Tente de novo em instantes.
+      </p>
     );
   }
 
@@ -60,13 +57,13 @@ async function Conteudo() {
   return (
     <>
       <section className="rounded-card bg-card p-5">
-        <div className="flex items-center gap-4">
-          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-full bg-label text-[1.5rem] font-extrabold text-bg">
+        <div className="flex items-start gap-3.5">
+          <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-full bg-label text-[1.125rem] font-extrabold text-bg">
             {initials || "T"}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="t-title truncate">{profile.name}</h2>
-            <p className="t-sub text-label-2">CNPJ {maskCnpj(profile.taxId)}</p>
+            <h2 className="line-clamp-2 text-[1.25rem] leading-tight font-bold">{profile.name}</h2>
+            <p className="t-sub mt-0.5 whitespace-nowrap text-label-2">CNPJ {maskCnpj(profile.taxId)}</p>
             <p className="t-sub text-label-2">
               MEI desde {monthName(openMonth)} de {openYear}
             </p>
@@ -75,7 +72,7 @@ async function Conteudo() {
             <Link
               href="/perfil/editar"
               aria-label="Editar perfil"
-              className="pressable hoverable -mr-2 grid size-11 shrink-0 place-items-center self-start rounded-full text-action"
+              className="pressable hoverable -mt-1.5 -mr-2 grid size-11 shrink-0 place-items-center rounded-full text-action"
             >
               <PencilSimple size={20} weight="bold" aria-hidden="true" />
             </Link>
@@ -88,7 +85,7 @@ async function Conteudo() {
         <div className="px-5 py-3.5">
           <p className="mb-2.5 flex items-center gap-3.5">
             <SettingsTile icon={Palette} />
-            <span className="t-row">Tema</span>
+            <span className="text-[1.0625rem] font-medium">Tema</span>
           </p>
           <ThemeControl />
         </div>
@@ -96,26 +93,35 @@ async function Conteudo() {
       </SettingsGroup>
 
       <SettingsGroup title="Seu MEI">
-        <SettingsLink href="/alertas" icon={Bell} title="Alertas por e-mail" hint="Avisos ao cruzar cada faixa do limite" />
+        <SettingsLink href="/alertas" icon={Bell} title="Avisos do limite" hint="E-mail ao cruzar cada faixa do limite" />
         <SettingsLink href="/relatorio" icon={FileArrowDown} title="Relatório e exportação" hint="Receita mês a mês, em CSV ou PDF" />
         <SettingsLink
           href="/regras"
           icon={Scales}
           title={`Regras de ${year}`}
-          hint={`Limite ${formatReais(dashboard.limitCents)} · alertas em ${formatPercent(cfg.warningRatio)} e ${formatPercent(cfg.criticalRatio)}`}
+          hint={`Limite ${formatReais(dashboard.limitCents)} · avisos aos ${formatPercent(cfg.warningRatio)} e ${formatPercent(cfg.criticalRatio)}`}
         />
       </SettingsGroup>
 
       <SettingsGroup title="Ajuda">
-        <SettingsLink href="/ia" icon={Sparkle} title="Como a IA lê suas notas" hint="Modelos, tempos, falhas e a cota de hoje" />
         <SettingsLink href="/instalar" icon={DeviceMobile} title="Instalar no celular" hint="Abre como app, sem a barra do navegador" />
-        <SettingsLink href="/primeiros-passos" icon={ListChecks} title="Ver primeiros passos" hint="Três passos para começar" />
+        <SettingsLink href="/primeiros-passos" icon={ListChecks} title="Primeiros passos" hint="Três passos para começar" />
+      </SettingsGroup>
+
+      <SettingsGroup title="Sobre">
+        <SettingsLink href="/ia" icon={Sparkle} title="Como a IA lê suas notas" hint="O que a IA faz e o que fica com você" />
       </SettingsGroup>
 
       <p className="t-sub mt-6 px-5 text-label-2">
         A IA só lê as notas. Quem decide o que entra no limite é o código, e só depois da sua conferência.
       </p>
-      <p className="t-caption mt-3 px-5 pb-2 text-center text-label-2">Teto · versão {build}</p>
+      {/* A versão é útil para suporte, mas não precisa ficar na cara de quem usa: aparece com um toque. */}
+      <details className="mt-3 px-5 pb-2 text-center">
+        <summary className="t-caption mx-auto inline-flex min-h-11 cursor-pointer list-none items-center px-3 text-label-2 [&::-webkit-details-marker]:hidden">
+          Teto
+        </summary>
+        <p className="t-caption text-label-2">versão {build}</p>
+      </details>
     </>
   );
 }
