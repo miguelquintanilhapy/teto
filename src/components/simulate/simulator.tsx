@@ -41,7 +41,8 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
         <CurrencyField label="Valor da venda" cents={cents} onChange={setCents} />
       </div>
 
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Os atalhos quebram de linha: rolando de lado, o último ("O que cabe") ficava cortado na borda. */}
+      <div className="mt-3 flex flex-wrap gap-2">
         {presets.map((value) => (
           <button
             key={value}

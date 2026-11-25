@@ -28,7 +28,7 @@ export function SettingsLink({ href, icon, title, hint }: { href: string; icon: 
     <Link href={href} className="pressable hoverable flex min-h-14 items-center gap-3.5 px-5 py-3">
       <SettingsTile icon={icon} />
       <span className="min-w-0 flex-1">
-        <span className="t-row block">{title}</span>
+        <span className="block text-[1.0625rem] font-medium">{title}</span>
         {hint && <span className="t-sub block text-label-2">{hint}</span>}
       </span>
       <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
