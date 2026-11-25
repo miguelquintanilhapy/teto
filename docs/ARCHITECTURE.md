@@ -16,13 +16,16 @@ Legenda de status: ✅ implementado · 🟡 projetado, a implementar · ❓ deci
 
 ```mermaid
 flowchart LR
-  U[Usuário<br/>web mobile-first] --> APP[Next.js<br/>src/app]
-  APP -->|route handlers| SRV[src/server<br/>casos de uso + adaptadores]
+  U[Usuário<br/>web mobile-first] --> APP[Next.js<br/>src/app + src/components]
+  APP -->|telas: loadPanelSafe / getPanel<br/>rotas: route handlers| SRV[src/server<br/>casos de uso + adaptadores]
   SRV --> CORE[src/core<br/>regras puras]
+  APP --> LIB[src/lib<br/>lógica pura da interface]
+  LIB --> CORE
   SRV --> ROUTER[ExtractionRouter<br/>cadeia de modelos]
-  ROUTER --> P1[Provedor 1<br/>mais barato]
-  ROUTER --> P2[Provedor 2<br/>mais forte]
-  ROUTER --> P3[Provedor 3<br/>outro fornecedor]
+  ROUTER --> P1[1. gemini-3.5-flash-lite]
+  ROUTER --> P2[2. Nemotron<br/>OpenRouter]
+  ROUTER --> P3[3. gemini-flash-lite-latest]
+  ROUTER --> P4[4. gemini-3.6-flash<br/>reserva]
   SRV --> DB[(Supabase<br/>Postgres + Storage privado)]
   SRV --> MAIL[Resend]
   CRON[Vercel Cron] -->|CRON_SECRET| SRV
@@ -36,11 +39,13 @@ pelo servidor. Chaves existem só no servidor.
 | Camada | Pasta | Pode depender de | Não pode depender de |
 |---|---|---|---|
 | Núcleo de domínio | `src/core` | nada (nem Node, nem rede, nem relógio) | qualquer outra camada |
-| Servidor | `src/server` | `core` | `app` |
-| Interface | `src/app` | `core`, `server` (via rotas) | acesso direto a banco ou IA |
+| Servidor | `src/server` | `core` | `app`, `components` |
+| Lógica da interface | `src/lib` (textos, simulação, formatação, conciliação, geometria da barra, duplicidade) | `core` | `server`, banco, rede |
+| Componentes | `src/components` | `lib`, `core`, e só tipos e validadores puros de `server` (`TransactionView`, `validateProfile`) | banco ou IA |
+| Telas e rotas | `src/app` | `server` (as telas leem o painel por `loadPanelSafe`/`getPanel`; as rotas chamam os handlers de `src/server/http`), `lib`, `components` | acesso direto a banco ou IA |
 
-A regra é verificável: o núcleo não importa nada fora de `src/core`. Todo efeito
-colateral (banco, rede, relógio, e-mail) entra por **portas** (interfaces) com
+O núcleo não importa nada fora de `src/core`. Hoje isso é conferido por revisão, **não** por uma regra
+automática de lint. Todo efeito colateral (banco, rede, relógio, e-mail) entra por **portas** (interfaces) com
 implementações trocáveis, o que permite testar o produto inteiro sem rede.
 
 ### Portas previstas
@@ -68,7 +73,8 @@ implementações trocáveis, o que permite testar o produto inteiro sem rede.
 | `documents` | CPF, CNPJ, chave de acesso e `deriveDirection` (receita ou despesa, decidido no código) | ✅ |
 | `dashboard` | Resumo do painel: limite do ano, acumulado, faixa, custo estimado, projeção, DAS e alertas | ✅ |
 | `monthly` | Receita por mês e por trimestre (gráfico do painel e relatório) | ✅ |
-| `rules` | Configuração **versionada por ano** (`rulesFor`: limite, tolerância, alíquotas) | ✅ |
+| `config` | Configuração **versionada por ano** (`rulesFor`, `RULES_BY_YEAR`: limite, tolerância, alíquotas) | ✅ |
+| `dates` | Aritmética de datas ISO (sem relógio: "hoje" chega por parâmetro) | ✅ |
 
 ### Ajustes de fundação (Fase 0, implementados)
 
@@ -97,13 +103,17 @@ flowchart TD
   B -->|ok| C{Provedor n serve?<br/>capacidades e cooldown}
   C -->|não| N[Próximo provedor]
   C -->|sim| D[Chamada com timeout]
+  D -->|passou de 7 s| P[Próximo provedor em paralelo] --> N
   D -->|429, queda, timeout| F[Failover + cooldown] --> N
   D -->|resposta| E[Schema Zod]
   E -->|inválido| N
-  E -->|ok| V[Regras de negócio<br/>CNPJ, data, valor, confiança]
+  E -->|ok| K[Chave de acesso inválida?<br/>descarta e anota aviso]
+  K --> V[Regras de negócio<br/>CPF/CNPJ, data, valor, confiança]
   V -->|reprovou| G[Escalonamento: guarda melhor candidata] --> N
   V -->|aprovou| OK[Aceita, grava extração]
-  N -->|acabaram| Z
+  N -->|acabaram| L{Alguém pulado<br/>só por cooldown?}
+  L -->|sim| LR[Último recurso:<br/>tenta quem sai do cooldown antes] --> D
+  L -->|não| Z
 ```
 
 Decisões de projeto:
@@ -115,7 +125,11 @@ Decisões de projeto:
   cadeia é disparado em paralelo; o primeiro a devolver uma extração aceita vence e cancela o outro, sem cooldown.
   Se o primeiro falha, o seguinte entra na hora. ✅
 - **Cooldown por tipo de falha:** 60 s para limite de taxa e timeout, 90 s quando o provedor responde
-  "alta demanda" (o Gemini devolve 503 com frequência; o 503 volta em ~2 s, então errar de novo custa pouco). ✅
+  "alta demanda" (o Gemini devolve 503 com frequência; o 503 volta em ~2 s, então errar de novo custa pouco).
+  Chave recusada ou sem crédito (401, 402, 403): 10 min. Se o provedor manda `Retry-After`, esse prazo prevalece
+  (até 1 hora). ✅ (não há retentativa com backoff no mesmo provedor: a próxima tentativa é sempre o modelo seguinte)
+- **Cota e cooldown consultados juntos:** a cota do dia é consumida ao mesmo tempo em que o cooldown de todos os
+  provedores é lido, em vez de uma consulta por provedor, em fila. ✅
 - **Último recurso:** se ninguém foi aceito, quem foi pulado só por estar em cooldown é tentado de novo, começando
   pelo que sai dele primeiro. O cooldown é uma estimativa: antes, quando todos entravam em cooldown, a extração
   desistia sem tentar ninguém, e o segundo modelo que poderia corrigir um dígito mal lido ficava de fora. ✅
@@ -127,9 +141,19 @@ Decisões de projeto:
 - **Cache e idempotência por hash** do conteúdo (`processUpload`): o mesmo arquivo nunca é lido
   duas vezes (poupa cota gratuita e sustenta a demo). Upload simultâneo do mesmo arquivo é resolvido
   pela restrição única do banco. ✅
-- **Versão do prompt e do schema** gravada em cada extração, para o resultado do
-  `eval` apontar para o prompt que o gerou. ✅ (versão do prompt) · 🟡 (gravar no banco)
+- **Versão do prompt e do schema** gravada em cada extração (`extractions.prompt_version` e `schema_version`),
+  para o resultado do `eval` apontar para o prompt que o gerou. Prompt atual: **v4**. ✅
+- **Chave de acesso inválida é descartada**, não reprova (`sanitizeExtraction` em `validate.ts`). A chave só serve
+  para reconhecer a mesma nota enviada duas vezes; não muda valor, data nem direção. Uma chave que não passa no
+  dígito verificador vira `null`, a nota segue e o aviso (`ACCESS_KEY_DROPPED_NOTE`) vai no campo `issues` da
+  resposta, que a conferência mostra como "A chave de acesso não pôde ser lida e foi ignorada". **CPF/CNPJ
+  inválido continua reprovando**, porque decide receita ou despesa. ✅
 - **Rastro persistido** (`extractions`): provedor, tentativas, latência, issues, versões do prompt e do schema. ✅
+- **Leitura e gravação em paralelo** (`processUpload`): a busca por hash e a contagem da janela saem juntas; a IA
+  começa a ler enquanto o arquivo vai para o storage e o registro para o banco. Se a gravação falha depois da
+  leitura, a leitura (e a cota) se perde; é raro e preferível a deixar todo envio mais lento. O id do perfil fica
+  em cache por 5 minutos (`CachedProfileIdRepo`). Medido da máquina local contra o Supabase em Oregon: o tempo
+  fora da IA caiu de 2,0–3,8 s para 0,9–1,3 s. ✅
 - **Contrato único** (`schema.ts`): dele saem o validador e o JSON Schema
   enviado aos provedores. ✅
 - **Direção decidida no código.** A IA devolve as duas partes (`issuerTaxId`: quem vendeu ou
@@ -154,8 +178,10 @@ Decisões de projeto:
 - **Métricas:** acerto por campo, núcleo correto (data, valor, emissor e destinatário), direção,
   latência p50/p95 e, principalmente, o **erro silencioso** (aceita sem revisão e errada). ✅
 - **Relatório gerado:** `npm run eval` escreve [EVAL-RESULTS.md](EVAL-RESULTS.md). ✅
-- **Porta de qualidade na CI:** `--min-correct` e `--max-silent-wrong` reprovam a execução se os
-  números piorarem. 🟡 (limiares definidos depois dos primeiros resultados)
+- **Porta de qualidade na CI:** o eval em replay roda com `--min-correct 0.75` e `--max-silent-wrong 0.10` e
+  reprova a execução se os números piorarem. ✅
+- **Sempre sequencial:** no eval o paralelo fica desligado (`hedgeAfterMs: Infinity`), para o resultado ser
+  reproduzível. ✅
 
 ## 5. Fluxos principais
 
@@ -168,19 +194,32 @@ sequenceDiagram
   participant ST as Storage privado
   participant R as ExtractionRouter
   participant DB as Postgres
-  U->>API: arquivo (foto/PDF)
+  participant TX as /api/transactions
+  U->>API: arquivo (foto/PDF; foto grande já reduzida no aparelho)
   API->>API: valida tipo, tamanho, assinatura do arquivo
-  API->>ST: guarda (bucket privado)
-  API->>DB: documento + hash (dedup)
-  API->>R: extrai
-  R-->>API: resultado + rastro
-  API->>DB: transação "pendente" + extração
-  API-->>U: campos extraídos para conferir
-  U->>API: confirma ou corrige
-  API->>DB: status "confirmada" + evento de histórico
-  API->>API: recalcula risco, projeção, alertas novos
-  API-->>U: painel atualizado
+  API->>DB: hash já enviado? + envios da janela (juntos)
+  par gravação
+    API->>ST: guarda (bucket privado)
+    API->>DB: documento + hash
+  and leitura
+    API->>R: extrai (cota e cooldown lidos juntos)
+    R-->>API: resultado + rastro
+  end
+  API->>DB: extração (rastro, versão do prompt)
+  API-->>U: campos extraídos para conferir (nada no limite ainda)
+  U->>TX: confirma, com as correções
+  TX->>DB: insere lançamento já "confirmada"
+  TX->>DB: evento de histórico (se falhar, apaga o lançamento)
+  TX->>TX: invalida o cache do painel; alertas novos depois da resposta
+  TX-->>U: painel atualizado
 ```
+
+O lançamento **só nasce na confirmação**: o upload grava o documento e a extração, mas nenhuma transação
+"pendente". A nota lida e não confirmada fica só na tela (por isso "Para conferir" hoje é sempre 0).
+
+Lançamento e evento de histórico **não** estão numa transação do banco: são dois comandos, e se o evento falha,
+o código desfaz o primeiro (apaga o lançamento criado; na correção e no cancelamento, devolve os valores
+anteriores). Uma queda entre os dois comandos ainda pode deixar um lançamento sem evento.
 
 ### Alertas
 
@@ -207,12 +246,12 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 | Tema | Decisão |
 |---|---|
 | Acesso a dados | Só o servidor acessa o banco. RLS **ativada sem políticas para `anon`** (nega tudo por padrão). Chave de serviço só no servidor. ✅ |
-| Identidade | Demo com **perfil único e público**, **sem login**, aviso na tela. `profile_id` em toda tabela, pronto para Supabase Auth + RLS por usuário (evolução). Em produção, o cadastro existente não pode ser trocado (`ALLOW_PROFILE_EDIT`). ✅ |
+| Identidade | Demo com **perfil único e público**, **sem login**, aviso na tela. `profile_id` nas tabelas principais (as de extrações, eventos e vínculos chegam ao perfil pelo documento ou pelo lançamento), pronto para Supabase Auth + RLS por usuário (evolução). Em produção, o cadastro existente não pode ser trocado (`ALLOW_PROFILE_EDIT`). ✅ |
 | Upload | JPEG, PNG, WebP e PDF, 4 MB, tipo conferido pelos **primeiros bytes** (não pela extensão), 30 novos por 10 min. ✅ |
 | Armazenamento | Bucket **privado**; caminho derivado do hash. ✅ |
 | Entrada de dados | Toda rota valida com Zod `.strict()`, exige `application/json` e confere o tamanho real do corpo. ✅ |
 | Origem | Rotas que gravam recusam `Origin` de outro site (`403`). ✅ |
-| Dado pessoal | CPF/CNPJ da outra parte, chave de acesso e e-mail saem **mascarados do servidor**. ✅ |
+| Dado pessoal | CPF/CNPJ da outra parte, chave de acesso e e-mail saem **mascarados do servidor**. Exceção: o CNPJ do próprio MEI vai inteiro para o navegador em `/enviar` e `/lancar`, porque a conferência precisa dele para mostrar receita ou despesa (a decisão final é do servidor). ✅ |
 | Prompt injection | O documento é **dado, nunca instrução**. Saída restrita a schema e revalidada por código; a IA não decide receita ou despesa. Casos adversariais no `eval`. ✅ |
 | Segredos | Nenhuma chave com prefixo `NEXT_PUBLIC` além das públicas do Supabase. Varredura com `gitleaks` ainda **não** está na CI. 🟡 |
 | Cron | `Authorization: Bearer <CRON_SECRET>`, comparação em tempo constante. ✅ |
@@ -228,10 +267,12 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 | Falha | O que o usuário vê | O que o sistema faz |
 |---|---|---|
 | Um provedor cai ou dá 429 | Nada (leve atraso) | Failover, cooldown persistido |
-| Todos os provedores falham | "Não consegui ler. Preencha manualmente." | Formulário manual pré-aberto, erro registrado |
+| Um provedor demora | Nada (leve atraso) | Depois de 7 s, o seguinte entra em paralelo |
+| Todos os provedores falham | "Não consegui ler. Preencha manualmente." | Último recurso para quem estava em cooldown; depois, formulário manual pré-aberto e erro registrado |
 | Extração com baixa confiança | Campos destacados para conferir | Status `needs_review`, nunca entra sem confirmação |
-| Teto diário de extrações | Aviso claro + usar notas de exemplo | `QuotaGuard` bloqueia chamadas à IA |
-| Banco indisponível | Mensagem de erro e tentar de novo | Sem estado parcial; operações em transação |
+| Chave de acesso ilegível | Aviso "A chave de acesso não pôde ser lida e foi ignorada" | A chave é descartada; o resto da nota segue |
+| Teto diário de extrações | Aviso claro e preenchimento manual | `QuotaGuard` bloqueia chamadas à IA |
+| Banco indisponível | Mensagem de erro e tentar de novo | Confirmar, corrigir e cancelar desfazem a mudança se o histórico falhar (compensação, não transação do banco) |
 | Falha no envio do e-mail | Alerta aparece no painel | `sent_at` fica nulo; cron tenta de novo |
 | Arquivo inválido ou grande demais | Motivo exato | Rejeitado antes de gastar cota de IA |
 | Arquivo duplicado | "Esta nota já foi enviada" | Dedup por hash e por chave de acesso |
@@ -248,20 +289,20 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 
 | Nível | O quê | Ferramenta |
 |---|---|---|
-| Unitário | Regras do `core` e lógica pura da interface (`src/lib`) ✅ | Vitest (406 testes, 39 arquivos) |
+| Unitário | Regras do `core` e lógica pura da interface (`src/lib`) ✅ | Vitest |
 | Propriedades | Mais receita nunca reduz a faixa; limite proporcional ≤ anual; acumulado independe da ordem | fast-check (se der tempo) |
-| Roteador | Failover, cooldown, escalonamento, timeout, orçamento ✅ | Provedores falsos |
+| Roteador | Failover, cooldown, escalonamento, timeout, orçamento, paralelo, último recurso ✅ | Provedores falsos |
 | Contrato dos adaptadores | Resposta real gravada → mesmo resultado esperado | Replay de fixtures |
 | Integração | Rotas de API com repositórios em memória e provedor falso | Vitest |
 | Fluxo completo (fumaça) | upload → extrai → confirma → painel muda ✅ | Vitest sobre os handlers |
-| Interface | Verificada à mão no navegador (claro e escuro, 375 px). **Sem** testes automatizados de interface | — |
+| Interface | Verificada à mão no navegador (claro e escuro, 375 px) e no iPhone do dono do projeto. **Sem** testes automatizados de interface | — |
 | Avaliação da IA | Acerto por campo em notas sintéticas, incluindo adversariais | `npm run eval` (replay na CI, limiar de queda) |
 
 ## 10. Requisitos não funcionais
 
 | Requisito | Meta |
 |---|---|
-| Extração de uma nota | p95 abaixo de 15 s; orçamento total de 40 s |
+| Extração de uma nota | Meta: p95 abaixo de 15 s (não medido no app; a única medição, 6 notas antes das otimizações, deu mediana de 8,7 s). Orçamento total de 40 s, garantido pelo código |
 | Painel | Cacheado no servidor; trocar de aba leva ~15 ms em produção local |
 | Responsivo | Usável em 360 px de largura, mobile-first |
 | Acessibilidade básica | Rótulos, contraste, navegação por teclado, foco visível |
@@ -275,7 +316,8 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 | Núcleo puro, sem I/O nem relógio | Testável e auditável; é o diferencial do produto | Regras dentro das rotas |
 | Dinheiro em centavos inteiros | Sem erro de ponto flutuante | `number` decimal |
 | Datas ISO; "hoje" calculado na borda em Brasília | Resultado igual em qualquer máquina, sem virada de dia errada | `Date` local ou UTC implícito |
-| Cadeia de 3 modelos gratuitos de 2 fornecedores | Custo zero e sem ponto único de falha | Um provedor pago |
+| Cadeia de 4 modelos gratuitos de 2 fornecedores | Custo zero e sem ponto único de falha | Um provedor pago |
+| Chave de acesso inválida descartada, não reprovada | Ela só reconhece nota repetida; reprovar mandava para revisão notas com valor, data e partes certos | Reprovar a nota inteira |
 | Só `confirmada` conta no limite | A IA pode errar; o humano valida | Contar tudo que foi extraído |
 | `cancelada` em vez de valor negativo | Mantém o histórico e simplifica as regras | Notas de estorno com sinal |
 | Custo do estouro como estimativa configurável | A regra tributária exata exige fonte oficial | Valor fixo como oficial |
@@ -295,6 +337,7 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
   um contador.
 - Perfil único de demonstração, sem login. Autenticação por usuário é a evolução (ver [SEGURANCA.md](SEGURANCA.md)).
 - Sem lembrete do DAS por e-mail e sem testes automatizados de interface.
+- Nenhum fluxo grava o status `pendente`: "Para conferir" fica sempre em 0.
 - Extração síncrona; notas em lote muito grandes não são o foco.
 - A projeção é linear e não considera sazonalidade.
 
@@ -305,4 +348,4 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 | Qual data conta para o limite: emissão ou recebimento? | **Sem regra oficial achada** na pesquisa de 24/11. Conferir a Resolução CGSN 140 oficial ou perguntar a um contador | Antes da entrega |
 | Valores atuais do limite, tolerância e DAS | ✅ Confirmados em 24/11/2026 (ver `mei-rules.md`) | Feito |
 | Alíquotas reais para estimar o custo do estouro | O excedente usa alíquotas efetivas por anexo do Simples. Manter o placeholder rotulado como estimativa | Antes da entrega |
-| Modelos e limites exatos dos tiers gratuitos | ✅ Modelos definidos; reconferir os limites no painel antes da demo | Feito |
+| Modelos e limites exatos dos tiers gratuitos | Modelos definidos em 25/11. Limites **em aberto**: o OpenRouter gratuito acabou com a cota diária da conta durante os testes, e o `gemini-3.6-flash` lê poucas notas por dia. Reconferir nos painéis antes da demo | Antes da gravação |
