@@ -2,7 +2,8 @@
 
 import { Lock, Sparkle, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useState } from "react";
-import { LimitBar } from "@/components/limit-bar";
+import { BarKey, LimitBar, TONE_FILL } from "@/components/limit-bar";
+import { rulesFor } from "@/core";
 import { bandView } from "@/lib/copy";
 import { formatMoney, formatPercent, formatReais, maskTaxId } from "@/lib/format";
 import { directionOf, impactOf, reviewErrors, type ReviewValues, type SendContext } from "@/lib/send";
@@ -167,10 +168,14 @@ export function ReviewStep({
               addedRatio={ctx.limitCents > 0 ? impact.addedCents / ctx.limitCents : 0}
               tone={tone}
               label={`Com esta nota você usa ${formatPercent(impact.ratio)} do limite`}
+              scaleMax={1 + rulesFor(ctx.year).toleranceRate}
             />
-            <div className="t-caption mt-2 flex justify-between text-label-2">
-              <span>{impact.addedCents > 0 ? `+ ${formatMoney(impact.addedCents)} desta nota` : "R$ 0"}</span>
-              <span>Limite de {formatReais(ctx.limitCents)}</span>
+            <div className="t-caption mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-label-2">
+              <BarKey className={TONE_FILL[tone]}>Já faturado</BarKey>
+              <BarKey className="bg-label">
+                <span className="sensitive">{impact.addedCents > 0 ? `+ ${formatMoney(impact.addedCents)} desta nota` : "Esta nota"}</span>
+              </BarKey>
+              <BarKey mark>Limite {formatReais(ctx.limitCents)}</BarKey>
             </div>
           </section>
         </>
