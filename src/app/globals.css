@@ -292,6 +292,26 @@ input[type="date"]::-webkit-date-and-time-value {
   .page-enter {
     animation: page-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  /* Troca de tema: a tela inteira se dissolve (fundido do iOS) em vez de piscar. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 400ms;
+    animation-timing-function: ease-in-out;
+  }
+  /* Plano B para navegador sem View Transitions: as cores se acomodam em 0,4 s. */
+  :root.theme-fade,
+  :root.theme-fade *,
+  :root.theme-fade *::before,
+  :root.theme-fade *::after {
+    transition:
+      background-color 400ms ease-in-out,
+      color 400ms ease-in-out,
+      border-color 400ms ease-in-out,
+      fill 400ms ease-in-out,
+      stroke 400ms ease-in-out,
+      box-shadow 400ms ease-in-out !important;
+  }
   @keyframes page-enter {
     from {
       opacity: 0;
