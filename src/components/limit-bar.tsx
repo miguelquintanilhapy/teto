@@ -1,6 +1,6 @@
 import type { Tone } from "@/lib/copy";
 
-const FILL: Record<Tone, string> = { ok: "bg-ok", warn: "bg-warn", danger: "bg-danger" };
+const FILL: Record<Tone, string> = { ok: "bg-ok", warn: "bg-warn", alert: "bg-alert", danger: "bg-danger" };
 
 /**
  * Medidor linear do limite: o que já foi usado, mais (em destaque) o que esta nota acrescenta.

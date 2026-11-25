@@ -28,6 +28,8 @@
   --ok-text: #1f7a34;
   --warn: #cc6600;
   --warn-text: #b25000;
+  --alert: #e0501a;
+  --alert-text: #b4390a;
   --danger: #d70015;
   --danger-text: #d70015;
 
@@ -61,6 +63,8 @@
     --ok-text: #30d158;
     --warn: #ff9f0a;
     --warn-text: #ffb340;
+    --alert: #ff6a2a;
+    --alert-text: #ff8a57;
     --danger: #ff453a;
     --danger-text: #ff6961;
 
@@ -94,6 +98,8 @@
   --ok-text: #30d158;
   --warn: #ff9f0a;
   --warn-text: #ffb340;
+  --alert: #ff6a2a;
+  --alert-text: #ff8a57;
   --danger: #ff453a;
   --danger-text: #ff6961;
 
@@ -125,6 +131,8 @@
   --color-ok-text: var(--ok-text);
   --color-warn: var(--warn);
   --color-warn-text: var(--warn-text);
+  --color-alert: var(--alert);
+  --color-alert-text: var(--alert-text);
   --color-danger: var(--danger);
   --color-danger-text: var(--danger-text);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;

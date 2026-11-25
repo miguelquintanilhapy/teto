@@ -32,7 +32,7 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
   const toleranceCents = toleranceLimitFor(ctx.limitCents, cfg.toleranceRate);
   const atLimit = extraCents > 0 && after.accumulatedCents === ctx.limitCents;
   // Chegar exatamente ao limite não é passar dele: texto próprio, em vez de só "Crítico".
-  const band: BandView = atLimit ? { label: "Limite atingido", tone: "danger" } : bandView(after.band);
+  const band: BandView = atLimit ? { label: "Limite atingido", tone: "alert" } : bandView(after.band);
   const ratio = ctx.limitCents > 0 ? after.accumulatedCents / ctx.limitCents : 0;
   const addedRatio = ctx.limitCents > 0 ? extraCents / ctx.limitCents : 0;
   const over = Math.max(0, after.accumulatedCents - ctx.limitCents);

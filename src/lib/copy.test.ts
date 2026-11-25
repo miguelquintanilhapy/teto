@@ -19,7 +19,8 @@ describe("bandView", () => {
   it("dá um texto a cada faixa, e nunca só uma cor", () => {
     expect(bandView("ok")).toEqual({ label: "Dentro do limite", tone: "ok" });
     expect(bandView("attention").label).toBe("Atenção");
-    expect(bandView("critical").tone).toBe("danger");
+    expect(bandView("critical").tone).toBe("alert");
+    expect(bandView("over_tolerance").tone).toBe("danger");
     expect(bandView("over_tolerance").label).toBe("Acima do limite");
     expect(bandView("over_retroactive").label).toBe("Acima de 20%");
   });

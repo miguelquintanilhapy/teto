@@ -6,7 +6,7 @@ import { CurrencyField } from "@/components/send/currency-field";
 import { formatPercent, formatReais } from "@/lib/format";
 import { simulationView, type SimulateContext } from "@/lib/simulate";
 
-const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", danger: "text-danger-text" } as const;
+const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", alert: "text-alert-text", danger: "text-danger-text" } as const;
 
 /** Valor atrasado: o leitor de tela anuncia o resultado quando a digitação para, e não a cada número. */
 function useDebounced<T>(value: T, ms: number): T {

@@ -1,7 +1,8 @@
 import type { Dashboard, RiskBand } from "@/core";
 import { formatDayMonth, formatReais, monthName } from "./format";
 
-export type Tone = "ok" | "warn" | "danger";
+/** ok < warn < alert < danger: verde, âmbar, laranja-avermelhado (crítico) e vermelho (passou do limite). */
+export type Tone = "ok" | "warn" | "alert" | "danger";
 
 export interface BandView {
   label: string;
@@ -16,7 +17,7 @@ export function bandView(band: RiskBand): BandView {
     case "attention":
       return { label: "Atenção", tone: "warn" };
     case "critical":
-      return { label: "Crítico", tone: "danger" };
+      return { label: "Crítico", tone: "alert" };
     case "over_tolerance":
       return { label: "Acima do limite", tone: "danger" };
     case "over_retroactive":
