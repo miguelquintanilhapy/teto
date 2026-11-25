@@ -18,7 +18,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [x] Alertas e e-mail: serviço idempotente, cron diário e tela de alertas
 - [x] Revisões de UX, acessibilidade, segurança e cor ([REVISAO.md](REVISAO.md), [SEGURANCA.md](SEGURANCA.md))
 - [x] Questões de negócio do MEI: limite, tolerância e DAS confirmados em fonte oficial; **a data que conta (emissão ou recebimento) segue em aberto**
-- [ ] Aplicar a migração `0002` no banco, deixar o link da Vercel público, gravar o vídeo
+- [x] Migração `0002` aplicada no banco do projeto
+- [ ] Deixar o link da Vercel público e gravar o vídeo
 
 ## Como trabalhamos
 
@@ -45,7 +46,7 @@ Decisões do desenho que viram código antes de a equipe se dividir:
 - [x] Porta de e-mail (`EmailSender`), com Resend e versão em memória
 - [x] Validação das variáveis de ambiente com Zod
 - [x] Remover o boilerplate do Next (página, `public/*.svg`, favicon)
-- [x] Migração inicial do Supabase a partir de `DATA-MODEL.md` (aplicada; a `0002` ainda precisa ser aplicada)
+- [x] Migração inicial do Supabase a partir de `DATA-MODEL.md` (`0001` e `0002` aplicadas)
 - [x] Implementações Postgres de `CooldownStore` e `QuotaGuard`
 
 ## Frentes (cada pessoa é full-stack; a divisão é por fatia de produto)
@@ -103,7 +104,9 @@ alertas, `eval` básico, tratamento de erro na interface e o vídeo.
 
 ## Pendências até o envio (ordem sugerida)
 
-1. Aplicar `supabase/migrations/0002_one_transaction_per_document.sql` no SQL Editor.
+O detalhe de cada tarefa, com critério de pronto, está em [TAREFAS.md](TAREFAS.md).
+
+1. ~~Aplicar a migração `0002`~~ (feito).
 2. Subir a branch `feat/interface-painel`, abrir o PR e mesclar na `main` (a CI precisa passar).
 3. Na Vercel: variáveis de ambiente (sem `ALLOW_PROFILE_EDIT`), desligar *Vercel Authentication* e testar o
    link em janela anônima e em outro celular.

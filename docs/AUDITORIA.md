@@ -12,7 +12,7 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 - **Implementação:** o produto existe de ponta a ponta (enviar nota, conferir, confirmar, painel,
   simulador, histórico, extrato, relatório, alertas) e foi revisado em UX, acessibilidade, segurança e cor
   ([REVISAO.md](REVISAO.md), [SEGURANCA.md](SEGURANCA.md)). Falta o que depende de ação fora do código:
-  link público, vídeo e a migração `0002` no banco do projeto. O que sobra está em [PLANO.md](PLANO.md).
+  link público e vídeo. O que sobra está em [PLANO.md](PLANO.md).
 - **Limite honesto:** a interface foi verificada à mão no navegador, não em aparelho nem com leitor de tela
   real, e não tem testes automatizados (a lógica tem 406).
 
@@ -50,7 +50,7 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | CI com lint, tipos, testes e `eval` em replay | ✅ |
 | Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ |
 | Adaptadores Gemini e OpenRouter | ✅ (ver EVAL-RESULTS) |
-| Migrações e repositórios do Supabase (perfil, documentos, extrações, transações, storage, cooldown, cota, alertas) | ✅ (`0002` ainda precisa ser aplicada no banco do projeto) |
+| Migrações e repositórios do Supabase (perfil, documentos, extrações, transações, storage, cooldown, cota, alertas) | ✅ (`0001` e `0002` aplicadas no banco do projeto) |
 | Upload (`POST /api/documents`): assinatura do arquivo, hash, limite por janela, persistência e extração, testado no Supabase real | ✅ |
 | Confirmação, cancelar e corrigir lançamento, histórico de alterações, painel e relatório | ✅ |
 | Interface: 16 telas, tema claro/escuro, ocultar valores, instalável | ✅ (sem testes automatizados de interface) |
