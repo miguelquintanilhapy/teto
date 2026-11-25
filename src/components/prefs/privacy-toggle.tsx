@@ -27,7 +27,7 @@ export function PrivacyToggle({ variant = "button" }: { variant?: "button" | "ro
         <SettingsTile icon={Eye} />
         <span className="min-w-0 flex-1">
           <span className="t-row block">Ocultar valores</span>
-          <span className="t-sub block text-label-2">Troca os valores por uma barra, para abrir o app em público</span>
+          <span className="t-sub block text-label-2">Esconde saldos e valores</span>
         </span>
         <span aria-hidden="true" className={`relative h-7 w-[3.9375rem] shrink-0 rounded-full ${hidden ? "bg-ok" : "bg-track"}`}>
           <span className={`absolute top-0.5 h-6 w-9 rounded-full bg-white shadow transition-[left] ${hidden ? "left-[1.4375rem]" : "left-0.5"}`} />
