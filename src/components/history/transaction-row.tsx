@@ -24,7 +24,7 @@ export function TransactionRow({ t }: { t: TransactionView }) {
         <Icon size={18} weight="bold" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{t.description || "Sem descrição"}</p>
+        <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{t.description || (income ? "Receita" : "Despesa")}</p>
         <p className="t-sub truncate text-label-2">
           {SOURCE[t.source]} · {t.counterparty}
         </p>

@@ -105,7 +105,7 @@ async function Conteudo() {
           value={formatReais(dashboard.limitCents)}
           hint={activeMonths < 12 ? `Proporcional: ${activeMonths} meses de atividade` : "Limite anual completo"}
         />
-        <Row label={`Com ${formatPercent(cfg.toleranceRate)} a mais`} value={formatReais(dashboard.toleranceLimitCents)} hint="Acima disso o desenquadramento é retroativo" />
+        <Row label={`Com ${formatPercent(cfg.toleranceRate)} a mais`} value={formatReais(dashboard.toleranceLimitCents)} hint="Acima disso o desenquadramento vale desde janeiro e os impostos do ano são recalculados" />
         <Row label="Alerta de atenção" value={formatPercent(cfg.warningRatio)} hint="do limite" />
         <Row label="Alerta crítico" value={formatPercent(cfg.criticalRatio)} hint="do limite" />
         <Row label="Vencimento do DAS" value={`dia ${cfg.dasDueDay}`} />
