@@ -39,8 +39,20 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
   | Texto / texto secundário | `#ffffff` / `#acacb1` | `#000000` / `#636366` |
   | Ação (botão) | `#0a84ff` | `#007aff` |
   | Ação (texto e links) | `#409cff` | `#0062cc` (passa de 4,5:1) |
-  | Atenção / crítico | `#ff9f0a` / `#ff453a` | `#cc6600` / `#d70015` |
+  | Atenção | `#ff9f0a` | `#cc6600` |
+  | Crítico (laranja-avermelhado) | `#ff6a2a` | `#e0501a` |
+  | Acima do limite (vermelho) | `#ff453a` | `#d70015` |
   | Confirmação | `#30d158` | `#248a3d` |
+
+  Regras que saíram da revisão de cores:
+
+  - **Receita não é verde.** No Teto, receita é o que aproxima do limite; verde significaria "bom" para o número
+    que traz o risco. Receita fica no branco, com `+` e seta; verde fica só para confirmação e "dentro do limite".
+  - **Quatro degraus de risco**: verde, âmbar, laranja-avermelhado (Crítico, e também "Limite atingido") e
+    vermelho (passou do limite). O vermelho tem ícone próprio (octógono), para quem não distingue laranja de vermelho.
+  - **O pontilhado dos 20% é âmbar**, na sala e na legenda: é onde o risco começa. O telhado cheio do limite fica neutro.
+  - **O laranja do tema claro não dá para ficar mais vivo.** `#cc6600` é o mais claro que ainda passa de 3:1 sobre o
+    trilho (3,06); `#d96c00` dá 2,74 e `#e07000` dá 2,58. A sala do claro é mais fechada que a do escuro por isso.
 - **Vidro só na navegação.** Botões e barra de abas usam vidro; o conteúdo, não.
 - **Ação principal ao alcance do polegar.** "Enviar nota" fica escrito por extenso na barra flutuante.
 - **Conferir antes de somar.** A IA só lê. O tipo (receita ou despesa) é decidido pelo código a partir dos
