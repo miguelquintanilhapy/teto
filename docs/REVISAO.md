@@ -1,19 +1,23 @@
 # Revisão de UX, acessibilidade e segurança
 
-Feita em 24/11/2026 por dois revisores independentes (cada um leu o código sem a conclusão do outro) mais
-verificação no navegador em modo de produção. Este documento diz **o que achamos, o que foi corrigido e o que
-ficou**. Ver [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
+Quatro rodadas. A primeira, em 24/11/2026, por dois revisores independentes (cada um leu o código sem a conclusão
+do outro) mais verificação no navegador em modo de produção; a segunda, uma auditoria externa por gravação de tela;
+a terceira, em 25/11, a partir do uso real no navegador e no iPhone; a quarta, em 25/11, uma auditoria de design
+independente. Este documento diz **o que achamos, o que foi corrigido e o que ficou**. Ver
+[SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 
-## Como foi verificado
+## Primeira rodada: revisão de código e navegador (24/11)
 
-- 406 testes automatizados (núcleo, serviços, handlers HTTP, helpers de interface).
+### Como foi verificado
+
+- Os testes automatizados da época (núcleo, serviços, handlers HTTP, helpers de interface).
 - Build de produção e servidor de produção: troca de aba medida em 11 a 21 ms.
 - Requisições hostis contra o servidor real: origem de outro site (`403`), `text/plain` (`415`), edição do
   cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
 - Console do navegador: sem violação de CSP e sem erro de hidratação.
 - Modo claro e escuro, 375 px de largura, teclado e leitor de tela (por marcação, não com leitor real).
 
-## Segurança
+### Segurança
 
 | Achado | Gravidade | Situação |
 |---|---|---|
@@ -30,7 +34,7 @@ ficou**. Ver [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 | Limite de upload de 10 MB passava do corte de 4,5 MB da Vercel | Baixa | **Corrigido**: 4 MB |
 | Sem autenticação | — | **Aceito para a demonstração**; ver [SEGURANCA.md](SEGURANCA.md) |
 
-## Acessibilidade e UX
+### Acessibilidade e UX
 
 | Achado | Gravidade | Situação |
 |---|---|---|
@@ -59,7 +63,7 @@ ficou**. Ver [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 | Esqueleto do painel diferente do conteúdo; histórico vazio sem ação | Baixa | **Corrigido** |
 | Chevrons diferentes entre telas; tabela do relatório e impressão | Baixa | **Corrigido** |
 
-## Polimento adicionado
+### Polimento adicionado
 
 Todas as animações respeitam "reduzir movimento".
 
@@ -68,7 +72,9 @@ Todas as animações respeitam "reduzir movimento".
   aparece com um "pop" e o telhado se desenha.
 - Foco visível único em tudo que é interativo.
 
-## O que ficou de fora, de propósito ou por limite
+### O que ficou de fora, de propósito ou por limite
+
+Atualizado até a quarta rodada.
 
 | Item | Por quê |
 |---|---|
@@ -76,9 +82,9 @@ Todas as animações respeitam "reduzir movimento".
 | Rate limit por IP | Precisa da regra de firewall da Vercel (configuração, não código) |
 | Dynamic Type do iOS dentro do app web | O Safari só repassa o tamanho de texto do sistema com fonte de sistema específica; mexer no tamanho global arrisca quebrar o layout e não foi testado em aparelho |
 | Modo offline / service worker | Risco de cache servir dado financeiro velho; precisa de desenho próprio |
-| Seta de voltar (no lugar do X) nas telas abertas a partir de outras | Troca de padrão de navegação; o X cumpre a função, mas empilha histórico do navegador |
+| Seta de voltar (no lugar do X) nas telas abertas a partir de outras | Troca de padrão de navegação. Desde 25/11, o X volta para a tela de origem (com filtro e rolagem) quando ela é conhecida, em vez de ir sempre para uma tela fixa |
 | Lembrete do DAS por e-mail | A tabela `alerts` guarda uma data por ano; o DAS é mensal (exige migração) |
-| Teste com leitor de tela real (VoiceOver, TalkBack) e em aparelho | Não havia aparelho; a verificação foi por marcação e no navegador |
+| Teste com leitor de tela real (VoiceOver, TalkBack) e em Android | Na primeira rodada não havia aparelho; desde a terceira, o dono do projeto testa no iPhone (de onde vieram as correções do topo e da área segura). Android e leitor de tela real seguem sem teste |
 | Testes automatizados de interface (E2E) | Só a lógica tem testes; a interface foi verificada à mão no navegador |
 
 ## Segunda rodada: auditoria externa por gravação de tela
@@ -122,3 +128,43 @@ e de duas telas de referência (Bolso e PicPay).
 | Editar o perfil sumia em produção | **Esperado**: a edição é bloqueada de propósito (sem login). Em desenvolvimento aparece; em produção, `ALLOW_PROFILE_EDIT=true` |
 
 Ver também a segunda rodada (auditoria externa por gravação de tela), acima.
+
+## Quarta rodada: auditoria de design independente
+
+Feita em 25/11/2026 por um revisor de design que não viu as rodadas anteriores. Nota dada ao app: **6,5 de 10**.
+Cada achado foi conferido no código antes de agir. O detalhe de como cada tela ficou está em
+[INTERFACE.md](INTERFACE.md).
+
+**Aplicado**
+
+| Tema | O que mudou |
+|---|---|
+| Números | Uma regra só para reais inteiros: truncar (antes, 56.180 no painel e 56.181 no gráfico para o mesmo valor). O número do Painel mostra os centavos |
+| Navegação | Abas Painel, Simular, Histórico e Mais, com o botão circular "Enviar" ao lado; Simular e Mais deixaram de ser folhas. As abas trocam sem animação de entrada |
+| Painel | "Lançar sem nota" virou uma linha logo abaixo do número (antes, um falso campo de digitar no fim da página); a sala desce para baixo do número com texto ampliado; marca (telhado sobre o T) no topo |
+| Barra do limite | Escala até 120%, traço no limite, faixa de tolerância tingida, o já faturado não encolhe, legenda do trecho novo |
+| Gráfico | Valor e mês ao toque, meses em 3 letras, seletor com 44 px |
+| DAS e previsão | DAS com atalho "Gerar guia" (PGMEI); previsão sem a caixa de conselho; "Entenda o limite" virou link para as Regras |
+| Notas | O cartão mostra "Tudo conferido" quando não há pendentes e só vira link quando há |
+| Histórico | Aviso de "Possível duplicidade"; filtros em 4 de largura igual; cancelados escondidos até pedir; linha sem CPF/CNPJ; "Sem descrição" em cinza |
+| Simulador | Estado vazio sem venda inventada; "O que cabe" como ação própria; rótulo sem repetir "limite" |
+| Privacidade | "Ocultar valores" esconde também a altura da sala e o preenchimento das barras, que revelavam o valor |
+| Cor e foco | Azul do botão `#006ae0` (claro) e `#0a6fdf` (escuro): texto branco a 5,07:1 e 4,83:1. Foco visível e arredondado nos campos. A cota da IA deixou de ser verde |
+| Movimento | A sala e o gráfico só animam na primeira visita da sessão |
+| Envio e conferência | "Tirar foto" como ação principal e aviso de que a imagem vai para a IA; uma voz só (impessoal) nas mensagens; o botão de confirmar diz o que falta |
+| Detalhe do lançamento | A descrição como título, datas no formato do app ("24 nov 2026, 16:54") e "Pela IA, conferida por você" no lugar da confiança da IA |
+| Textos | "Avisos do limite" (antes Alertas), com atalho para trocar o e-mail; a tela da IA em linguagem de leigo, com a telemetria em "Detalhes técnicos"; "teto" só como nome do app; regras em frases inteiras |
+| Ajuda | Instalar com o ícone de Compartilhar (iPhone) e botão de instalar de verdade (Android); Primeiros passos sem link nos passos feitos; 404 "Esta página saiu do ar", com a sala vazia |
+| Layout | No computador e no tablet, a coluna do app emoldurada sobre um fundo de mesa; no iPhone, folga no topo depois da área segura e película sob a barra de status |
+
+**Aplicado mesmo havendo opinião contrária:** a versão do app atrás de um toque (antes ficava sempre à vista) e
+"Como a IA lê" no grupo "Sobre" da aba Mais.
+
+**Não implementado**
+
+| Sugestão | Situação |
+|---|---|
+| Deslizar para cancelar no histórico | Não feito: exige tratar gestos à mão (o app não usa biblioteca de gestos) e um cancelamento por engano custa caro; o cancelamento segue no detalhe, com confirmação |
+| Link para ver o documento original | Não feito: exigiria servir o arquivo do bucket privado sem login, para qualquer pessoa com o endereço |
+| Reduzir a escala tipográfica a cerca de 6 degraus | Não feito: mexe em todas as telas a poucos dias do envio, com risco de quebrar layouts que já foram conferidos; fica para depois do hackathon |
+| Onboarding de 3 telas | Não feito: a demonstração já abre com um MEI cadastrado, então o júri não passaria por ele; o começo segue com o cadastro (`/bem-vindo`) e "Primeiros passos" |
