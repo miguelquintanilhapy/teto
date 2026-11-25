@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { User } from "@phosphor-icons/react/dist/ssr";
 import { monthOf, yearOf } from "@/core";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
@@ -71,18 +70,15 @@ async function PainelConteudo() {
         </div>
         <div className="flex shrink-0 gap-2">
           <PrivacyToggle />
-          <Link href="/perfil" aria-label="Perfil e regras" className="glass grid size-11 shrink-0 place-items-center rounded-full text-label">
-            <User size={20} weight="bold" aria-hidden="true" />
-          </Link>
         </div>
       </header>
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />
+        <QuickEntry />
         <LimitExplainer dashboard={dashboard} openingDate={profile.openingDate} />
         <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
         <Bento dashboard={dashboard} />
         <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
-        <QuickEntry />
       </div>
     </>
   );
@@ -96,10 +92,7 @@ function PainelSkeleton() {
           <h1 className="t-large-title">Painel</h1>
           <div className="mt-1.5 h-5 w-48 rounded bg-card" />
         </div>
-        <div className="flex gap-2">
-          <div className="size-11 rounded-full bg-card" />
-          <div className="size-11 rounded-full bg-card" />
-        </div>
+        <div className="size-11 rounded-full bg-card" />
       </header>
       <div className="flex flex-col gap-3">
         <div className="h-[16.5rem] rounded-card bg-card" />
