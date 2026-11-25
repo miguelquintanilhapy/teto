@@ -22,7 +22,7 @@ async function Conteudo() {
   if (!getEnv().allowProfileEdit) {
     return (
       <p role="status" className="t-body rounded-card bg-card p-5">
-        O cadastro está protegido contra alterações nesta versão do app.
+        O perfil está protegido contra alterações nesta versão do app.
       </p>
     );
   }
@@ -30,7 +30,7 @@ async function Conteudo() {
   if (!r.ok) {
     return (
       <p role="alert" className="t-body rounded-card bg-card p-5">
-        {r.reason === "no_profile" ? "Ainda não há cadastro. Comece pelo cadastro do MEI." : "Não foi possível carregar o perfil. Tente de novo em instantes."}
+        {r.reason === "no_profile" ? "Ainda não há perfil. Comece cadastrando o MEI." : "Não foi possível carregar o perfil. Tente de novo em instantes."}
       </p>
     );
   }

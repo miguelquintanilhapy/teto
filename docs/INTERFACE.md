@@ -17,7 +17,10 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 | `/relatorio` | Receita mês a mês, CSV e impressão em PDF |
 | `/alertas` | Cada faixa do limite: cruzada ou não, e-mail enviado, na fila ou aguardando configuração |
 | `/ia` | Transparência da IA: cadeia de modelos, cota de hoje, tempos, falhas e o rastro de cada leitura |
-| `/perfil`, `/perfil/editar`, `/bem-vindo` | MEI, regras do ano, tema, ocultar valores, cadastro e edição |
+| `/perfil`, `/perfil/editar`, `/bem-vindo` | Perfil do MEI (lápis para editar), preferências (tema e ocultar valores), atalhos e versão do app |
+| `/regras` | As faixas do limite, os alertas e o vencimento do DAS, em linguagem simples |
+| `/instalar` | Como adicionar o Teto à tela inicial (iPhone e Android) |
+| `/primeiros-passos` | Três passos para começar, marcados conforme o que já foi feito |
 
 ## Decisões de design
 
@@ -49,7 +52,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 
 - **Tema:** Sistema, Claro ou Escuro, guardado no aparelho. Um script curto aplica a escolha antes da primeira
   pintura (sem piscar) e ajusta a cor da barra do navegador.
-- **Ocultar valores:** borra os valores em dinheiro (painel, previsão, histórico, simulação, conferência e
+- **Ocultar valores:** troca os valores em dinheiro por uma barra lisa (um borrão ainda deixa adivinhar os dígitos) (painel, previsão, histórico, simulação, conferência e
   confirmação) para abrir o app em público. O botão fica no cabeçalho do Painel e em Perfil.
 
 ## Acessibilidade

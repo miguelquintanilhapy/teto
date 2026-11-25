@@ -42,7 +42,7 @@ export async function handleSaveProfile(req: Request, deps: ProfileHandlerDeps):
 
   try {
     if (!deps.allowEdit && (await deps.profiles.getDemoProfileId()) !== null) {
-      return json({ error: "edit_disabled", message: "A edição do cadastro está desativada neste ambiente." }, 403);
+      return json({ error: "edit_disabled", message: "A edição do perfil está desativada neste ambiente." }, 403);
     }
     await deps.profiles.saveDemoProfile(check.value);
     // Só a confirmação: o CNPJ e o e-mail não voltam na resposta.
