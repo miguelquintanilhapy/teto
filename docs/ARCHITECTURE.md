@@ -111,8 +111,14 @@ Decisões de projeto:
 - **Failover** trata falha técnica; **escalonamento** trata falha de qualidade.
 - **Orçamento total (`totalBudgetMs`, 40 s)** além do timeout por chamada (25 s), para a cadeia
   nunca estourar o limite de tempo da função serverless. ✅
-- **Cooldown por tipo de falha:** 60 s para limite de taxa e 180 s quando o provedor responde
-  "alta demanda" (o Gemini devolve 503 com frequência), para não gastar o orçamento repetindo a mesma queda. ✅
+- **Segundo modelo em paralelo (hedging):** se o modelo em andamento passa de 7 s sem responder, o próximo da
+  cadeia é disparado em paralelo; o primeiro a devolver uma extração aceita vence e cancela o outro, sem cooldown.
+  Se o primeiro falha, o seguinte entra na hora. ✅
+- **Cooldown por tipo de falha:** 60 s para limite de taxa e timeout, 90 s quando o provedor responde
+  "alta demanda" (o Gemini devolve 503 com frequência; o 503 volta em ~2 s, então errar de novo custa pouco). ✅
+- **Último recurso:** se ninguém foi aceito, quem foi pulado só por estar em cooldown é tentado de novo, começando
+  pelo que sai dele primeiro. O cooldown é uma estimativa: antes, quando todos entravam em cooldown, a extração
+  desistia sem tentar ninguém, e o segundo modelo que poderia corrigir um dígito mal lido ficava de fora. ✅
 - **Capacidades por adaptador** (`supportsPdf`, `maxBytes`, `maxPages`): o
   roteador pula quem não consegue processar aquele arquivo. ✅
 - **Cooldown persistido** (`CooldownStore` no Postgres): em serverless, memória
