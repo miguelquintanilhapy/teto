@@ -40,7 +40,7 @@ async function Conteudo() {
     },
     {
       title: "Envie sua primeira nota",
-      text: "Foto, PDF ou XML. A IA lê, você confere, e só então a receita entra no limite.",
+      text: "Foto ou PDF. A IA lê, você confere, e só então a receita entra no limite.",
       done: hasNote,
       href: "/enviar",
       cta: "Enviar nota",

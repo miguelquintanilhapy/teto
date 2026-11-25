@@ -14,7 +14,7 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
 
 ## O que faz
 
-- Lê foto, PDF ou XML de notas e recibos com IA, e **você confere** antes de qualquer valor entrar no limite.
+- Lê foto ou PDF de notas, recibos e comprovantes de Pix com IA, e **você confere** antes de qualquer valor entrar no limite.
   Fotos grandes são reduzidas no próprio aparelho, sem o usuário precisar saber de megabytes.
 - Painel: faturamento do ano, faixa de risco (verde, âmbar, laranja-avermelhado, vermelho), a "sala" do limite,
   previsão de quando o limite será ultrapassado (com a média usada), DAS e receita por mês.
