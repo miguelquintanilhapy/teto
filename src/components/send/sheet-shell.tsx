@@ -52,4 +52,4 @@ export function BottomAction({ children }: { children: React.ReactNode }) {
 }
 
 export const primaryButton =
-  "pressable flex h-[3.375rem] w-full items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary shadow-[var(--shadow)] disabled:opacity-40";
+  "pressable flex h-[3.375rem] w-full items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary shadow-[var(--glow)] disabled:opacity-40";

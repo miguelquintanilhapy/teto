@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { CaretRight, ChartLineUp } from "@phosphor-icons/react/dist/ssr";
 import type { Dashboard } from "@/core";
-import { forecastView } from "@/lib/copy";
+import { bandAdvice, forecastView, paceLine } from "@/lib/copy";
 
 /** A previsão em uma frase, como o app Clima: a manchete primeiro, a explicação depois. */
-export function Forecast({ dashboard }: { dashboard: Dashboard }) {
+export function Forecast({ dashboard, openingDate }: { dashboard: Dashboard; openingDate: string | null }) {
   const { headline, body } = forecastView(dashboard);
+  const pace = paceLine(dashboard, openingDate);
+  const advice = bandAdvice(dashboard.band);
   return (
     <section aria-labelledby="forecast-title" className="rounded-card bg-card p-5">
       <p className="mb-2.5 flex items-center gap-2.5 text-[0.9375rem] font-semibold text-label-2">
@@ -18,12 +20,14 @@ export function Forecast({ dashboard }: { dashboard: Dashboard }) {
         {headline}
       </h2>
       <p className="sensitive mt-2 text-[0.96875rem] leading-[1.38] text-label-2">{body}</p>
+      {pace && <p className="t-sub sensitive mt-1.5 text-label-2">{pace}</p>}
+      {advice && <p className="mt-3 rounded-2xl bg-tile p-3.5 text-[0.96875rem] leading-[1.38]">{advice}</p>}
       <Link
         href="/simular"
-        className="pressable hoverable -mx-2 mt-3 flex min-h-12 items-center justify-between rounded-xl border-t border-sep px-2 pt-2 text-[1.1875rem] font-semibold"
+        className="pressable hoverable -mx-2 mt-3 flex min-h-12 items-center justify-between rounded-xl border-t border-sep px-2 pt-2 text-[1.1875rem] font-semibold text-action"
       >
         Simular uma venda
-        <CaretRight size={17} weight="bold" className="text-label-2" aria-hidden="true" />
+        <CaretRight size={17} weight="bold" className="text-action" aria-hidden="true" />
       </Link>
     </section>
   );

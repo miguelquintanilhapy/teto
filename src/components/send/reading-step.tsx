@@ -38,7 +38,7 @@ export function ReadingStep({
           <button
             type="button"
             onClick={onManual}
-            className="flex h-[3.375rem] w-full items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary shadow-[var(--shadow)]"
+            className="flex h-[3.375rem] w-full items-center justify-center rounded-full bg-primary text-[1.1875rem] font-bold text-on-primary shadow-[var(--glow)]"
           >
             Preencher manualmente
           </button>

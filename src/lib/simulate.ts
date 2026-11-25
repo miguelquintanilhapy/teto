@@ -1,4 +1,4 @@
-import { rulesFor, simulateExtraRevenue, type Cents, type ScenarioResult } from "@/core";
+import { rulesFor, simulateExtraRevenue, toleranceLimitFor, type Cents, type ScenarioResult } from "@/core";
 import { bandView, type BandView } from "./copy";
 import { formatReais } from "./format";
 
@@ -15,6 +15,8 @@ export interface SimulationView {
   addedRatio: number;
   headline: string;
   detail: string;
+  /** As duas referências, sempre à vista: "Limite R$ 67.500 · com 20%: R$ 81.000". */
+  references: string;
   /** Só existe quando a venda acrescenta custo. Sempre dito como estimativa. */
   costLine: string | null;
 }
@@ -24,9 +26,13 @@ export interface SimulationView {
  * aqui só se escreve o resultado em português.
  */
 export function simulationView(ctx: SimulateContext, extraCents: Cents): SimulationView {
-  const result = simulateExtraRevenue(ctx.accumulatedCents, extraCents, ctx.limitCents, rulesFor(ctx.year));
+  const cfg = rulesFor(ctx.year);
+  const result = simulateExtraRevenue(ctx.accumulatedCents, extraCents, ctx.limitCents, cfg);
   const { after } = result;
-  const band = bandView(after.band);
+  const toleranceCents = toleranceLimitFor(ctx.limitCents, cfg.toleranceRate);
+  const atLimit = extraCents > 0 && after.accumulatedCents === ctx.limitCents;
+  // Chegar exatamente ao limite não é passar dele: texto próprio, em vez de só "Crítico".
+  const band: BandView = atLimit ? { label: "Limite atingido", tone: "alert" } : bandView(after.band);
   const ratio = ctx.limitCents > 0 ? after.accumulatedCents / ctx.limitCents : 0;
   const addedRatio = ctx.limitCents > 0 ? extraCents / ctx.limitCents : 0;
   const over = Math.max(0, after.accumulatedCents - ctx.limitCents);
@@ -34,6 +40,10 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
 
   let headline: string;
   let detail: string;
+  if (atLimit) {
+    headline = "Esta venda usa todo o limite.";
+    detail = `Qualquer venda a mais passa do limite. Até ${formatReais(toleranceCents)} você ainda segue MEI neste ano.`;
+  } else
   switch (after.band) {
     case "ok":
       headline = extraCents === 0 ? "Digite o valor da venda." : "Cabe no limite.";
@@ -42,7 +52,7 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
     case "attention":
     case "critical":
       headline = result.changesBand ? `Esta venda leva você para ${band.label.toLowerCase()}.` : `Você continua em ${band.label.toLowerCase()}.`;
-      detail = `Depois dela, sobram ${formatReais(left)} até o limite.`;
+      detail = `Depois dela, sobram ${formatReais(left)} até o limite e ${formatReais(Math.max(0, toleranceCents - after.accumulatedCents))} até o teto de 20% acima.`;
       break;
     case "over_tolerance":
       headline = `Esta venda passa do limite em ${formatReais(over)}.`;
@@ -59,5 +69,6 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
       ? `Custo extra estimado: ${formatReais(result.additionalCostCents)}. É uma estimativa, não um valor oficial.`
       : null;
 
-  return { result, band, ratio, addedRatio, headline: headline!, detail: detail!, costLine };
+  const references = `Limite ${formatReais(ctx.limitCents)} · com 20% a mais: ${formatReais(toleranceCents)}`;
+  return { result, band, ratio, addedRatio, headline: headline!, detail: detail!, references, costLine };
 }

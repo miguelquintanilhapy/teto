@@ -39,6 +39,21 @@ describe("simulationView", () => {
     expect(v.detail).toContain("desde janeiro de 2026");
   });
 
+  it("separa atingir o limite de passar dele", () => {
+    const v = simulationView(ctx, 7_500_00); // 60.000 + 7.500 = 67.500, exatamente o limite
+    expect(v.band.label).toBe("Limite atingido");
+    expect(v.headline).toBe("Esta venda usa todo o limite.");
+    expect(v.detail).toContain("Qualquer venda a mais passa do limite");
+    expect(nb(v.detail)).toContain("R$ 81.000");
+    expect(simulationView(ctx, 7_501_00).band.label).toBe("Acima do limite");
+  });
+
+  it("mostra as duas referências e o que sobra até cada uma", () => {
+    const v = simulationView(ctx, 100_00);
+    expect(nb(v.references)).toBe("Limite R$ 67.500 · com 20% a mais: R$ 81.000");
+    expect(nb(v.detail)).toContain("sobram R$ 7.400 até o limite e R$ 20.900 até o teto de 20% acima");
+  });
+
   it("pede o valor quando ainda não há venda", () => {
     expect(simulationView(ctx, 0).result.additionalCostCents).toBe(0);
   });

@@ -9,7 +9,7 @@ import { directionOf, impactOf, reviewErrors, type ReviewValues, type SendContex
 import { CurrencyField, TextField } from "./currency-field";
 import { BottomAction, primaryButton } from "./sheet-shell";
 
-const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", danger: "text-danger-text" } as const;
+const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", alert: "text-alert-text", danger: "text-danger-text" } as const;
 
 export interface ReviewNotice {
   /** Arquivo já enviado antes. */

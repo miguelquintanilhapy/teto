@@ -4,7 +4,7 @@ import { formatMoney, formatPercent, formatReais } from "@/lib/format";
 import type { Impact, SendContext } from "@/lib/send";
 import { BottomAction, primaryButton } from "./sheet-shell";
 
-const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", danger: "text-danger-text" } as const;
+const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", alert: "text-alert-text", danger: "text-danger-text" } as const;
 
 /** O telhado da marca com o visto: a confirmação tem a cara do Teto. */
 function RoofCheck() {
@@ -72,7 +72,7 @@ export function DoneStep({
         <button type="button" onClick={onBack} className={primaryButton}>
           Voltar ao painel
         </button>
-        <button type="button" onClick={onAnother} className="h-11 text-[1.1875rem] font-semibold">
+        <button type="button" onClick={onAnother} className="h-11 text-[1.1875rem] font-semibold text-action">
           {anotherLabel}
         </button>
       </BottomAction>

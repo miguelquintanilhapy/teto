@@ -69,7 +69,7 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
           {income ? "+ " : "− "}
           {formatMoney(t.amountCents)}
         </p>
-        <p className={`mt-3 text-[0.9375rem] font-semibold ${impact.counts ? "text-ok-text" : "text-label-2"}`}>{impact.reason}</p>
+        <p className={`mt-3 text-[0.9375rem] font-semibold ${impact.counts ? "text-label" : "text-label-2"}`}>{impact.reason}</p>
       </section>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Dados</h2>

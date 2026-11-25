@@ -80,3 +80,25 @@ Todas as animações respeitam "reduzir movimento".
 | Lembrete do DAS por e-mail | A tabela `alerts` guarda uma data por ano; o DAS é mensal (exige migração) |
 | Teste com leitor de tela real (VoiceOver, TalkBack) e em aparelho | Não havia aparelho; a verificação foi por marcação e no navegador |
 | Testes automatizados de interface (E2E) | Só a lógica tem testes; a interface foi verificada à mão no navegador |
+
+## Segunda rodada: auditoria externa por gravação de tela
+
+Um assistente de IA (GPT) analisou uma gravação de ~2 minutos no celular. A conclusão dele: o problema não é falta de
+funcionalidade, e sim a distância entre os números que o app mostra e o que o MEI entende deles. Cada achado foi
+conferido no código antes de agir.
+
+| Achado | Situação |
+|---|---|
+| Painel não explica limite proporcional, tolerância de 20% e o que acontece ao passar | **Corrigido**: "Entenda o limite" no Painel, com as três faixas e a consequência de cada uma |
+| Simulador mostra "Crítico · 100%" ao chegar exatamente no limite | **Corrigido**: "Limite atingido", texto próprio e as duas referências sempre à vista |
+| Previsão soa como garantia | **Corrigido**: média por mês, desde quando, e aviso de que muda a cada receita |
+| Painel informa, mas não orienta | **Corrigido**: próximo passo por faixa (simular, falar com o contador) |
+| "Notas 0 · tudo conferido" ambíguo | **Corrigido**: "nenhuma pendente" |
+| DAS só com a data | **Corrigido** em parte: ganhou a competência ("ref. nov"). Valor fica de fora (depende da atividade) |
+| Tela da IA técnica demais | **Corrigido**: resumo simples no topo; modelos e falhas em "Detalhes técnicos" |
+| "Sem descrição" no histórico | **Corrigido**: mostra Receita ou Despesa |
+| Simulação confundida com lucro | **Corrigido**: aviso de que a conta usa receita bruta |
+| Navegação inferior cobre o conteúdo | **Não procede**: o fim da página reserva espaço acima da barra |
+| R$ 67.500 seria uma "faixa preventiva" | **Premissa errada do avaliador**: é o limite legal proporcional (abertura em março) |
+
+Não verificado por ele (nem por nós): desktop, 320 px, teclado, leitor de tela e contraste medido.

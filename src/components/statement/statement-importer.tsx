@@ -92,7 +92,7 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
           <p className="t-sub mt-4 px-2 text-label-2">
             {fileName}: {view.creditCount} entradas ({formatReais(view.creditTotalCents)}) e {parsed.entries.length - view.creditCount} saídas
             {parsed.skipped > 0 && `. ${parsed.skipped} linhas não deram para ler.`}{" "}
-            <button type="button" onClick={() => writeSessionValue(SESSION_KEY, null)} className="min-h-11 font-semibold text-label underline underline-offset-2">
+            <button type="button" onClick={() => writeSessionValue(SESSION_KEY, null)} className="min-h-11 font-semibold text-action underline underline-offset-2">
               Limpar
             </button>
           </p>

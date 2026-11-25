@@ -5,6 +5,7 @@ import { monthOf, yearOf } from "@/core";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
+import { LimitExplainer } from "@/components/panel/limit-explainer";
 import { PrivacyToggle } from "@/components/prefs/privacy-toggle";
 import { MonthlyChart } from "@/components/panel/monthly-chart";
 import { QuickEntry } from "@/components/panel/quick-entry";
@@ -77,7 +78,8 @@ async function PainelConteudo() {
       </header>
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />
-        <Forecast dashboard={dashboard} />
+        <LimitExplainer dashboard={dashboard} openingDate={profile.openingDate} />
+        <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
         <Bento dashboard={dashboard} />
         <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
         <QuickEntry />

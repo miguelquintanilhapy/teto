@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarBlank, SealCheck } from "@phosphor-icons/react/dist/ssr";
 import type { Dashboard } from "@/core";
-import { daysUntilLabel, pendingLabel } from "@/lib/copy";
+import { dasCompetence, daysUntilLabel, pendingAria, pendingLabel } from "@/lib/copy";
 import { formatShortDate } from "@/lib/format";
 
 function Tile({ children }: { children: React.ReactNode }) {
@@ -22,12 +22,14 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         </p>
         <div>
           <p className="text-[1.875rem] leading-none font-extrabold tracking-tight">{formatShortDate(das.nextDueDate)}</p>
-          <p className="t-caption mt-1 text-label-2">{daysUntilLabel(das.daysUntil)}</p>
+          <p className="t-caption mt-1 text-label-2">
+            {daysUntilLabel(das.daysUntil)} · ref. {dasCompetence(das.nextDueDate).slice(0, 3)}
+          </p>
         </div>
       </section>
       <Link
         href="/historico?status=pendente"
-        aria-label={`${pendingCount} ${pendingCount === 1 ? "nota" : "notas"}: ${pendingLabel(pendingCount)}`}
+        aria-label={pendingAria(pendingCount)}
         className="pressable flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4"
       >
         <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-label-2">

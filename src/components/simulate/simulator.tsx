@@ -6,7 +6,7 @@ import { CurrencyField } from "@/components/send/currency-field";
 import { formatPercent, formatReais } from "@/lib/format";
 import { simulationView, type SimulateContext } from "@/lib/simulate";
 
-const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", danger: "text-danger-text" } as const;
+const TONE_TEXT = { ok: "text-ok-text", warn: "text-warn-text", alert: "text-alert-text", danger: "text-danger-text" } as const;
 
 /** Valor atrasado: o leitor de tela anuncia o resultado quando a digitação para, e não a cada número. */
 function useDebounced<T>(value: T, ms: number): T {
@@ -73,13 +73,14 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
             <span className="sensitive">{formatReais(view.result.after.accumulatedCents)}</span>
             <span>Limite de {formatReais(ctx.limitCents)}</span>
           </div>
+          <p className="t-caption sensitive mt-1 text-label-2">{view.references}</p>
         </div>
 
         {view.costLine && <p className="t-body sensitive mt-4 rounded-2xl bg-tile p-3.5 text-label-2">{view.costLine}</p>}
       </section>
 
       <p className="t-sub mt-4 px-2 text-label-2">
-        É só uma simulação: nada é lançado. Os valores de custo são estimativas e não substituem o cálculo oficial.
+        É só uma simulação: nada é lançado. A conta usa a receita bruta (o que entra), não o lucro. Os custos são estimativas e não substituem o cálculo oficial.
       </p>
     </>
   );

@@ -16,8 +16,11 @@
   --tile: #f2f2f7;
   --label: #000000;
   --label-2: #636366;
-  --primary: #000000;
+  /* Azul de interação: botões e links. O texto azul usa um tom próprio, mais escuro, para passar de 4,5:1. */
+  --primary: #007aff;
   --on-primary: #ffffff;
+  --action-text: #0062cc;
+  --glow: 0 10px 28px rgba(0, 122, 255, 0.32);
 
   --tint: 12%;
   --on-ok: #ffffff;
@@ -25,6 +28,8 @@
   --ok-text: #1f7a34;
   --warn: #cc6600;
   --warn-text: #b25000;
+  --alert: #e0501a;
+  --alert-text: #b4390a;
   --danger: #d70015;
   --danger-text: #d70015;
 
@@ -46,9 +51,11 @@
     --track: #3a3a3c;
     --tile: #161618;
     --label: #ffffff;
-    --label-2: #a1a1a6;
-    --primary: #ffffff;
-    --on-primary: #000000;
+    --label-2: #acacb1;
+    --primary: #0a84ff;
+    --on-primary: #ffffff;
+    --action-text: #409cff;
+    --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
 
     --tint: 22%;
     --on-ok: #000000;
@@ -56,6 +63,8 @@
     --ok-text: #30d158;
     --warn: #ff9f0a;
     --warn-text: #ffb340;
+    --alert: #ff6a2a;
+    --alert-text: #ff8a57;
     --danger: #ff453a;
     --danger-text: #ff6961;
 
@@ -77,9 +86,11 @@
   --track: #3a3a3c;
   --tile: #161618;
   --label: #ffffff;
-  --label-2: #a1a1a6;
-  --primary: #ffffff;
-  --on-primary: #000000;
+  --label-2: #acacb1;
+  --primary: #0a84ff;
+  --on-primary: #ffffff;
+  --action-text: #409cff;
+  --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
 
   --tint: 22%;
   --on-ok: #000000;
@@ -87,6 +98,8 @@
   --ok-text: #30d158;
   --warn: #ff9f0a;
   --warn-text: #ffb340;
+  --alert: #ff6a2a;
+  --alert-text: #ff8a57;
   --danger: #ff453a;
   --danger-text: #ff6961;
 
@@ -112,11 +125,14 @@
   --color-label-2: var(--label-2);
   --color-primary: var(--primary);
   --color-on-primary: var(--on-primary);
+  --color-action: var(--action-text);
   --color-ok: var(--ok);
   --color-on-ok: var(--on-ok);
   --color-ok-text: var(--ok-text);
   --color-warn: var(--warn);
   --color-warn-text: var(--warn-text);
+  --color-alert: var(--alert);
+  --color-alert-text: var(--alert-text);
   --color-danger: var(--danger);
   --color-danger-text: var(--danger-text);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
@@ -201,7 +217,8 @@ body {
     display: none !important;
   }
   .sensitive {
-    filter: none !important;
+    color: inherit !important;
+    background: none !important;
   }
   * {
     box-shadow: none !important;
@@ -212,10 +229,19 @@ body {
   }
 }
 
-/* Privacidade: esconde os valores quando o usuário liga "Ocultar valores". */
+/*
+ * Privacidade: com "Ocultar valores" ligado, cada valor vira uma barra lisa, como nos apps de banco.
+ * Um borrão ainda deixa adivinhar os dígitos; a barra não. O texto continua no lugar (só fica sem cor),
+ * então a altura da linha e o layout não mudam.
+ */
 :root[data-privacy="on"] .sensitive {
-  filter: blur(0.4em);
+  color: transparent !important;
+  background: color-mix(in srgb, var(--label) 24%, transparent);
+  border-radius: 0.375em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -281,6 +307,26 @@ input[type="date"]::-webkit-date-and-time-value {
   }
   .page-enter {
     animation: page-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Troca de tema: a tela inteira se dissolve (fundido do iOS) em vez de piscar. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 400ms;
+    animation-timing-function: ease-in-out;
+  }
+  /* Plano B para navegador sem View Transitions: as cores se acomodam em 0,4 s. */
+  :root.theme-fade,
+  :root.theme-fade *,
+  :root.theme-fade *::before,
+  :root.theme-fade *::after {
+    transition:
+      background-color 400ms ease-in-out,
+      color 400ms ease-in-out,
+      border-color 400ms ease-in-out,
+      fill 400ms ease-in-out,
+      stroke 400ms ease-in-out,
+      box-shadow 400ms ease-in-out !important;
   }
   @keyframes page-enter {
     from {

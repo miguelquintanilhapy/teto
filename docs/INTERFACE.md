@@ -17,15 +17,42 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 | `/relatorio` | Receita mês a mês, CSV e impressão em PDF |
 | `/alertas` | Cada faixa do limite: cruzada ou não, e-mail enviado, na fila ou aguardando configuração |
 | `/ia` | Transparência da IA: cadeia de modelos, cota de hoje, tempos, falhas e o rastro de cada leitura |
-| `/perfil`, `/perfil/editar`, `/bem-vindo` | MEI, regras do ano, tema, ocultar valores, cadastro e edição |
+| `/perfil`, `/perfil/editar`, `/bem-vindo` | Perfil do MEI (lápis para editar), preferências (tema e ocultar valores), atalhos e versão do app |
+| `/regras` | As faixas do limite, os alertas e o vencimento do DAS, em linguagem simples |
+| `/instalar` | Como adicionar o Teto à tela inicial (iPhone e Android) |
+| `/primeiros-passos` | Três passos para começar, marcados conforme o que já foi feito |
 
 ## Decisões de design
 
 - **O telhado da marca é o medidor.** A "sala" do painel mostra quanto do limite foi ocupado; o telhado cheio
   marca o limite e o pontilhado marca o limite com 20% a mais. É um medidor de capacidade, e não um anel de
   progresso (a Apple reserva o anel para atividade).
-- **A cor é o estado, e nunca vem sozinha.** A marca é preto e branco; a única cor viva é a da faixa de risco
-  (verde, âmbar, vermelho), sempre com ícone e texto.
+- **Cada cor tem um papel, e o estado nunca vem só em cor.** Branco e cinza são o conteúdo; **azul** é o que
+  se toca (botão principal, links, aba ativa); **âmbar e vermelho** são risco; **verde** é confirmação e
+  "dentro do limite". O risco sempre vem com ícone e texto. A primeira versão tinha botão preto e branco;
+  a revisão (com a análise de uma segunda opinião) trouxe o azul de volta, porque separar "o que eu toco" de
+  "o que o app me diz" deixa a tela mais fácil de aprender.
+
+  | Papel | Escuro | Claro |
+  |---|---|---|
+  | Fundo / cartão | `#000000` / `#242426` | `#f2f2f7` / `#ffffff` |
+  | Texto / texto secundário | `#ffffff` / `#acacb1` | `#000000` / `#636366` |
+  | Ação (botão) | `#0a84ff` | `#007aff` |
+  | Ação (texto e links) | `#409cff` | `#0062cc` (passa de 4,5:1) |
+  | Atenção | `#ff9f0a` | `#cc6600` |
+  | Crítico (laranja-avermelhado) | `#ff6a2a` | `#e0501a` |
+  | Acima do limite (vermelho) | `#ff453a` | `#d70015` |
+  | Confirmação | `#30d158` | `#248a3d` |
+
+  Regras que saíram da revisão de cores:
+
+  - **Receita não é verde.** No Teto, receita é o que aproxima do limite; verde significaria "bom" para o número
+    que traz o risco. Receita fica no branco, com `+` e seta; verde fica só para confirmação e "dentro do limite".
+  - **Quatro degraus de risco**: verde, âmbar, laranja-avermelhado (Crítico, e também "Limite atingido") e
+    vermelho (passou do limite). O vermelho tem ícone próprio (octógono), para quem não distingue laranja de vermelho.
+  - **O pontilhado dos 20% é âmbar**, na sala e na legenda: é onde o risco começa. O telhado cheio do limite fica neutro.
+  - **O laranja do tema claro não dá para ficar mais vivo.** `#cc6600` é o mais claro que ainda passa de 3:1 sobre o
+    trilho (3,06); `#d96c00` dá 2,74 e `#e07000` dá 2,58. A sala do claro é mais fechada que a do escuro por isso.
 - **Vidro só na navegação.** Botões e barra de abas usam vidro; o conteúdo, não.
 - **Ação principal ao alcance do polegar.** "Enviar nota" fica escrito por extenso na barra flutuante.
 - **Conferir antes de somar.** A IA só lê. O tipo (receita ou despesa) é decidido pelo código a partir dos
@@ -49,7 +76,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 
 - **Tema:** Sistema, Claro ou Escuro, guardado no aparelho. Um script curto aplica a escolha antes da primeira
   pintura (sem piscar) e ajusta a cor da barra do navegador.
-- **Ocultar valores:** borra os valores em dinheiro (painel, previsão, histórico, simulação, conferência e
+- **Ocultar valores:** troca os valores em dinheiro por uma barra lisa (um borrão ainda deixa adivinhar os dígitos) (painel, previsão, histórico, simulação, conferência e
   confirmação) para abrir o app em público. O botão fica no cabeçalho do Painel e em Perfil.
 
 ## Acessibilidade
@@ -81,6 +108,10 @@ Os valores de custo do estouro são sempre rotulados como estimativa.
 Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada suave de tela, estado de toque
 (`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
 se desenhando. `:hover` só existe onde há mouse.
+
+A troca de tema imita o iPhone: a tela inteira se dissolve de uma aparência para a outra em 0,4 s
+(View Transitions API, com um fundido de cores por CSS onde ela não existe), e o marcador do seletor
+desliza de uma opção à outra. Com "reduzir movimento", a troca é instantânea.
 
 ## O que ainda não existe
 
