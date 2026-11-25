@@ -200,3 +200,79 @@ describe("processUpload: teto de envios novos (sem login, protege o storage e a 
     expect((await processUpload({ profileId: PROFILE, bytes: png(52), kind: "nota" }, deps)).status).toBe("extracted");
   });
 });
+
+describe("processUpload: a IA e a gravação andam juntas", () => {
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  it("a IA começa sem esperar o arquivo ser gravado", async () => {
+    const t = setup(async () => ok());
+    const order: string[] = [];
+    const slowStorage = {
+      put: async (path: string, data: Uint8Array, mime: string) => {
+        order.push("storage:início");
+        await sleep(60);
+        await t.storage.put(path, data, mime);
+        order.push("storage:fim");
+      },
+    };
+    const extractor: Extractor = {
+      extract: async () => {
+        order.push("ia:início");
+        await sleep(10);
+        order.push("ia:fim");
+        return ok();
+      },
+    };
+    const r = await processUpload({ profileId: PROFILE, bytes: png(21), kind: "nota" }, { ...t.deps, storage: slowStorage, extractor });
+    expect(r.status).toBe("extracted");
+    // a IA terminou antes de o storage lento acabar: o tempo de gravação não somou ao da leitura
+    expect(order.indexOf("ia:fim")).toBeLessThan(order.indexOf("storage:fim"));
+    expect(order.indexOf("storage:início")).toBeLessThan(order.indexOf("ia:início") + 1);
+  });
+
+  it("não grava a extração antes de o documento existir", async () => {
+    const t = setup(async () => ok());
+    const r = await processUpload({ profileId: PROFILE, bytes: png(22), kind: "nota" }, t.deps);
+    expect(r.status).toBe("extracted");
+    expect(t.extractions.rows.size).toBe(1);
+    expect([...t.extractions.rows.values()][0]!.documentId).toBe(t.documents.rows[0]!.id);
+  });
+
+  it("se a gravação do arquivo falha, o erro sobe e nada é salvo", async () => {
+    const t = setup(async () => ok());
+    const brokenStorage = {
+      put: async () => {
+        throw new Error("storage fora do ar");
+      },
+    };
+    await expect(processUpload({ profileId: PROFILE, bytes: png(23), kind: "nota" }, { ...t.deps, storage: brokenStorage })).rejects.toThrow("storage fora do ar");
+    expect(t.extractions.rows.size).toBe(0);
+    expect(t.documents.rows).toHaveLength(0);
+  });
+
+  it("o limite por janela ainda barra antes de gastar a IA", async () => {
+    const t = setup(async () => ok());
+    for (let i = 0; i < 2; i++) await processUpload({ profileId: PROFILE, bytes: png(30 + i), kind: "nota" }, { ...t.deps, throttle: { max: 2, windowMs: 60_000 } });
+    const before = t.calls.n;
+    const r = await processUpload({ profileId: PROFILE, bytes: png(40), kind: "nota" }, { ...t.deps, throttle: { max: 2, windowMs: 60_000 } });
+    expect(r).toMatchObject({ status: "rejected", code: "rate_limited" });
+    expect(t.calls.n).toBe(before); // a IA não foi chamada
+    expect(t.storage.files.size).toBe(2); // nem o storage
+  });
+
+  it("sem cota, o documento existe e a pessoa preenche à mão", async () => {
+    const t = setup(async () => {
+      throw new QuotaExceededError();
+    });
+    const r = await processUpload({ profileId: PROFILE, bytes: png(50), kind: "nota" }, t.deps);
+    expect(r).toMatchObject({ status: "manual_entry", reason: "quota_exceeded" });
+    expect(t.documents.rows).toHaveLength(1);
+  });
+
+  it("erro inesperado da IA sobe, como antes", async () => {
+    const t = setup(async () => {
+      throw new Error("falha inesperada");
+    });
+    await expect(processUpload({ profileId: PROFILE, bytes: png(51), kind: "nota" }, t.deps)).rejects.toThrow("falha inesperada");
+  });
+});
