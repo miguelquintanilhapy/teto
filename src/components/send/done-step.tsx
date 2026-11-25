@@ -72,7 +72,7 @@ export function DoneStep({
         <button type="button" onClick={onBack} className={primaryButton}>
           Voltar ao painel
         </button>
-        <button type="button" onClick={onAnother} className="h-11 text-[1.1875rem] font-semibold">
+        <button type="button" onClick={onAnother} className="h-11 text-[1.1875rem] font-semibold text-action">
           {anotherLabel}
         </button>
       </BottomAction>

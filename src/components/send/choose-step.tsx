@@ -50,7 +50,7 @@ export function ChooseStep({ onFile, error }: { onFile: (file: File) => void; er
       <p className="t-sub mt-4 px-2 text-center text-label-2">JPG, PNG, WebP ou PDF, até 4 MB.</p>
 
       <BottomAction>
-        <label className={`${button} bg-primary text-on-primary shadow-[var(--shadow)]`}>
+        <label className={`${button} bg-primary text-on-primary shadow-[var(--glow)]`}>
           <FileArrowUp size={24} weight="bold" aria-hidden="true" />
           Escolher arquivo
           <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={pick} className="sr-only" />

@@ -73,7 +73,7 @@ async function Conteudo() {
                     <span className="sr-only">{s.done ? " (feito)" : " (a fazer)"}</span>
                   </span>
                   <span className="t-sub mt-0.5 block text-label-2">{s.text}</span>
-                  <span className="mt-1.5 block text-[0.9375rem] font-semibold">{s.cta}</span>
+                  <span className="mt-1.5 block text-[0.9375rem] font-semibold text-action">{s.cta}</span>
                 </span>
                 <CaretRight size={17} weight="bold" className="mt-1 shrink-0 text-label-2" aria-hidden="true" />
               </Link>

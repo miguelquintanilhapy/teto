@@ -61,7 +61,7 @@ async function Conteudo() {
     <>
       <section className="rounded-card bg-card p-5">
         <div className="flex items-center gap-4">
-          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-full bg-primary text-[1.5rem] font-extrabold text-on-primary">
+          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-full bg-label text-[1.5rem] font-extrabold text-bg">
             {initials || "T"}
           </span>
           <div className="min-w-0 flex-1">
@@ -75,7 +75,7 @@ async function Conteudo() {
             <Link
               href="/perfil/editar"
               aria-label="Editar perfil"
-              className="pressable hoverable -mr-2 grid size-11 shrink-0 place-items-center self-start rounded-full text-label-2"
+              className="pressable hoverable -mr-2 grid size-11 shrink-0 place-items-center self-start rounded-full text-action"
             >
               <PencilSimple size={20} weight="bold" aria-hidden="true" />
             </Link>

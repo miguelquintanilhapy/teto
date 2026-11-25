@@ -24,10 +24,10 @@ export function Forecast({ dashboard, openingDate }: { dashboard: Dashboard; ope
       {advice && <p className="mt-3 rounded-2xl bg-tile p-3.5 text-[0.96875rem] leading-[1.38]">{advice}</p>}
       <Link
         href="/simular"
-        className="pressable hoverable -mx-2 mt-3 flex min-h-12 items-center justify-between rounded-xl border-t border-sep px-2 pt-2 text-[1.1875rem] font-semibold"
+        className="pressable hoverable -mx-2 mt-3 flex min-h-12 items-center justify-between rounded-xl border-t border-sep px-2 pt-2 text-[1.1875rem] font-semibold text-action"
       >
         Simular uma venda
-        <CaretRight size={17} weight="bold" className="text-label-2" aria-hidden="true" />
+        <CaretRight size={17} weight="bold" className="text-action" aria-hidden="true" />
       </Link>
     </section>
   );
