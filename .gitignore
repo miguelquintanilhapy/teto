@@ -41,5 +41,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# gerado automaticamente pelo `next dev`
-AGENTS.md
