@@ -10,7 +10,7 @@ import {
 } from "./provider";
 import { QuotaExceededError, type QuotaGuard } from "./quota";
 import { parseExtraction, type ExtractedReceipt } from "./schema";
-import { checkBusinessRules } from "./validate";
+import { checkBusinessRules, sanitizeExtraction } from "./validate";
 
 export interface RouterOptions {
   /** Cadeia em ordem de preferência: do mais barato ao mais forte. */
@@ -252,9 +252,10 @@ export class ExtractionRouter {
         } else if (settled.kind === "invalid") {
           attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
         } else if (settled.issues.length === 0) {
-          attempts.push({ ...base, outcome: "accepted" });
+          attempts.push({ ...base, outcome: "accepted", ...(settled.notes.length > 0 ? { issues: settled.notes } : {}) });
           cancelRest();
-          return { status: "accepted", data: settled.data, issues: [], providerId: flight.provider.id, attempts };
+          // `issues` de uma extração aceita são só avisos (por exemplo, chave descartada): não impedem a aceitação.
+          return { status: "accepted", data: settled.data, issues: settled.notes, providerId: flight.provider.id, attempts };
         } else {
           attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
           if (best === null || settled.issues.length < best.issues.length) {
@@ -317,13 +318,15 @@ export class ExtractionRouter {
     const latencyMs = this.now() - started;
     const parsed = parseExtraction(raw);
     if (!parsed.ok) return { kind: "invalid", issues: parsed.issues, latencyMs };
-    const issues = checkBusinessRules(parsed.data, { minConfidence: cfg.minConfidence, today: this.today() });
-    return { kind: "answer", data: parsed.data, issues, latencyMs };
+    // Chave de acesso que não confere é descartada, e a nota segue (o aviso vai para o usuário).
+    const { data, notes } = sanitizeExtraction(parsed.data);
+    const issues = checkBusinessRules(data, { minConfidence: cfg.minConfidence, today: this.today() });
+    return { kind: "answer", data, issues, notes, latencyMs };
   }
 }
 
 type Settled =
-  | { kind: "answer"; data: ExtractedReceipt; issues: string[]; latencyMs: number }
+  | { kind: "answer"; data: ExtractedReceipt; issues: string[]; notes: string[]; latencyMs: number }
   | { kind: "invalid"; issues: string[]; latencyMs: number }
   | { kind: "error"; errorKind: ProviderErrorKind; latencyMs: number; cancelled?: boolean };
 

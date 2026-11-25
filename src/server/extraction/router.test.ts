@@ -503,6 +503,44 @@ describe("ExtractionRouter: último recurso quando só sobrou quem está em cool
   });
 });
 
+describe("ExtractionRouter: chave de acesso que não confere", () => {
+  const GOOD_KEY = "35260511222333000181550010000002011015917191"; // chave válida (módulo 11)
+  const BAD_KEY = "35260511222333000181550010000002011015917192"; // um dígito a mais no verificador
+
+  it("descarta a chave ilegível e aceita a nota, com um aviso", async () => {
+    const a = fake("a", async () => ({ ...GOOD, accessKey: BAD_KEY }));
+    const b = fake("b", async () => GOOD);
+    const r = await make([a, b]).extract(DOC);
+    expect(r.status).toBe("accepted");
+    expect(r.providerId).toBe("a"); // não escalou para o próximo modelo por causa da chave
+    expect(b.calls).toBe(0);
+    expect(r.data.accessKey).toBeNull();
+    expect(r.issues).toEqual(["chave de acesso ilegível, ignorada"]);
+    expect(r.attempts[0]).toMatchObject({ outcome: "accepted", issues: ["chave de acesso ilegível, ignorada"] });
+  });
+
+  it("mantém a chave que confere, sem aviso", async () => {
+    const r = await make([fake("a", async () => ({ ...GOOD, accessKey: GOOD_KEY }))]).extract(DOC);
+    expect(r.status).toBe("accepted");
+    expect(r.data.accessKey).toBe(GOOD_KEY);
+    expect(r.issues).toEqual([]);
+  });
+
+  it("uma chave com dígitos a menos também é descartada", async () => {
+    const r = await make([fake("a", async () => ({ ...GOOD, accessKey: "1234" }))]).extract(DOC);
+    expect(r.status).toBe("accepted");
+    expect(r.data.accessKey).toBeNull();
+  });
+
+  it("CNPJ com dígito inválido continua reprovando: ele decide receita ou despesa", async () => {
+    const a = fake("a", async () => ({ ...GOOD, issuerTaxId: "11.222.333/0001-82", accessKey: BAD_KEY }));
+    const b = fake("b", async () => GOOD);
+    const r = await make([a, b]).extract(DOC);
+    expect(r.providerId).toBe("b");
+    expect(r.attempts[0]).toMatchObject({ outcome: "rejected" });
+  });
+});
+
 describe("regras de negócio da extração", () => {
   const rules = { minConfidence: 0.7, today: "2026-05-12" };
 
