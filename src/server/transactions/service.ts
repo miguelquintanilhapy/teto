@@ -162,7 +162,7 @@ export async function confirmTransaction(
   if (kind === null) {
     return invalid(
       "direction_required",
-      "Não consegui saber se é receita ou despesa pelos CPF/CNPJ. Informe o tipo.",
+      "Não foi possível saber se é receita ou despesa pelos CPF/CNPJ. Informe o tipo.",
     );
   }
 

@@ -82,7 +82,7 @@ export function ReviewStep({
       {manual && !notice.chosen && (
         <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
           <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
-          Não consegui ler esta nota. Preencha os dados abaixo.
+          Não foi possível ler esta nota. Preencha os dados abaixo.
         </p>
       )}
       {!manual && (
@@ -93,7 +93,7 @@ export function ReviewStep({
       {notice.keyDropped && !notice.lowTrust && !manual && (
         <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
           <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
-          Não consegui ler a chave de acesso e a ignorei. O resto da nota foi lido: confira os dados.
+          A chave de acesso não pôde ser lida e foi ignorada. O resto da nota foi lido: confira os dados.
         </p>
       )}
       {notice.lowTrust && !manual && (
@@ -107,7 +107,7 @@ export function ReviewStep({
       <div className="divide-y divide-sep rounded-card bg-card">
         {mustChoose ? (
           <div className="px-5 py-3.5">
-            <p id="tipo-label" className="t-row">
+            <p id="tipo-label" className="t-sub text-label-2">
               Tipo
             </p>
             <div role="group" aria-labelledby="tipo-label" className="mt-2 flex rounded-2xl bg-track p-[3px] text-[1.0625rem] font-semibold">
@@ -123,14 +123,19 @@ export function ReviewStep({
                 </button>
               ))}
             </div>
+            {attempted && waitingChoice && (
+              <p role="alert" className="t-sub mt-1.5 text-danger-text">
+                Escolha se é uma receita ou uma despesa.
+              </p>
+            )}
           </div>
         ) : (
-          <div className="flex items-center justify-between px-5 py-3.5">
-            <span className="t-row">Tipo</span>
-            <span className="t-row flex items-center gap-2 text-label-2">
+          <div className="px-5 py-3">
+            <p className="t-sub text-label-2">Tipo</p>
+            <p className="mt-0.5 flex items-center gap-2 text-[1.1875rem] font-medium">
               {derived === "receita" ? "Receita" : "Despesa"}
-              <Lock size={15} weight="fill" aria-hidden="true" />
-            </span>
+              <Lock size={15} weight="fill" className="text-label-2" aria-label="definido pelo CNPJ" />
+            </p>
           </div>
         )}
         <CurrencyField label="Valor" cents={values.amountCents} onChange={(c) => set("amountCents", c)} error={errors.amount} />
@@ -147,7 +152,7 @@ export function ReviewStep({
         {mustChoose
           ? manual
             ? "Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
-            : "Não encontrei o CNPJ do seu MEI na nota. Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
+            : "O CNPJ do seu MEI não aparece na nota. Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
           : direction === "despesa"
             ? "Você é quem recebeu a nota, então é uma despesa. Despesa não conta para o limite."
             : "Você é quem emitiu a nota, então ela é uma receita."}
@@ -189,7 +194,7 @@ export function ReviewStep({
       )}
 
       <BottomAction>
-        <button type="button" onClick={submit} disabled={saving || waitingChoice} className={primaryButton}>
+        <button type="button" onClick={submit} disabled={saving} className={primaryButton}>
           {saving ? "Salvando…" : notice.chosen ? "Confirmar lançamento" : "Confirmar nota"}
         </button>
       </BottomAction>

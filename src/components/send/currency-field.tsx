@@ -33,7 +33,7 @@ export function CurrencyField({
         onChange={(e) => onChange(centsFromInput(e.target.value))}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2"
+        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2/55"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">
@@ -94,7 +94,7 @@ export function TextField({
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2"
+        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2/55"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">

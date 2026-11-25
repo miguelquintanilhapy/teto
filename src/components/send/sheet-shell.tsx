@@ -39,7 +39,7 @@ export function SheetShell({
 /** Rodapé fixo com a ação principal, ao alcance do polegar. */
 export function BottomAction({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bottom-action fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[430px] bg-gradient-to-t from-bg from-60% to-transparent px-9 pt-10 pb-[max(2.25rem,env(safe-area-inset-bottom))]">
+    <div className="bottom-action fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[430px] bg-gradient-to-t from-bg from-60% to-transparent px-4 pt-10 pb-[max(2.25rem,env(safe-area-inset-bottom))]">
       <div className="flex flex-col gap-3">{children}</div>
     </div>
   );
