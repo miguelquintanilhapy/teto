@@ -1,9 +1,13 @@
 import { z } from "zod";
+import { readJsonBody } from "./json-body";
 import { buildDashboard, yearOf } from "@/core";
+import { maskTaxId } from "@/lib/format";
 import type { Clock } from "@/server/clock";
 import type { ProfileRecord, ProfilesRepo } from "@/server/extraction/service";
 import {
+  cancelTransaction,
   confirmTransaction,
+  correctTransaction,
   toCore,
   type TransactionRecord,
   type TransactionsRepo,
@@ -48,8 +52,9 @@ function view(t: TransactionRecord) {
     kind: t.kind,
     source: t.source,
     status: t.status,
-    counterpartyTaxId: t.counterpartyTaxId,
-    accessKey: t.accessKey,
+    // Dados pessoais saem mascarados: sem autenticação, a API não entrega o CPF inteiro nem a chave completa.
+    counterparty: maskTaxId(t.counterpartyTaxId),
+    accessKeySuffix: t.accessKey ? t.accessKey.slice(-8) : null,
     description: t.description,
   };
 }
@@ -70,16 +75,9 @@ async function loadProfile(deps: TransactionsHandlerDeps): Promise<ProfileRecord
 
 /** POST /api/transactions: confirma um lançamento depois da conferência do usuário. */
 export async function handleConfirm(req: Request, deps: TransactionsHandlerDeps): Promise<Response> {
-  const declared = Number(req.headers.get("content-length"));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    return json({ error: "too_large", message: "Pedido grande demais." }, 413);
-  }
-  let raw: unknown;
-  try {
-    raw = await req.json();
-  } catch {
-    return json({ error: "invalid_json", message: "Envie um JSON válido." }, 400);
-  }
+  const body = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const raw = body.value;
   const parsed = ConfirmBody.safeParse(raw);
   if (!parsed.success) {
     // Só o caminho e a mensagem do erro: nunca devolve os valores recebidos.
@@ -136,6 +134,59 @@ export async function handleDashboard(_req: Request, deps: TransactionsHandlerDe
     const rows = await deps.transactions.listByYear(profile.id, yearOf(today));
     const dashboard = buildDashboard({ transactions: rows.map(toCore), today, openingDate: profile.openingDate });
     return json({ today, profile: { name: profile.name, openingDate: profile.openingDate }, dashboard });
+  } catch (e) {
+    return internal(e);
+  }
+}
+
+const IdParam = z.string().uuid();
+
+/** `.strict()`: o cliente só pode pedir estas duas ações, com estes campos. */
+const ChangeBody = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("cancel") }).strict(),
+  z
+    .object({
+      action: z.literal("correct"),
+      date: z.string().max(10).optional(),
+      amountCents: z.number().optional(),
+      description: z.string().max(300).optional(),
+    })
+    .strict(),
+]);
+
+/** PATCH /api/transactions/:id: cancela ou corrige um lançamento. */
+export async function handleChange(req: Request, id: string, deps: TransactionsHandlerDeps): Promise<Response> {
+  if (!IdParam.safeParse(id).success) return json({ error: "invalid_id", message: "Identificador inválido." }, 400);
+
+  const body = await readJsonBody(req, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const raw = body.value;
+  const parsed = ChangeBody.safeParse(raw);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
+    return json({ error: "invalid_body", message: "Dados inválidos.", issues }, 400);
+  }
+
+  try {
+    const profile = await loadProfile(deps);
+    if (!profile) return json(NO_PROFILE, 503);
+    const outcome =
+      parsed.data.action === "cancel"
+        ? await cancelTransaction({ profileId: profile.id, id }, { transactions: deps.transactions })
+        : await correctTransaction(
+            { profileId: profile.id, id, date: parsed.data.date, amountCents: parsed.data.amountCents, description: parsed.data.description },
+            { transactions: deps.transactions, today: deps.clock.today() },
+          );
+    switch (outcome.status) {
+      case "updated":
+        return json({ status: "updated", transaction: view(outcome.transaction) });
+      case "not_found":
+        return json({ error: "not_found", message: "Lançamento não encontrado." }, 404);
+      case "conflict":
+        return json({ error: "conflict", message: outcome.message }, 409);
+      case "invalid":
+        return json({ error: outcome.code, message: outcome.message }, 422);
+    }
   } catch (e) {
     return internal(e);
   }

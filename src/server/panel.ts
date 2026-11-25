@@ -1,5 +1,6 @@
 import { buildDashboard, monthlyRevenue, yearOf, type Cents, type Dashboard, type ISODate } from "@/core";
 import type { TransactionsHandlerDeps } from "@/server/http/transactions-handler";
+import { maskTaxId } from "@/lib/format";
 import { toCore, type TransactionRecord } from "@/server/transactions/service";
 
 /** Lançamento como a interface precisa: sem identificadores internos do banco. */
@@ -11,12 +12,17 @@ export interface TransactionView {
   source: "nota" | "pix" | "manual";
   status: "pendente" | "confirmada" | "cancelada";
   description: string;
-  counterpartyTaxId: string | null;
+  /** A outra parte já mascarada (CPF ou CNPJ): o documento inteiro nunca sai do servidor. */
+  counterparty: string;
+  issueDate: ISODate | null;
+  /** Só o final da chave de acesso: o suficiente para reconhecer a nota. */
+  accessKeySuffix: string | null;
+  confidence: number | null;
 }
 
 export interface PanelData {
   today: ISODate;
-  profile: { name: string; taxId: string; openingDate: ISODate };
+  profile: { name: string; taxId: string; openingDate: ISODate; email: string };
   dashboard: Dashboard;
   /** Receita confirmada de cada mês do ano (índice 0 = janeiro). */
   months: Cents[];
@@ -32,7 +38,10 @@ const view = (t: TransactionRecord): TransactionView => ({
   source: t.source,
   status: t.status,
   description: t.description,
-  counterpartyTaxId: t.counterpartyTaxId,
+  counterparty: maskTaxId(t.counterpartyTaxId),
+  issueDate: t.issueDate,
+  accessKeySuffix: t.accessKey ? t.accessKey.slice(-8) : null,
+  confidence: t.confidence,
 });
 
 /**
@@ -48,7 +57,7 @@ export async function loadPanel(deps: TransactionsHandlerDeps): Promise<PanelDat
   const core = rows.map(toCore);
   return {
     today,
-    profile: { name: profile.name, taxId: profile.taxId, openingDate: profile.openingDate },
+    profile: { name: profile.name, taxId: profile.taxId, openingDate: profile.openingDate, email: profile.email },
     dashboard: buildDashboard({ transactions: core, today, openingDate: profile.openingDate }),
     months: monthlyRevenue(core, year, today),
     transactions: rows.map(view).sort((a, b) => b.date.localeCompare(a.date)),

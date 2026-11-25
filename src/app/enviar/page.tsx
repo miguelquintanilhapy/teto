@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { NoProfile } from "@/components/no-profile";
 import { yearOf } from "@/core";
 import { SendFlow } from "@/components/send/send-flow";
 import { SheetShell } from "@/components/send/sheet-shell";
@@ -25,11 +26,15 @@ async function Conteudo() {
   if (!r.ok) {
     return (
       <SheetShell title="Enviar nota">
-        <p role="alert" className="t-body rounded-card bg-card p-5">
-          {r.reason === "no_profile"
-            ? "Perfil de demonstração não encontrado. Rode npm run seed."
-            : "Não foi possível preparar o envio. Tente de novo em instantes."}
-        </p>
+        <>
+        {r.reason === "no_profile" ? (
+          <NoProfile />
+        ) : (
+          <p role="alert" className="t-body rounded-card bg-card p-5">
+            Não foi possível preparar o envio. Tente de novo em instantes.
+          </p>
+        )}
+      </>
       </SheetShell>
     );
   }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { readLaunchParams } from "@/lib/reconciliation";
 import { readConfirmResponse, readUploadResponse } from "@/lib/send-api";
 import { impactOf, toConfirmBody, type Impact, type ReviewValues, type SendContext } from "@/lib/send";
 import { checkFile, ChooseStep } from "./choose-step";
+import { DiscardSheet } from "./discard-sheet";
 import { DoneStep } from "./done-step";
 import { ReadingStep } from "./reading-step";
 import { ReviewStep, type ReviewNotice } from "./review-step";
@@ -39,12 +41,30 @@ const TITLES: Record<Stage["name"], string | undefined> = {
 export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendContext; startManual?: boolean }) {
   const router = useRouter();
   const [ctx, setCtx] = useState(initialCtx);
+  const params = useSearchParams();
+  const prefill = startManual ? readLaunchParams((k) => params.get(k), initialCtx.today) : null;
   const first = (): Stage =>
     startManual
-      ? { name: "review", values: EMPTY, notice: { duplicate: false, lowTrust: false, manual: true, chosen: true }, saving: false, error: null }
+      ? { name: "review", values: prefill ? { ...EMPTY, amountCents: prefill.amountCents, date: prefill.date || initialCtx.today, description: prefill.description } : { ...EMPTY, date: initialCtx.today }, notice: { duplicate: false, lowTrust: false, manual: true, chosen: true }, saving: false, error: null }
       : { name: "choose", error: null };
   const [stage, setStage] = useState<Stage>(first);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Sair da conferência com dados lidos ou digitados pede confirmação; nas outras etapas, fecha direto.
+  const [dirty, setDirty] = useState(false);
+  const [confirmingClose, setConfirmingClose] = useState(false);
+  const onDirtyChange = useCallback((d: boolean) => setDirty(d), []);
+
+  // O foco acompanha a etapa: sem isso, o botão tocado some e o leitor de tela fica sem saber o que mudou.
+  const stepRef = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    stepRef.current?.focus({ preventScroll: true });
+  }, [stage.name]);
 
   async function handleFile(file: File) {
     const problem = checkFile(file);
@@ -135,7 +155,11 @@ export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendCo
   };
 
   return (
-    <SheetShell title={startManual && stage.name === "review" ? "Lançar sem nota" : TITLES[stage.name]}>
+    <SheetShell
+      title={startManual && stage.name === "review" ? "Lançar sem nota" : TITLES[stage.name]}
+      onClose={stage.name === "review" && !stage.saving && dirty ? () => setConfirmingClose(true) : undefined}
+    >
+      <div ref={stepRef} tabIndex={-1} role="group" aria-label={TITLES[stage.name] ?? "Nota confirmada"} className="outline-none">
       {stage.name === "choose" && <ChooseStep onFile={handleFile} error={stage.error} />}
       {stage.name === "reading" && <ReadingStep fileName={stage.fileName} onCancel={cancelReading} onManual={skipToManual} />}
       {stage.name === "review" && (
@@ -146,6 +170,7 @@ export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendCo
           saving={stage.saving}
           error={stage.error}
           onConfirm={(v, kind, explicit) => confirm(v, stage.notice, kind, explicit)}
+          onDirtyChange={onDirtyChange}
         />
       )}
       {stage.name === "done" && (
@@ -159,6 +184,8 @@ export function SendFlow({ ctx: initialCtx, startManual = false }: { ctx: SendCo
           anotherLabel={startManual ? "Lançar outro" : "Enviar outra nota"}
         />
       )}
+      </div>
+      {confirmingClose && <DiscardSheet onKeep={() => setConfirmingClose(false)} onDiscard={() => router.push("/")} />}
     </SheetShell>
   );
 }

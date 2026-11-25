@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { PREFS_SCRIPT } from "@/lib/prefs";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +28,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} h-full`}>
+    <html lang="pt-BR" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <head>
+        {/* Aplica o tema e a privacidade guardados antes da primeira pintura, para a tela não piscar. */}
+        <script dangerouslySetInnerHTML={{ __html: PREFS_SCRIPT }} />
+      </head>
       <body className="min-h-full">{children}</body>
     </html>
   );

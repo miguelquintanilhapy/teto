@@ -56,9 +56,9 @@ describe("readUploadResponse", () => {
   });
 
   it("mostra a mensagem do servidor nos erros", () => {
-    expect(readUploadResponse(413, { error: "too_large", message: "O arquivo passa do limite de 10 MB." })).toEqual({
+    expect(readUploadResponse(413, { error: "too_large", message: "O arquivo passa do limite de 4 MB." })).toEqual({
       kind: "error",
-      message: "O arquivo passa do limite de 10 MB.",
+      message: "O arquivo passa do limite de 4 MB.",
     });
   });
 

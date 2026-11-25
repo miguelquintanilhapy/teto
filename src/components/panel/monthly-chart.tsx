@@ -71,27 +71,29 @@ export function MonthlyChart({
               type="button"
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
-              className={`rounded-[0.8125rem] px-3 py-1.5 ${mode === m ? "bg-card text-label shadow-sm" : "text-label-2"}`}
+              className={`pressable min-h-9 rounded-[0.8125rem] px-3.5 py-1.5 ${mode === m ? "bg-raised text-label shadow-sm" : "text-label-2"}`}
             >
               {m === "mes" ? "Mês" : "Trimestre"}
             </button>
           ))}
         </div>
       </div>
-      <p className="mt-1.5 mb-3.5 text-[0.9375rem] text-label-2">{formatReais(total)} em {year}</p>
+      <p className="mt-1.5 mb-3.5 text-[0.9375rem] text-label-2">
+        <span className="sensitive">{formatReais(total)}</span> em {year}
+      </p>
 
       <div role="img" aria-label={`Receita confirmada. ${summary}`} className="flex h-[9.375rem] items-end gap-2">
-        {bars.map((b) => (
+        {bars.map((b, i) => (
           <div
             key={b.key}
             className={`flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 text-xs font-semibold ${
               b.current ? "text-label" : "text-label-2"
             }`}
           >
-            {b.current && b.cents > 0 && <span className="text-[0.6875rem] font-bold whitespace-nowrap">{formatCompact(b.cents)}</span>}
+            {b.current && b.cents > 0 && <span className="sensitive text-[0.6875rem] font-bold whitespace-nowrap">{formatCompact(b.cents)}</span>}
             <div
-              className="w-full rounded-t-[0.4375rem] rounded-b-[0.1875rem] bg-label"
-              style={{ height: `${Math.max(3, (b.cents / max) * 100)}%`, opacity: b.current ? 1 : 0.22 }}
+              className="bar-grow w-full rounded-t-[0.4375rem] rounded-b-[0.1875rem] bg-label"
+              style={{ height: `${Math.max(3, (b.cents / max) * 100)}%`, opacity: b.current ? 1 : 0.45, ['--i' as string]: i }}
             />
             <span aria-hidden="true">{b.label}</span>
           </div>

@@ -1,11 +1,20 @@
+import Link from "next/link";
 import { Suspense } from "react";
+import { NoProfile } from "@/components/no-profile";
 import { HistoryList } from "@/components/history/history-list";
 import { loadPanelSafe } from "@/server/panel-safe";
+
+export const metadata = { title: "Histórico · Teto" };
 
 export default function HistoricoPage() {
   return (
     <main>
-      <h1 className="t-large-title mt-2 mb-3">Histórico</h1>
+      <div className="mt-2 mb-3 flex items-center justify-between gap-3">
+        <h1 className="t-large-title">Histórico</h1>
+        <Link href="/extrato" className="glass pressable inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[0.9375rem] font-semibold">
+          Conciliar extrato
+        </Link>
+      </div>
       <Suspense fallback={<HistoricoSkeleton />}>
         <Conteudo />
       </Suspense>
@@ -35,14 +44,12 @@ function HistoricoSkeleton() {
 async function Conteudo() {
   const r = await loadPanelSafe("histórico");
   if (!r.ok) {
-    return (
+    return r.reason === "no_profile" ? (
+      <NoProfile />
+    ) : (
       <div role="alert" className="rounded-card bg-card p-5">
-        <h2 className="t-headline">
-          {r.reason === "no_profile" ? "Perfil de demonstração não encontrado" : "Não foi possível carregar o histórico"}
-        </h2>
-        <p className="t-body mt-1 text-label-2">
-          {r.reason === "no_profile" ? "Rode npm run seed para criar os dados de demonstração." : "Tente de novo em instantes."}
-        </p>
+        <h2 className="t-headline">Não foi possível carregar o histórico</h2>
+        <p className="t-body mt-1 text-label-2">Tente de novo em instantes.</p>
       </div>
     );
   }

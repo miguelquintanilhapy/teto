@@ -34,6 +34,15 @@ export interface TransactionRecord {
 
 export type NewTransaction = Omit<TransactionRecord, "id">;
 
+/** O que pode mudar depois de confirmado. Tipo, partes e chave de acesso nunca mudam. */
+export type TransactionPatch = Partial<Pick<TransactionRecord, "date" | "amountCents" | "description" | "status">>;
+
+export interface TransactionEvent {
+  action: EventAction;
+  changes: Record<string, unknown>;
+  createdAt: string;
+}
+
 export type EventAction = "created" | "corrected" | "confirmed" | "cancelled";
 
 /** Lançado pelo repositório quando a restrição única (perfil, chave de acesso) é violada. */
@@ -52,6 +61,11 @@ export interface TransactionsRepo {
   listByYear(profileId: string, year: number): Promise<TransactionRecord[]>;
   /** Usado só para desfazer uma inserção quando o registro do histórico falha. */
   remove(id: string): Promise<void>;
+  findById(profileId: string, id: string): Promise<TransactionRecord | null>;
+  /** Altera só os campos informados e devolve o lançamento atualizado (null se não existir). */
+  update(profileId: string, id: string, patch: TransactionPatch): Promise<TransactionRecord | null>;
+  /** Histórico de alterações do lançamento, do mais antigo para o mais novo. */
+  listEvents(transactionId: string): Promise<TransactionEvent[]>;
   addEvent(event: { transactionId: string; action: EventAction; changes: Record<string, unknown> }): Promise<void>;
 }
 
@@ -90,7 +104,8 @@ export type InvalidCode =
   | "invalid_amount"
   | "invalid_tax_id"
   | "invalid_access_key"
-  | "direction_required";
+  | "direction_required"
+  | "direction_conflict";
 
 export type ConfirmOutcome =
   | { status: "created"; transaction: TransactionRecord }
@@ -138,6 +153,11 @@ export async function confirmTransaction(
   const issuer = present(input.issuerTaxId) ? digits(input.issuerTaxId) : null;
   const recipient = present(input.recipientTaxId) ? digits(input.recipientTaxId) : null;
   const derived = deriveDirection(profile.taxId, issuer, recipient);
+  // O código decide a direção quando consegue. O usuário só escolhe quando não dá para derivar:
+  // impor o contrário do que o CNPJ do MEI mostra tiraria uma receita do cálculo do limite.
+  if (input.kind !== undefined && derived !== "indefinida" && input.kind !== derived) {
+    return invalid("direction_conflict", "O tipo não confere com o CNPJ do seu MEI na nota. Corrija a nota ou lance sem nota.");
+  }
   const kind: TransactionKind | null = input.kind ?? (derived === "indefinida" ? null : derived);
   if (kind === null) {
     return invalid(
@@ -168,7 +188,7 @@ export async function confirmTransaction(
     counterpartyTaxId: kind === "receita" ? recipient : issuer,
     accessKey,
     description: (input.description ?? "").trim().slice(0, 300),
-    confidence: input.confidence ?? null,
+    confidence: input.source === "manual" ? null : (input.confidence ?? null),
   };
 
   let created: TransactionRecord;
@@ -177,7 +197,9 @@ export async function confirmTransaction(
   } catch (e) {
     if (!(e instanceof DuplicateTransactionError)) throw e;
     // Outra confirmação da mesma nota chegou primeiro.
-    const existing = accessKey !== null ? await transactions.findByAccessKey(profile.id, accessKey) : null;
+    const existing =
+      (accessKey !== null ? await transactions.findByAccessKey(profile.id, accessKey) : null) ??
+      (present(input.documentId) ? await transactions.findByDocumentId(profile.id, input.documentId) : null);
     if (!existing) throw e;
     return { status: "duplicate", transaction: existing };
   }
@@ -194,4 +216,105 @@ export async function confirmTransaction(
     throw e;
   }
   return { status: "created", transaction: created };
+}
+
+// ------------------------------------------------------------ cancelar e corrigir
+export type ChangeOutcome =
+  | { status: "updated"; transaction: TransactionRecord }
+  | { status: "not_found" }
+  /** O lançamento existe, mas está num estado que não permite a mudança. */
+  | { status: "conflict"; message: string }
+  | { status: "invalid"; code: InvalidCode | "nothing_to_change"; message: string };
+
+/**
+ * Cancela um lançamento (estorno, devolução, nota cancelada): ele deixa de contar no limite,
+ * mas continua no histórico. Idempotente: cancelar de novo devolve o mesmo resultado.
+ */
+export async function cancelTransaction(
+  input: { profileId: string; id: string },
+  deps: { transactions: TransactionsRepo },
+): Promise<ChangeOutcome> {
+  const { transactions } = deps;
+  const current = await transactions.findById(input.profileId, input.id);
+  if (!current) return { status: "not_found" };
+  if (current.status === "cancelada") return { status: "updated", transaction: current };
+
+  const updated = await transactions.update(input.profileId, input.id, { status: "cancelada" });
+  if (!updated) return { status: "not_found" };
+  try {
+    await transactions.addEvent({ transactionId: updated.id, action: "cancelled", changes: { status: { from: current.status, to: "cancelada" } } });
+  } catch (e) {
+    // Sem histórico não há mudança: devolve o estado anterior para não deixar uma alteração sem rastro.
+    await transactions.update(input.profileId, input.id, { status: current.status }).catch(() => undefined);
+    throw e;
+  }
+  return { status: "updated", transaction: updated };
+}
+
+export interface CorrectInput {
+  profileId: string;
+  id: string;
+  date?: string;
+  amountCents?: number;
+  description?: string;
+}
+
+/** Corrige valor, data ou descrição de um lançamento, com as mesmas regras da confirmação. */
+export async function correctTransaction(
+  input: CorrectInput,
+  deps: { transactions: TransactionsRepo; today: ISODate },
+): Promise<ChangeOutcome> {
+  const { transactions, today } = deps;
+  const current = await transactions.findById(input.profileId, input.id);
+  if (!current) return { status: "not_found" };
+  if (current.status === "cancelada") {
+    return { status: "conflict", message: "Um lançamento cancelado não pode ser corrigido." };
+  }
+
+  const patch: TransactionPatch = {};
+  const changes: Record<string, { from: unknown; to: unknown }> = {};
+
+  if (input.amountCents !== undefined) {
+    if (!Number.isInteger(input.amountCents) || input.amountCents <= 0 || input.amountCents > MAX_AMOUNT_CENTS) {
+      return { status: "invalid", code: "invalid_amount", message: "O valor deve ser positivo, em centavos, e de até R$ 10 milhões." };
+    }
+    if (input.amountCents !== current.amountCents) {
+      patch.amountCents = input.amountCents;
+      changes.amountCents = { from: current.amountCents, to: input.amountCents };
+    }
+  }
+  if (input.date !== undefined) {
+    if (!isValidISODate(input.date)) return { status: "invalid", code: "invalid_date", message: "Data inválida. Use o formato AAAA-MM-DD." };
+    if (input.date > addDays(today, 1)) return { status: "invalid", code: "future_date", message: "A data não pode estar no futuro." };
+    if (input.date !== current.date) {
+      patch.date = input.date;
+      changes.date = { from: current.date, to: input.date };
+    }
+  }
+  if (input.description !== undefined) {
+    const description = input.description.trim().slice(0, 300);
+    if (description !== current.description) {
+      patch.description = description;
+      changes.description = { from: current.description, to: description };
+    }
+  }
+
+  if (Object.keys(patch).length === 0) {
+    return { status: "invalid", code: "nothing_to_change", message: "Nada mudou. Altere o valor, a data ou a descrição." };
+  }
+
+  const updated = await transactions.update(input.profileId, input.id, patch);
+  if (!updated) return { status: "not_found" };
+  try {
+    await transactions.addEvent({ transactionId: updated.id, action: "corrected", changes });
+  } catch (e) {
+    const back: TransactionPatch = {
+      date: current.date,
+      amountCents: current.amountCents,
+      description: current.description,
+    };
+    await transactions.update(input.profileId, input.id, back).catch(() => undefined);
+    throw e;
+  }
+  return { status: "updated", transaction: updated };
 }

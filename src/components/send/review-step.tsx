@@ -1,7 +1,7 @@
 "use client";
 
 import { Lock, Sparkle, Warning } from "@phosphor-icons/react/dist/ssr";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LimitBar } from "@/components/limit-bar";
 import { bandView } from "@/lib/copy";
 import { formatMoney, formatPercent, formatReais, maskTaxId } from "@/lib/format";
@@ -29,6 +29,7 @@ export function ReviewStep({
   saving,
   error,
   onConfirm,
+  onDirtyChange,
 }: {
   ctx: SendContext;
   initial: ReviewValues;
@@ -36,10 +37,18 @@ export function ReviewStep({
   saving: boolean;
   error: string | null;
   onConfirm: (values: ReviewValues, kind: "receita" | "despesa", explicit: boolean) => void;
+  /** Há dados lidos ou digitados que se perderiam ao sair. */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [values, setValues] = useState(initial);
   const [attempted, setAttempted] = useState(false);
   const [chosen, setChosen] = useState<"receita" | "despesa" | null>(null);
+
+  // Nota lida pela IA sempre vale proteger (reler custa tempo); formulário manual, só se alguém digitou.
+  const dirty = !notice.manual || chosen !== null || JSON.stringify(values) !== JSON.stringify(initial);
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   const set = <K extends keyof ReviewValues>(key: K, v: ReviewValues[K]) => setValues((s) => ({ ...s, [key]: v }));
 
@@ -99,7 +108,7 @@ export function ReviewStep({
                   type="button"
                   aria-pressed={chosen === k}
                   onClick={() => setChosen(k)}
-                  className={`flex-1 rounded-[0.8125rem] py-2.5 ${chosen === k ? "bg-card-raised text-label shadow-sm" : "text-label-2"}`}
+                  className={`flex-1 rounded-[0.8125rem] py-2.5 ${chosen === k ? "bg-raised text-label shadow-sm" : "text-label-2"}`}
                 >
                   {k === "receita" ? "Receita" : "Despesa"}
                 </button>
@@ -140,7 +149,7 @@ export function ReviewStep({
           <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Depois de confirmar</h2>
           <section aria-label="Efeito no limite" className="rounded-card bg-card p-5">
             <div className="mb-3 flex items-baseline justify-between gap-3">
-              <p className="text-[1.875rem] leading-none font-extrabold tracking-tight">{formatReais(impact.afterCents)}</p>
+              <p className="sensitive text-[1.875rem] leading-none font-extrabold tracking-tight">{formatReais(impact.afterCents)}</p>
               <p className={`text-[1.0625rem] font-bold ${TONE_TEXT[tone]}`}>
                 {label} · {formatPercent(impact.ratio)}
               </p>

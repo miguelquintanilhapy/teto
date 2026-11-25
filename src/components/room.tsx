@@ -25,7 +25,7 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
           <path d={roomPath} />
         </clipPath>
       </defs>
-      <path d={roomPath} fill="var(--track)" />
+      <path d={roomPath} fill="var(--track)" stroke="var(--label-2)" strokeOpacity="0.45" strokeWidth="1.5" />
       <g clipPath={`url(#${clipId})`}>
         <rect
           className="room-fill"

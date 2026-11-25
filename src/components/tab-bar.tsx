@@ -28,7 +28,7 @@ export function TabBar() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`flex h-[3.5rem] w-[5.375rem] flex-col items-center justify-center gap-0.5 rounded-[1.75rem] text-xs font-semibold ${
+              className={`pressable flex h-[3.5rem] w-[clamp(4.25rem,22vw,5.375rem)] flex-col items-center justify-center gap-0.5 rounded-[1.75rem] text-xs font-semibold ${
                 active ? "text-label" : "text-label-2"
               }`}
               style={active ? { background: "var(--selected)" } : undefined}
@@ -41,7 +41,7 @@ export function TabBar() {
       </div>
       <Link
         href="/enviar"
-        className="flex h-[3.875rem] flex-1 items-center justify-center gap-2 rounded-[2rem] bg-primary text-[1.125rem] font-semibold text-on-primary shadow-[var(--shadow)]"
+        className="pressable flex h-[3.875rem] min-w-0 flex-1 items-center justify-center gap-2 rounded-[2rem] bg-primary px-3 text-[1.125rem] font-semibold whitespace-nowrap text-on-primary shadow-[var(--shadow)]"
       >
         <FileArrowUp size={24} weight="bold" aria-hidden="true" />
         Enviar nota

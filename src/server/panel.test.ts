@@ -57,7 +57,7 @@ describe("loadPanel", () => {
     await transactions.insert(row());
     const p = await loadPanel(deps);
     expect(Object.keys(p!.transactions[0]!).sort()).toEqual(
-      ["amountCents", "counterpartyTaxId", "date", "description", "id", "kind", "source", "status"].sort(),
+      ["accessKeySuffix", "amountCents", "confidence", "counterparty", "date", "description", "id", "issueDate", "kind", "source", "status"].sort(),
     );
   });
 });

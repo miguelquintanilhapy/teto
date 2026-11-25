@@ -2,7 +2,8 @@
  * Validação de arquivos enviados. Nunca confia na extensão nem no tipo que o
  * navegador declara: olha os primeiros bytes (a "assinatura" do arquivo).
  */
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+/** 4 MB: abaixo do corte de 4,5 MB do corpo de requisição da Vercel, para o erro vir no formato do app. */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export type AllowedMime = "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
 

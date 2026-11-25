@@ -144,6 +144,7 @@ describe("processUpload", () => {
     const bytes = png(7);
     const racing: DocumentsRepo = {
       findByHash: (p, h) => t.documents.findByHash(p, h),
+      countSince: (p, since) => t.documents.countSince(p, since),
       insert: async (doc: NewDocument) => {
         await t.documents.insert(doc); // o outro upload grava antes
         throw new DuplicateDocumentError();
@@ -165,5 +166,37 @@ describe("processUpload", () => {
     const t = setup(async () => ok());
     const r = await processUpload({ profileId: PROFILE, bytes: png(9), kind: "nota" }, { ...t.deps, maxBytes: 4 });
     expect(r).toMatchObject({ status: "rejected", code: "too_large" });
+  });
+});
+
+describe("processUpload: teto de envios novos (sem login, protege o storage e a cota de IA)", () => {
+  it("recusa com rate_limited depois do teto e não grava mais nada", async () => {
+    const t = setup(async () => ok());
+    const deps = { ...t.deps, throttle: { max: 3, windowMs: 60_000 } };
+    for (let i = 20; i < 23; i++) {
+      expect((await processUpload({ profileId: PROFILE, bytes: png(i), kind: "nota" }, deps)).status).toBe("extracted");
+    }
+    const blocked = await processUpload({ profileId: PROFILE, bytes: png(30), kind: "nota" }, deps);
+    expect(blocked).toMatchObject({ status: "rejected", code: "rate_limited" });
+    expect(t.documents.rows).toHaveLength(3);
+  });
+
+  it("reenviar um arquivo que já existe não conta no teto", async () => {
+    const t = setup(async () => ok());
+    const deps = { ...t.deps, throttle: { max: 1, windowMs: 60_000 } };
+    await processUpload({ profileId: PROFILE, bytes: png(40), kind: "nota" }, deps);
+    const again = await processUpload({ profileId: PROFILE, bytes: png(40), kind: "nota" }, deps);
+    expect(again.status).toBe("duplicate");
+  });
+
+  it("libera de novo quando a janela passa", async () => {
+    const t = setup(async () => ok());
+    let now = 1_000_000;
+    t.documents.now = () => now;
+    const deps = { ...t.deps, throttle: { max: 1, windowMs: 60_000 }, now: () => now };
+    await processUpload({ profileId: PROFILE, bytes: png(50), kind: "nota" }, deps);
+    expect((await processUpload({ profileId: PROFILE, bytes: png(51), kind: "nota" }, deps)).status).toBe("rejected");
+    now += 61_000;
+    expect((await processUpload({ profileId: PROFILE, bytes: png(52), kind: "nota" }, deps)).status).toBe("extracted");
   });
 });

@@ -4,13 +4,13 @@ import { Camera, FileArrowUp, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useRef } from "react";
 import { BottomAction } from "./sheet-shell";
 
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 /** Confere o arquivo antes de gastar a rede. O servidor confere de novo pelos bytes. */
 export function checkFile(file: File): string | null {
   if (file.size === 0) return "O arquivo está vazio.";
-  if (file.size > MAX_BYTES) return "O arquivo passa do limite de 10 MB. Envie uma foto menor.";
+  if (file.size > MAX_BYTES) return "O arquivo passa do limite de 4 MB. Envie uma foto menor.";
   if (!ACCEPTED.includes(file.type)) return "Envie uma foto (JPG, PNG ou WebP) ou um PDF.";
   return null;
 }
@@ -47,7 +47,7 @@ export function ChooseStep({ onFile, error }: { onFile: (file: File) => void; er
         </p>
       )}
 
-      <p className="t-sub mt-4 px-2 text-center text-label-2">JPG, PNG, WebP ou PDF, até 10 MB.</p>
+      <p className="t-sub mt-4 px-2 text-center text-label-2">JPG, PNG, WebP ou PDF, até 4 MB.</p>
 
       <BottomAction>
         <label className={`${button} bg-primary text-on-primary shadow-[var(--shadow)]`}>

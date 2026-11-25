@@ -7,11 +7,17 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 
 | Rota | O que faz |
 |---|---|
-| `/` | Painel: faturamento do ano, faixa de risco, a sala do limite, previsão, DAS, notas para conferir e receita por mês |
+| `/` | Painel: faturamento do ano, faixa de risco, a sala do limite, previsão, DAS, notas para conferir, receita por mês e atalho para lançar sem nota |
 | `/enviar` | Escolher a nota, esperar a leitura, conferir os dados e confirmar |
+| `/lancar` | Lançar sem nota (também abre pré-preenchido a partir do extrato) |
 | `/simular` | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado |
-| `/historico` | Lançamentos do ano agrupados por dia, com filtros |
-| `/perfil` | MEI, limite proporcional e regras do ano |
+| `/historico` | Lançamentos do ano por dia, com filtros guardados no endereço |
+| `/historico/[id]` | Detalhe: por que conta (ou não) no limite, histórico de alterações, corrigir e cancelar |
+| `/extrato` | Importa o CSV do banco **no navegador** e concilia com as receitas (entradas sem nota, notas sem entrada) |
+| `/relatorio` | Receita mês a mês, CSV e impressão em PDF |
+| `/alertas` | Cada faixa do limite: cruzada ou não, e-mail enviado, na fila ou aguardando configuração |
+| `/ia` | Transparência da IA: cadeia de modelos, cota de hoje, tempos, falhas e o rastro de cada leitura |
+| `/perfil`, `/perfil/editar`, `/bem-vindo` | MEI, regras do ano, tema, ocultar valores, cadastro e edição |
 
 ## Decisões de design
 
@@ -39,6 +45,13 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
 - Limite conhecido: o cache é do perfil único de demonstração. Com várias contas, o identificador do usuário
   entra como argumento de `getPanel`.
 
+## Preferências do usuário
+
+- **Tema:** Sistema, Claro ou Escuro, guardado no aparelho. Um script curto aplica a escolha antes da primeira
+  pintura (sem piscar) e ajusta a cor da barra do navegador.
+- **Ocultar valores:** borra os valores em dinheiro (painel, previsão, histórico, simulação, conferência e
+  confirmação) para abrir o app em público. O botão fica no cabeçalho do Painel e em Perfil.
+
 ## Acessibilidade
 
 - Texto em `rem`: acompanha o tamanho de texto do navegador e do sistema.
@@ -46,7 +59,10 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md).
   mais escuros no modo claro).
 - A sala, os medidores e o gráfico têm descrição em texto para leitores de tela.
 - O preenchimento da sala respeita "reduzir movimento".
-- Alvos de toque de 44 pt ou mais.
+- Alvos de toque de 44 pt ou mais, e foco visível em tudo que é interativo.
+- Um `h1` e um `main` por tela; título de página próprio; campos com o teclado certo (CNPJ numérico, e-mail).
+- A confirmação antes de descartar uma nota lida leva o foco à saída segura e fecha com Escape.
+- O que o leitor de tela anuncia na simulação espera a digitação parar.
 
 ## Fonte e ícones
 
@@ -60,8 +76,15 @@ As telas não calculam regra de negócio. Elas leem `loadPanel` (`src/server/pan
 (`src/core`), e só escrevem o resultado em português (`src/lib/copy.ts`, `src/lib/simulate.ts`).
 Os valores de custo do estouro são sempre rotulados como estimativa.
 
+## Animações e interação
+
+Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada suave de tela, estado de toque
+(`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
+se desenhando. `:hover` só existe onde há mouse.
+
 ## O que ainda não existe
 
-- Cancelar ou corrigir um lançamento já confirmado.
-- Importar extrato e conciliar.
-- Alertas por e-mail.
+- Autenticação e vários MEIs (ver [SEGURANCA.md](SEGURANCA.md)).
+- Lembrete do vencimento do DAS por e-mail.
+- Modo offline.
+- Testes automatizados de interface (só a lógica tem testes). Ver [REVISAO.md](REVISAO.md).

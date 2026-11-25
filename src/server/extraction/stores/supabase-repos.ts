@@ -93,6 +93,16 @@ export class SupabaseDocumentsRepo implements DocumentsRepo {
     }
     return toDocument(data as DocumentRow);
   }
+
+  async countSince(profileId: string, sinceIso: string): Promise<number> {
+    const { count, error } = await this.db
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId)
+      .gte("created_at", sinceIso);
+    if (error) throw new Error(`documents: ${error.message}`);
+    return count ?? 0;
+  }
 }
 
 export class SupabaseExtractionsRepo implements ExtractionsRepo {
@@ -159,13 +169,27 @@ export class SupabaseProfilesRepo implements ProfilesRepo {
   async getDemoProfile(): Promise<ProfileRecord | null> {
     const { data, error } = await this.db
       .from("mei_profiles")
-      .select("id, name, tax_id, opening_date")
+      .select("id, name, tax_id, opening_date, email")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(`profiles: ${error.message}`);
     if (!data) return null;
-    const r = data as { id: string; name: string; tax_id: string; opening_date: string };
-    return { id: r.id, name: r.name, taxId: r.tax_id.replace(/D/g, ""), openingDate: r.opening_date };
+    const r = data as { id: string; name: string; tax_id: string; opening_date: string; email: string };
+    return { id: r.id, name: r.name, taxId: r.tax_id.replace(/\D/g, ""), openingDate: r.opening_date, email: r.email };
+  }
+
+  async saveDemoProfile(input: Omit<ProfileRecord, "id">): Promise<ProfileRecord> {
+    const row = { name: input.name, tax_id: input.taxId, opening_date: input.openingDate, email: input.email };
+    const id = await this.getDemoProfileId();
+    const query = id
+      ? this.db.from("mei_profiles").update(row).eq("id", id)
+      : this.db.from("mei_profiles").insert(row);
+    const { data, error } = await query.select("id").single();
+    if (error) {
+      if (error.code === "23505") throw new Error("profiles: este CNPJ já está cadastrado");
+      throw new Error(`profiles: ${error.message}`);
+    }
+    return { id: (data as { id: string }).id, ...input };
   }
 }

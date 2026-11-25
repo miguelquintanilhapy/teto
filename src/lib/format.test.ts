@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   centsPart,
+  maskEmail,
+  formatCnpjInput,
   formatCompact,
   formatDayMonth,
   formatFullShortDate,
@@ -77,5 +79,27 @@ describe("maskTaxId", () => {
     expect(maskTaxId("11222333000181")).toBe("CNPJ 11.222.333/••••-••");
     expect(maskTaxId(null)).toBe("não identificado");
     expect(maskTaxId("123")).toBe("documento inválido");
+  });
+});
+
+describe("formatCnpjInput", () => {
+  it("coloca a pontuação enquanto o CNPJ é digitado", () => {
+    expect(formatCnpjInput("11")).toBe("11");
+    expect(formatCnpjInput("11222")).toBe("11.222");
+    expect(formatCnpjInput("11222333000")).toBe("11.222.333/000");
+    expect(formatCnpjInput("11222333000181")).toBe("11.222.333/0001-81");
+  });
+
+  it("ignora letras e passa de 14 números", () => {
+    expect(formatCnpjInput("11.222.333/0001-81 99")).toBe("11.222.333/0001-81");
+    expect(formatCnpjInput("abc")).toBe("");
+  });
+});
+
+describe("maskEmail", () => {
+  it("esconde o miolo do endereço", () => {
+    expect(maskEmail("marta@example.com")).toBe("m•••@example.com");
+    expect(maskEmail("semarroba")).toBe("não informado");
+    expect(maskEmail("@x.com")).toBe("não informado");
   });
 });
