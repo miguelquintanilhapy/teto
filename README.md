@@ -256,6 +256,21 @@ recusa requisições de outra origem (`403`) e limita o tamanho do corpo. Ver [d
 Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no histórico (`transaction_events`).
 `404` se não existe, `409` ao corrigir um lançamento cancelado, `422` nas regras de valor e data.
 
+### Testar o e-mail de alerta
+
+O remetente padrão (`onboarding@resend.dev`) só entrega ao e-mail da **conta do Resend**. Para testar:
+1. Troque o e-mail do perfil para o da sua conta do Resend (Perfil → lápis; em desenvolvimento a edição aparece sozinha).
+2. Dispare o cron, no PowerShell, lendo o segredo do `.env.local` sem mostrá-lo:
+
+```powershell
+$s = (Select-String -Path .env.local -Pattern '^CRON_SECRET=(.*)$').Matches[0].Groups[1].Value
+Invoke-RestMethod -Uri http://localhost:3000/api/cron/alerts -Headers @{Authorization="Bearer $s"}
+```
+
+A resposta é `sent` (saiu), `failed` (o Resend recusou; o alerta volta para a fila), `not_configured` (sem chave) ou
+`nothing_due` (nada pendente). O alerta é idempotente: para repetir o teste, no SQL Editor do Supabase,
+`update alerts set sent_at = null where kind = 'threshold_warning';`. Depois do teste, volte o e-mail do perfil para um fictício.
+
 ### Outras rotas
 
 - `PUT /api/profile`: cadastra o MEI no primeiro uso. Em produção, **mudar um cadastro existente é recusado**

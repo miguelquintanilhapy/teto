@@ -55,7 +55,7 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 | Confirmação, cancelar e corrigir lançamento, histórico de alterações, painel e relatório | ✅ |
 | Interface: 16 telas, tema claro/escuro, ocultar valores, instalável | ✅ (sem testes automatizados de interface) |
 | Extrato: CSV lido no navegador e conciliado com as receitas | ✅ (não é salvo no banco) |
-| Alertas por e-mail e cron | ✅ testado com envio simulado; nenhum e-mail real foi enviado |
+| Alertas por e-mail e cron | ✅ e-mail real enviado e recebido em 25/11/2026 (chamada local ao cron, com o Resend). O cron agendado da Vercel ainda não rodou |
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
 | Cobertura das gravações: Flash-Lite 12/26, Nemotron 14/26, Flash 0/26 (sobrecarga do Google e cotas) | 🟡 completar |
 | Segurança: Origin, corpo estrito, cabeçalhos e CSP, máscara de CPF/CNPJ, limite por janela | ✅ (sem login; ver SEGURANCA.md) |
