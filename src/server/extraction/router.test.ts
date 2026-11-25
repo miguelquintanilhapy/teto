@@ -438,6 +438,71 @@ describe("ExtractionRouter: segundo modelo em paralelo (hedging)", () => {
   });
 });
 
+describe("ExtractionRouter: último recurso quando só sobrou quem está em cooldown", () => {
+  const T0 = 1_000;
+  const router = (providers: VisionProvider[], cooldown: InMemoryCooldownStore) =>
+    new ExtractionRouter({ providers, cooldownStore: cooldown, now: () => T0, today: () => "2026-05-12", timeoutMs: 50 });
+
+  it("se todos estão em cooldown, tenta mesmo assim, começando por quem sai dele primeiro", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    await cooldown.block("b", 3_000);
+    const a = fake("a", async () => GOOD);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.providerId).toBe("b"); // b sai do cooldown antes
+    expect(a.calls).toBe(0);
+    // quem foi retentado deixa de aparecer como "pulado"; quem nem chegou a ser tentado continua pulado
+    expect(r.attempts.map((t) => [t.providerId, t.outcome])).toEqual([
+      ["a", "skipped_cooldown"],
+      ["b", "accepted"],
+    ]);
+  });
+
+  it("quem estava em cooldown é a segunda opinião quando o outro só devolveu uma extração reprovada", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("b", 9_000);
+    const weak = { ...GOOD, issueDate: "2026-02-30" };
+    const a = fake("a", async () => weak);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.status).toBe("accepted");
+    expect(r.providerId).toBe("b");
+    expect(a.calls).toBe(1);
+    expect(b.calls).toBe(1);
+  });
+
+  it("não retenta quem estava em cooldown se alguém já foi aceito", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("b", 9_000);
+    const a = fake("a", async () => GOOD);
+    const b = fake("b", async () => GOOD);
+    const r = await router([a, b], cooldown).extract(DOC);
+    expect(r.providerId).toBe("a");
+    expect(b.calls).toBe(0);
+  });
+
+  it("se o provedor retentado também falha, a extração falha por inteiro (sem laço infinito)", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    const a = fake("a", async () => {
+      throw new ProviderError("unavailable", "503");
+    });
+    await expect(router([a], cooldown).extract(DOC)).rejects.toBeInstanceOf(AllProvidersFailedError);
+    expect(a.calls).toBe(1);
+  });
+
+  it("sem orçamento de tempo, não retenta ninguém", async () => {
+    const cooldown = new InMemoryCooldownStore();
+    await cooldown.block("a", 9_000);
+    let t = 1_000;
+    const a = fake("a", async () => GOOD);
+    const r = new ExtractionRouter({ providers: [a], cooldownStore: cooldown, now: () => (t += 50_000), today: () => "2026-05-12", totalBudgetMs: 10_000 });
+    await expect(r.extract(DOC)).rejects.toBeInstanceOf(AllProvidersFailedError);
+    expect(a.calls).toBe(0);
+  });
+});
+
 describe("regras de negócio da extração", () => {
   const rules = { minConfidence: 0.7, today: "2026-05-12" };
 

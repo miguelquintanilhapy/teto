@@ -21,7 +21,7 @@ export interface RouterOptions {
   totalBudgetMs?: number;
   /** Quanto tempo um provedor fica fora da rotação após 429/queda. */
   cooldownMs?: number;
-  /** Cooldown quando o provedor responde "indisponível" (padrão: 3 min). */
+  /** Cooldown quando o provedor responde "indisponível" (padrão: 90 s). */
   unavailableCooldownMs?: number;
   /**
    * Se o provedor em andamento passa deste tempo sem responder, o PRÓXIMO da cadeia é disparado em paralelo
@@ -83,10 +83,10 @@ const DEFAULTS = {
   /** Cooldown de 429 e de timeout. */
   cooldownMs: 60_000,
   /**
-   * Cooldown de "indisponível" (503, alta demanda): costuma durar minutos, e cada tentativa
-   * perdida custa vários segundos do orçamento do próximo usuário. Fica mais tempo fora.
+   * Cooldown de "indisponível" (503, alta demanda): fica fora mais tempo que o de 429, mas não muito: o 503
+   * volta em ~2 s, então errar de novo custa pouco, e quem foi pulado ainda é tentado como último recurso.
    */
-  unavailableCooldownMs: 180_000,
+  unavailableCooldownMs: 90_000,
   /** A mediana dos modelos saudáveis é de 2 a 4 s; passou disso, vale ter um segundo na corrida. */
   hedgeAfterMs: 7_000,
   minConfidence: 0.7,
@@ -142,6 +142,10 @@ export class ExtractionRouter {
 
     // Quem ainda não foi tentado, na ordem da cadeia, e quem está em andamento agora.
     const queue = [...this.opts.providers];
+    // Quem foi pulado só por estar em cooldown: se ninguém for aceito, volta à fila como último recurso.
+    const deferred: Array<{ provider: VisionProvider; until: number; skip: Attempt }> = [];
+    let ignoreCooldown = false;
+    const retried = new Map<string, Attempt>(); // provedor -> o registro de "pulado" que sai quando ele é retentado
     const flights = new Map<number, Flight>();
     let nextId = 0;
     let lastLaunch = startedAll;
@@ -159,9 +163,11 @@ export class ExtractionRouter {
         }
 
         // Se o banco do cooldown falhar, segue sem ele: melhor tentar o provedor do que derrubar a extração.
-        const blockedUntil = await this.cooldown.blockedUntil(provider.id).catch(() => null);
+        const blockedUntil = ignoreCooldown ? null : await this.cooldown.blockedUntil(provider.id).catch(() => null);
         if (blockedUntil !== null && blockedUntil > started) {
-          attempts.push({ providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0, startOffsetMs: offset });
+          const skip: Attempt = { providerId: provider.id, outcome: "skipped_cooldown", latencyMs: 0, startOffsetMs: offset };
+          attempts.push(skip);
+          deferred.push({ provider, until: blockedUntil, skip });
           continue;
         }
 
@@ -169,7 +175,15 @@ export class ExtractionRouter {
         if (remaining <= 0) {
           attempts.push({ providerId: provider.id, outcome: "skipped_budget", latencyMs: 0, startOffsetMs: offset });
           queue.length = 0; // sem orçamento, ninguém mais entra
+          deferred.length = 0;
           return false;
+        }
+
+        const skipped = retried.get(provider.id);
+        if (skipped) {
+          const i = attempts.indexOf(skipped);
+          if (i >= 0) attempts.splice(i, 1);
+          retried.delete(provider.id);
         }
 
         const id = nextId++;
@@ -206,45 +220,60 @@ export class ExtractionRouter {
 
     await launchNext();
 
-    while (flights.size > 0) {
-      // Se ainda há provedores na fila, o próximo entra na corrida quando o último disparado passa do tempo.
-      let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
-      const racers: Array<Promise<{ id: number; settled: Settled } | "hedge">> = [...flights.values()].map((f) => f.promise);
-      if (queue.length > 0 && Number.isFinite(hedgeAfterMs)) {
-        const wait = Math.max(0, hedgeAfterMs - (this.now() - lastLaunch));
-        racers.push(new Promise<"hedge">((resolve) => (hedgeTimer = setTimeout(() => resolve("hedge"), wait))));
-      }
-      const event = await Promise.race(racers);
-      clearTimeout(hedgeTimer);
-
-      if (event === "hedge") {
-        await launchNext();
-        continue;
-      }
-
-      const flight = flights.get(event.id);
-      if (!flight) continue;
-      flights.delete(event.id);
-      const settled = event.settled;
-      const base = { providerId: flight.provider.id, latencyMs: settled.latencyMs, startOffsetMs: flight.offset };
-
-      if (settled.kind === "error") {
-        attempts.push({ ...base, outcome: "error", errorKind: settled.errorKind });
-      } else if (settled.kind === "invalid") {
-        attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
-      } else if (settled.issues.length === 0) {
-        attempts.push({ ...base, outcome: "accepted" });
-        cancelRest();
-        return { status: "accepted", data: settled.data, issues: [], providerId: flight.provider.id, attempts };
-      } else {
-        attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
-        if (best === null || settled.issues.length < best.issues.length) {
-          best = { data: settled.data, issues: settled.issues, providerId: flight.provider.id };
+    for (;;) {
+      while (flights.size > 0) {
+        // Se ainda há provedores na fila, o próximo entra na corrida quando o último disparado passa do tempo.
+        let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
+        const racers: Array<Promise<{ id: number; settled: Settled } | "hedge">> = [...flights.values()].map((f) => f.promise);
+        if (queue.length > 0 && Number.isFinite(hedgeAfterMs)) {
+          const wait = Math.max(0, hedgeAfterMs - (this.now() - lastLaunch));
+          racers.push(new Promise<"hedge">((resolve) => (hedgeTimer = setTimeout(() => resolve("hedge"), wait))));
         }
+        const event = await Promise.race(racers);
+        clearTimeout(hedgeTimer);
+
+        if (event === "hedge") {
+          await launchNext();
+          continue;
+        }
+
+        const flight = flights.get(event.id);
+        if (!flight) continue;
+        flights.delete(event.id);
+        const settled = event.settled;
+        const base = { providerId: flight.provider.id, latencyMs: settled.latencyMs, startOffsetMs: flight.offset };
+
+        if (settled.kind === "error") {
+          attempts.push({ ...base, outcome: "error", errorKind: settled.errorKind });
+        } else if (settled.kind === "invalid") {
+          attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
+        } else if (settled.issues.length === 0) {
+          attempts.push({ ...base, outcome: "accepted" });
+          cancelRest();
+          return { status: "accepted", data: settled.data, issues: [], providerId: flight.provider.id, attempts };
+        } else {
+          attempts.push({ ...base, outcome: "rejected", issues: settled.issues });
+          if (best === null || settled.issues.length < best.issues.length) {
+            best = { data: settled.data, issues: settled.issues, providerId: flight.provider.id };
+          }
+        }
+
+        // Quem falhou libera a vez na hora: não há motivo para esperar o tempo de hedge.
+        if (flights.size === 0) await launchNext();
       }
 
-      // Quem falhou libera a vez na hora: não há motivo para esperar o tempo de hedge.
-      if (flights.size === 0) await launchNext();
+      // Ninguém foi aceito. Quem foi pulado só por cooldown ainda pode ser a segunda opinião (ou a única que responde):
+      // tenta primeiro o que sai do cooldown antes. O cooldown é uma estimativa, e desistir é pior que errar de novo.
+      if (ignoreCooldown || deferred.length === 0 || totalBudgetMs - (this.now() - startedAll) <= 0) break;
+      deferred.sort((a, b) => a.until - b.until);
+      for (const d of deferred) {
+        queue.push(d.provider);
+        retried.set(d.provider.id, d.skip);
+      }
+      deferred.length = 0;
+      ignoreCooldown = true;
+      await launchNext();
+      if (flights.size === 0) break;
     }
 
     if (best) return { status: "needs_review", ...best, attempts };
