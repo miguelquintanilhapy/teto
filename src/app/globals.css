@@ -201,7 +201,8 @@ body {
     display: none !important;
   }
   .sensitive {
-    filter: none !important;
+    color: inherit !important;
+    background: none !important;
   }
   * {
     box-shadow: none !important;
@@ -212,10 +213,19 @@ body {
   }
 }
 
-/* Privacidade: esconde os valores quando o usuário liga "Ocultar valores". */
+/*
+ * Privacidade: com "Ocultar valores" ligado, cada valor vira uma barra lisa, como nos apps de banco.
+ * Um borrão ainda deixa adivinhar os dígitos; a barra não. O texto continua no lugar (só fica sem cor),
+ * então a altura da linha e o layout não mudam.
+ */
 :root[data-privacy="on"] .sensitive {
-  filter: blur(0.4em);
+  color: transparent !important;
+  background: color-mix(in srgb, var(--label) 24%, transparent);
+  border-radius: 0.375em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
