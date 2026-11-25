@@ -104,6 +104,8 @@ alertas, `eval` básico, tratamento de erro na interface e o vídeo.
 
 ## Pendências até o envio (ordem sugerida)
 
+O detalhe de cada tarefa, com critério de pronto, está em [TAREFAS.md](TAREFAS.md).
+
 1. ~~Aplicar a migração `0002`~~ (feito).
 2. Subir a branch `feat/interface-painel`, abrir o PR e mesclar na `main` (a CI precisa passar).
 3. Na Vercel: variáveis de ambiente (sem `ALLOW_PROFILE_EDIT`), desligar *Vercel Authentication* e testar o

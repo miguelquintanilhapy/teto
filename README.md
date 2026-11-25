@@ -316,6 +316,9 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 
 ## Como trabalhamos
 
+> Quem usa um assistente de IA (Claude Code, Codex, Cursor…) deve deixá-lo ler o [AGENTS.md](AGENTS.md)
+> e o [docs/TAREFAS.md](docs/TAREFAS.md) primeiro: lá estão as regras do projeto e o que cada um vai fazer.
+
 - **Acesso ao repositório:** o dono do repositório convida cada integrante em
   GitHub → **Settings → Collaborators → Add people**. Sem isso não dá para enviar branches
   nem abrir PRs. Cada integrante deve commitar com o próprio nome e e-mail
@@ -334,6 +337,8 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md) | Práticas de engenharia de IA e avaliação |
 | [docs/mei-rules.md](docs/mei-rules.md) | Regras do MEI, fontes e questões em aberto |
 | [docs/PLANO.md](docs/PLANO.md) | Calendário, frentes de trabalho e definição de pronto |
+| [docs/TAREFAS.md](docs/TAREFAS.md) | Tarefas da equipe até o envio, com critério de pronto |
+| [AGENTS.md](AGENTS.md) | Guia para agentes de IA e para quem chega: regras, comandos, convenções e armadilhas |
 | [docs/AUDITORIA.md](docs/AUDITORIA.md) | Estado de qualidade: desenho × implementação |
 | [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) | Resultados da avaliação da extração (gerado) |
 | [docs/INTERFACE.md](docs/INTERFACE.md) | Telas, decisões de design, acessibilidade e navegação fluida |
