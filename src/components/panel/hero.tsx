@@ -28,9 +28,11 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="flex gap-3.5 rounded-card p-5 pr-[1.125rem]"
+      className="@container rounded-card p-5 pr-[1.125rem]"
       style={{ background: `linear-gradient(155deg, ${TONE_TINT[tone]} 0%, transparent 64%), var(--card)` }}
     >
+      {/* Com texto ampliado (ou tela estreita), o número e a sala não cabem lado a lado: a sala desce. */}
+      <div className="flex flex-col gap-3.5 @min-[17rem]:flex-row">
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
           <h2 id="hero-title" className="text-base font-medium text-label-2">
@@ -55,7 +57,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
             </span>
           </p>
         </div>
-        <dl className="t-caption mt-3.5 flex flex-col gap-1.5 text-label-2">
+        <dl className="t-sub mt-3.5 flex flex-col gap-1.5 text-label-2">
           <div className="flex items-center gap-2">
             <RoofKey />
             <dt>Limite</dt>
@@ -73,6 +75,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
         tone={tone}
         label={`Você usou ${formatPercent(usedRatio)} do limite de ${formatReais(limitCents)}`}
       />
+      </div>
     </section>
   );
 }

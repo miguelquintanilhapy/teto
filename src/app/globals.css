@@ -16,11 +16,11 @@
   --tile: #f2f2f7;
   --label: #000000;
   --label-2: #636366;
-  /* Azul de interação: botões e links. O texto azul usa um tom próprio, mais escuro, para passar de 4,5:1. */
-  --primary: #007aff;
+  /* Azul de interação: botões e links. Botão: texto branco a 5,07:1. Texto azul: tom próprio, a 5,2:1 no fundo. */
+  --primary: #006ae0;
   --on-primary: #ffffff;
   --action-text: #0062cc;
-  --glow: 0 10px 28px rgba(0, 122, 255, 0.32);
+  --glow: 0 10px 28px rgba(0, 106, 224, 0.3);
 
   --tint: 12%;
   --on-ok: #ffffff;
@@ -52,10 +52,10 @@
     --tile: #161618;
     --label: #ffffff;
     --label-2: #acacb1;
-    --primary: #0a84ff;
+    --primary: #0a6fdf; /* texto branco a 4,83:1 */
     --on-primary: #ffffff;
     --action-text: #409cff;
-    --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
+    --glow: 0 10px 28px rgba(10, 111, 223, 0.42);
 
     --tint: 22%;
     --on-ok: #000000;
@@ -87,10 +87,10 @@
   --tile: #161618;
   --label: #ffffff;
   --label-2: #acacb1;
-  --primary: #0a84ff;
+  --primary: #0a6fdf; /* texto branco a 4,83:1 */
   --on-primary: #ffffff;
   --action-text: #409cff;
-  --glow: 0 10px 28px rgba(10, 132, 255, 0.4);
+  --glow: 0 10px 28px rgba(10, 111, 223, 0.42);
 
   --tint: 22%;
   --on-ok: #000000;

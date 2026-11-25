@@ -19,7 +19,7 @@ export function CurrencyField({
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3 focus-within:bg-track/40">
+    <div className="relative px-5 py-3 focus-within:after:pointer-events-none focus-within:after:absolute focus-within:after:inset-1 focus-within:after:rounded-[1.25rem] focus-within:after:ring-2 focus-within:after:ring-action focus-within:after:content-['']">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
@@ -75,7 +75,7 @@ export function TextField({
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3 focus-within:bg-track/40">
+    <div className="relative px-5 py-3 focus-within:after:pointer-events-none focus-within:after:absolute focus-within:after:inset-1 focus-within:after:rounded-[1.25rem] focus-within:after:ring-2 focus-within:after:ring-action focus-within:after:content-['']">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
