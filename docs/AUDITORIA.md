@@ -1,16 +1,20 @@
 # Auditoria de qualidade do Teto
 
 Registro honesto, separado em **desenho** (o que está decidido) e **implementação**
-(o que existe em código). Atualizar a cada marco. Última revisão: 23/11/2026.
+(o que existe em código). Atualizar a cada marco. Última revisão: 25/11/2026.
 
 ## Veredito
 
 - **Desenho:** completo para o escopo do hackathon. As lacunas foram fechadas em
   decisões registradas em [ARCHITECTURE.md](ARCHITECTURE.md) e
-  [DATA-MODEL.md](DATA-MODEL.md). Restam **4 questões de negócio** que dependem de
+  [DATA-MODEL.md](DATA-MODEL.md). Restam **2 questões de negócio** que dependem de
   fonte oficial ([mei-rules.md](mei-rules.md)).
-- **Implementação:** a base está pronta (núcleo e roteador testados). O produto de
-  ponta a ponta ainda não existe. O cronograma está em [PLANO.md](PLANO.md).
+- **Implementação:** o produto existe de ponta a ponta (enviar nota, conferir, confirmar, painel,
+  simulador, histórico, extrato, relatório, alertas) e foi revisado em UX, acessibilidade, segurança e cor
+  ([REVISAO.md](REVISAO.md), [SEGURANCA.md](SEGURANCA.md)). Falta o que depende de ação fora do código:
+  link público, vídeo e a migração `0002` no banco do projeto. O que sobra está em [PLANO.md](PLANO.md).
+- **Limite honesto:** a interface foi verificada à mão no navegador, não em aparelho nem com leitor de tela
+  real, e não tem testes automatizados (a lógica tem 406).
 
 ## Desenho: lacunas fechadas
 
@@ -43,18 +47,21 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 |---|---|
 | Regras do MEI em `src/core`, com testes unitários | ✅ |
 | Roteador de extração com failover, escalonamento, cooldown, orçamento de tempo e cota, testado sem rede | ✅ |
-| CI com lint, tipos e testes | ✅ |
-| Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ (falta a porta `Notifier` e aplicar a migração no Supabase) |
-| Adaptadores Gemini e OpenRouter | ✅ (Gemini confirmado ao vivo em parte; ver EVAL-RESULTS) |
-| Migração e repositórios do Supabase (perfil, documentos, extrações, transações, storage, cooldown, cota) | ✅ |
-| Upload (`POST /api/documents`): validação por assinatura do arquivo, hash, persistência e extração, testado ponta a ponta no Supabase real | ✅ |
-| Confirmação de lançamento e painel (`POST/GET /api/transactions`, `GET /api/dashboard`), testados no Supabase real | ✅ extrato, cancelar e corrigir 🟡 |
-| Interface (upload, confirmação, painel, simulador) | 🟡 |
-| Alertas por e-mail e cron | 🟡 |
+| CI com lint, tipos, testes e `eval` em replay | ✅ |
+| Fase 0: status, Clock, regras por ano, budget, capabilities, portas, validação de env, migração SQL | ✅ |
+| Adaptadores Gemini e OpenRouter | ✅ (ver EVAL-RESULTS) |
+| Migrações e repositórios do Supabase (perfil, documentos, extrações, transações, storage, cooldown, cota, alertas) | ✅ (`0002` ainda precisa ser aplicada no banco do projeto) |
+| Upload (`POST /api/documents`): assinatura do arquivo, hash, limite por janela, persistência e extração, testado no Supabase real | ✅ |
+| Confirmação, cancelar e corrigir lançamento, histórico de alterações, painel e relatório | ✅ |
+| Interface: 16 telas, tema claro/escuro, ocultar valores, instalável | ✅ (sem testes automatizados de interface) |
+| Extrato: CSV lido no navegador e conciliado com as receitas | ✅ (não é salvo no banco) |
+| Alertas por e-mail e cron | ✅ testado com envio simulado; nenhum e-mail real foi enviado |
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
-| Cobertura das gravações: Flash-Lite 12/26, Nemotron 14/26, Flash 0/26 (sobrecarga do Google e cotas) | 🟡 completar nos próximos dias |
-| `gitleaks` e `npm audit` na CI | 🟡 |
-| Deploy público | 🟡 |
+| Cobertura das gravações: Flash-Lite 12/26, Nemotron 14/26, Flash 0/26 (sobrecarga do Google e cotas) | 🟡 completar |
+| Segurança: Origin, corpo estrito, cabeçalhos e CSP, máscara de CPF/CNPJ, limite por janela | ✅ (sem login; ver SEGURANCA.md) |
+| `gitleaks` e `npm audit` na CI | ❌ só rodados à mão (`npm audit` sem vulnerabilidades de produção em 25/11) |
+| Deploy público | 🟡 existe na Vercel, mas com proteção por login ligada |
+| Lembrete do vencimento do DAS por e-mail | ❌ não implementado |
 
 ## Pontos bobos a eliminar antes de enviar
 
@@ -64,12 +71,12 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
 - [ ] Sem `LICENSE` ou aviso de licença (o regulamento só exige que não impeça
       leitura, execução e teste do código)
 - [x] Sem `engines` / `.nvmrc` com a versão do Node
-- [ ] README sem link da demo e sem tabela de avaliação
+- [ ] README sem link da demo (a tabela de avaliação já está)
 - [ ] Fontes das regras do MEI ainda "a confirmar"
-- [ ] Custo do estouro sempre rotulado como estimativa na interface
-- [ ] Nenhuma afirmação de acerto sem número medido
-- [ ] Sem `console.log`, `TODO` ou código morto
-- [ ] Sem dados reais de terceiros em exemplos ou capturas de tela
+- [x] Custo do estouro sempre rotulado como estimativa na interface
+- [x] Nenhuma afirmação de acerto sem número medido (o README traz o eval com a ressalva das gravações parciais)
+- [x] Sem `console.log`, `TODO` ou código morto (`console.log` só nos scripts de verificação)
+- [x] Sem dados reais de terceiros em exemplos ou capturas de tela (tudo fictício)
 - [ ] Links da demo e do vídeo testados em janela anônima, sem login
 
 ## Checklist final de envio
