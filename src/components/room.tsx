@@ -3,12 +3,13 @@ import type { Tone } from "@/lib/copy";
 const FILL: Record<Tone, string> = {
   ok: "var(--ok)",
   warn: "var(--warn)",
+  alert: "var(--alert)",
   danger: "var(--danger)",
 };
 
 /**
  * A "sala" do limite: o espaço vazio é o que ainda cabe até o teto.
- * O telhado cheio marca o limite; o pontilhado, o limite com 20% a mais.
+ * O telhado cheio marca o limite; o pontilhado âmbar, o limite com 20% a mais.
  * Medidor de capacidade, e não anel de progresso (a Apple reserva o anel para atividade).
  */
 export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label: string }) {
@@ -42,8 +43,7 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
       <path
         d={`M10,${TOP - 30} L52,${TOP - 56.6} L94,${TOP - 30}`}
         fill="none"
-        stroke="var(--label)"
-        strokeOpacity="0.5"
+        stroke="var(--warn)"
         strokeWidth="6.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -53,14 +53,14 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
   );
 }
 
-/** Telhado pequeno para a legenda: cheio (limite) ou pontilhado (limite + 20%). */
+/** Telhado pequeno para a legenda: cheio (limite) ou pontilhado âmbar (limite + 20%, onde o risco começa). */
 export function RoofKey({ dotted = false }: { dotted?: boolean }) {
   return (
     <svg width="20" height="11" viewBox="0 0 20 11" aria-hidden="true" className="shrink-0">
       <path
         d="M2.5,9 L10,2.5 L17.5,9"
         fill="none"
-        stroke="var(--label)"
+        stroke={dotted ? "var(--warn)" : "var(--label)"}
         strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"

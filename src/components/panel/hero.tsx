@@ -1,4 +1,4 @@
-import { CheckCircle, Warning } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircle, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import type { Dashboard } from "@/core";
 import { bandView, type Tone } from "@/lib/copy";
 import { centsPart, formatPercent, formatReais, wholeReais } from "@/lib/format";
@@ -7,12 +7,14 @@ import { Room, RoofKey } from "@/components/room";
 const TONE_TEXT: Record<Tone, string> = {
   ok: "text-ok-text",
   warn: "text-warn-text",
+  alert: "text-alert-text",
   danger: "text-danger-text",
 };
 
 const TONE_TINT: Record<Tone, string> = {
   ok: "color-mix(in srgb, var(--ok) var(--tint), transparent)",
   warn: "color-mix(in srgb, var(--warn) var(--tint), transparent)",
+  alert: "color-mix(in srgb, var(--alert) var(--tint), transparent)",
   danger: "color-mix(in srgb, var(--danger) var(--tint), transparent)",
 };
 
@@ -20,7 +22,8 @@ const TONE_TINT: Record<Tone, string> = {
 export function Hero({ dashboard }: { dashboard: Dashboard }) {
   const { year, accumulatedCents, limitCents, toleranceLimitCents, usedRatio, headroomCents, band } = dashboard;
   const { label, tone } = bandView(band);
-  const StatusIcon = tone === "ok" ? CheckCircle : Warning;
+  // O ícone também muda de faixa: quem não distingue laranja de vermelho ainda vê a diferença.
+  const StatusIcon = tone === "ok" ? CheckCircle : tone === "danger" ? WarningOctagon : Warning;
 
   return (
     <section
