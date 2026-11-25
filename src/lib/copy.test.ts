@@ -36,7 +36,7 @@ describe("forecastView", () => {
     // 60.000 em 269 dias desde 1/3: ritmo de ~223 por dia, limite de 67.500 em 28/12
     const f = forecastView(dash([rev("a", "2026-03-10", 30_000_00), rev("b", "2026-11-05", 30_000_00)]));
     expect(f.headline).toBe("Você deve passar do limite em 28 de dezembro.");
-    expect(nb(f.body)).toContain("2026 fecha em R$ 68.253");
+    expect(nb(f.body)).toContain("2026 fecha em R$ 68.252");
     expect(f.body).toContain("Até 20% acima você segue MEI neste ano.");
   });
 

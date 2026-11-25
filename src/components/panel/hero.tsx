@@ -38,7 +38,7 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           </h2>
           <p className="t-display sensitive mt-0.5 mb-2.5 text-[clamp(1.75rem,9.5vw,2.5rem)]">
             R$&nbsp;{wholeReais(accumulatedCents)}
-            <span className="sr-only">{centsPart(accumulatedCents)}</span>
+            <span className="text-[0.5em] font-bold tracking-normal text-label-2">{centsPart(accumulatedCents)}</span>
           </p>
           <p className={`flex items-center gap-2 text-[1.0625rem] font-bold ${TONE_TEXT[tone]}`}>
             <StatusIcon size={20} weight="fill" aria-hidden="true" />

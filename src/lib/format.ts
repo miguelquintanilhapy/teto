@@ -9,9 +9,13 @@ const NBSP = " ";
 const brl = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const brlCents = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** R$ 60.000 (arredonda para reais inteiros). */
+/**
+ * R$ 60.000: reais inteiros, sempre por TRUNCAMENTO, como `wholeReais`. Uma regra só em todo o app: antes, o painel
+ * truncava (R$ 56.180) e o gráfico arredondava (R$ 56.181), e o mesmo faturamento aparecia com dois números.
+ * Truncar também nunca mostra folga a mais ("ainda cabem").
+ */
 export function formatReais(cents: Cents): string {
-  return `R$${NBSP}${brl.format(Math.round(cents / 100))}`;
+  return `R$${NBSP}${brl.format(Math.trunc(cents / 100))}`;
 }
 
 /** R$ 1.280,00 (centavos sempre visíveis). */
@@ -31,7 +35,7 @@ export function wholeReais(cents: Cents): string {
 
 /** Valor curto para rótulos de gráfico: 6700 reais viram "6,7 mil"; abaixo de mil, o valor inteiro. */
 export function formatCompact(cents: Cents): string {
-  const reais = Math.round(cents / 100);
+  const reais = Math.trunc(cents / 100);
   if (reais < 1000) return String(reais);
   const mil = reais / 1000;
   return `${mil.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
