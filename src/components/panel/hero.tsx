@@ -44,7 +44,11 @@ export function Hero({ dashboard }: { dashboard: Dashboard }) {
           <p className="mt-1 text-base leading-snug text-label-2">
             <span className="sensitive">{formatPercent(usedRatio)}</span> do limite.{" "}
             <span className="sensitive">
-              {headroomCents > 0 ? `Ainda cabem ${formatReais(headroomCents)}.` : "O limite do ano já foi atingido."}
+              {headroomCents > 0
+                ? `Ainda cabem ${formatReais(headroomCents)}.`
+                : accumulatedCents > limitCents
+                  ? `Você passou do limite em ${formatReais(accumulatedCents - limitCents)}.`
+                  : "O limite do ano foi atingido."}
             </span>
           </p>
         </div>

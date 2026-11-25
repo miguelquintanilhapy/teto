@@ -1,5 +1,5 @@
 import type { Dashboard, RiskBand } from "@/core";
-import { formatDayMonth, formatReais } from "./format";
+import { formatDayMonth, formatReais, monthName } from "./format";
 
 export type Tone = "ok" | "warn" | "danger";
 
@@ -82,5 +82,73 @@ export function daysUntilLabel(days: number): string {
 }
 
 export function pendingLabel(count: number): string {
-  return count === 0 ? "tudo conferido" : "para você conferir";
+  return count === 0 ? "nenhuma pendente" : "para você conferir";
+}
+
+/** Leitura do cartão de notas para o leitor de tela: sem "zero notas: tudo conferido". */
+export function pendingAria(count: number): string {
+  if (count === 0) return "Nenhuma nota para conferir";
+  return `${count} ${count === 1 ? "nota" : "notas"} para conferir`;
+}
+
+/** O que o usuário pode fazer agora, por faixa. A faixa "ok" não pede nada. */
+export function bandAdvice(band: RiskBand): string | null {
+  switch (band) {
+    case "ok":
+      return null;
+    case "attention":
+      return "Antes de aceitar uma venda grande, simule o efeito no limite.";
+    case "critical":
+      return "Simule cada venda nova antes de aceitar. Se precisar passar do limite, fale com seu contador.";
+    case "over_tolerance":
+    case "over_retroactive":
+      return "Fale com seu contador sobre o desenquadramento.";
+  }
+}
+
+/** Competência do DAS: o que vence no dia 20 é referente ao mês anterior. */
+export function dasCompetence(dueDate: string): string {
+  const month = Number(dueDate.slice(5, 7)); // 1 a 12
+  return monthName(month === 1 ? 11 : month - 2);
+}
+
+/**
+ * A premissa da previsão, dita com todas as letras: média por mês desde quando.
+ * Só descreve o que `projectYear` já usa (receita ÷ dias desde o início da contagem).
+ */
+export function paceLine(d: Dashboard, openingDate: string | null): string | null {
+  if (d.accumulatedCents === 0) return null;
+  const monthly = Math.round(d.projection.dailyRateCents * 30.4375);
+  const opensThisYear = openingDate !== null && Number(openingDate.slice(0, 4)) === d.year && openingDate.slice(5) > "01-01";
+  const since = opensThisYear ? `a abertura, em ${monthName(Number(openingDate!.slice(5, 7)) - 1)}` : "janeiro";
+  return `Média de ${formatReais(monthly)} por mês desde ${since}. A previsão muda a cada nova receita.`;
+}
+
+export interface LimitExplainerRow {
+  title: string;
+  value: string;
+  text: string;
+}
+
+/** As três faixas do limite, em linguagem simples, para o Painel explicar sem mandar o usuário ao Perfil. */
+export function limitExplainer(d: Dashboard, openingDate: string | null): LimitExplainerRow[] {
+  const opensThisYear = openingDate !== null && Number(openingDate.slice(0, 4)) === d.year;
+  const months = opensThisYear ? 12 - Number(openingDate!.slice(5, 7)) + 1 : 12;
+  return [
+    {
+      title: "Limite do ano",
+      value: formatReais(d.limitCents),
+      text: months < 12 ? `Proporcional: sua empresa abriu em ${monthName(Number(openingDate!.slice(5, 7)) - 1)}, são ${months} meses de atividade em ${d.year}.` : `O limite anual completo de ${d.year}.`,
+    },
+    {
+      title: "Até 20% acima",
+      value: formatReais(d.toleranceLimitCents),
+      text: `Se passar do limite mas ficar até aqui, você segue MEI neste ano e é desenquadrado em 1º de janeiro de ${d.year + 1}.`,
+    },
+    {
+      title: "Acima disso",
+      value: `mais de ${formatReais(d.toleranceLimitCents)}`,
+      text: `O desenquadramento vale desde ${opensThisYear ? "a abertura" : `janeiro de ${d.year}`}, e os impostos do ano são recalculados.`,
+    },
+  ];
 }
