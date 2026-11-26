@@ -34,7 +34,7 @@ export interface ForecastView {
  * Frase da previsão. Só escreve em português o que o núcleo já calculou:
  * nenhuma conta nova acontece aqui.
  */
-export function forecastView(d: Dashboard): ForecastView {
+export function forecastView(d: Dashboard, openingDate: string | null): ForecastView {
   const { year, accumulatedCents, limitCents, toleranceLimitCents, projection } = d;
 
   if (accumulatedCents === 0) {
@@ -48,11 +48,11 @@ export function forecastView(d: Dashboard): ForecastView {
     const excess = accumulatedCents - limitCents;
     const body =
       d.band === "over_retroactive"
-        ? "O excesso passa de 20%: o desenquadramento vale desde janeiro."
-        : `Até 20% acima você segue MEI neste ano, mas é desenquadrado em 1º de janeiro de ${year + 1}.`;
+        ? retroactiveConsequence(year, openingDate, toleranceLimitCents)
+        : toleranceConsequence(year, toleranceLimitCents);
     return {
       headline: `Você já passou do limite de ${year}.`,
-      body: `O excesso é de ${formatReais(excess)}. ${body}`,
+      body: `Passou ${formatReais(excess)}. ${body}`,
     };
   }
 
@@ -60,8 +60,8 @@ export function forecastView(d: Dashboard): ForecastView {
     const end = projection.projectedYearEndCents;
     const tail =
       end <= toleranceLimitCents
-        ? "Até 20% acima você segue MEI neste ano."
-        : "Mais de 20% acima, o desenquadramento é retroativo.";
+        ? `Até ${formatReais(toleranceLimitCents)} você termina o ano como MEI, mas paga imposto a mais sobre o que passar.`
+        : `Passando de ${formatReais(toleranceLimitCents)}, você deixa de ser MEI ${retroactiveSince(year, openingDate)}. Fale com um contador.`;
     return {
       headline: `Você deve passar do limite em ${formatDayMonth(projection.limitCrossing.date)}.`,
       body: `No ritmo atual, ${year} fecha em ${formatReais(end)}. ${tail}`,
@@ -103,7 +103,7 @@ export function bandAdvice(band: RiskBand): string | null {
       return "Simule cada venda nova antes de aceitar. Se precisar passar do limite, fale com seu contador.";
     case "over_tolerance":
     case "over_retroactive":
-      return "Fale com seu contador sobre o desenquadramento.";
+      return "Fale com um contador: você vai deixar de ser MEI e precisa avisar a Receita.";
   }
 }
 
@@ -125,31 +125,27 @@ export function paceLine(d: Dashboard, openingDate: string | null): string | nul
   return `Média de ${formatReais(monthly)} por mês desde ${since}. A previsão muda a cada nova receita.`;
 }
 
-export interface LimitExplainerRow {
-  title: string;
-  value: string;
-  text: string;
+/** A empresa abriu neste ano? Muda o limite (proporcional) e desde quando vale a saída retroativa. */
+export function opensInYear(year: number, openingDate: string | null): openingDate is string {
+  return openingDate !== null && Number(openingDate.slice(0, 4)) === year;
 }
 
-/** As três faixas do limite, em linguagem simples, para o Painel explicar sem mandar o usuário ao Perfil. */
-export function limitExplainer(d: Dashboard, openingDate: string | null): LimitExplainerRow[] {
-  const opensThisYear = openingDate !== null && Number(openingDate.slice(0, 4)) === d.year;
-  const months = opensThisYear ? 12 - Number(openingDate!.slice(5, 7)) + 1 : 12;
-  return [
-    {
-      title: "Limite do ano",
-      value: formatReais(d.limitCents),
-      text: months < 12 ? `Proporcional: sua empresa abriu em ${monthName(Number(openingDate!.slice(5, 7)) - 1)}, são ${months} meses de atividade em ${d.year}.` : `O limite anual completo de ${d.year}.`,
-    },
-    {
-      title: "Até 20% acima",
-      value: formatReais(d.toleranceLimitCents),
-      text: `Se passar do limite mas ficar até aqui, você segue MEI neste ano e é desenquadrado em 1º de janeiro de ${d.year + 1}.`,
-    },
-    {
-      title: "Acima disso",
-      value: `mais de ${formatReais(d.toleranceLimitCents)}`,
-      text: `O desenquadramento vale desde ${opensThisYear ? "a abertura" : `janeiro de ${d.year}`}, e os impostos do ano são recalculados.`,
-    },
-  ];
+/**
+ * Desde quando vale a saída do MEI quando o faturamento passa de 20% acima do limite: de 1º de janeiro ou, no
+ * ano de abertura, desde a abertura (LC 123, art. 18-A, §7º, IV "b"; ver docs/mei-rules.md).
+ */
+export function retroactiveSince(year: number, openingDate: string | null): string {
+  return opensInYear(year, openingDate)
+    ? `desde a abertura, em ${monthName(Number(openingDate.slice(5, 7)) - 1)}`
+    : `desde 1º de janeiro de ${year}`;
+}
+
+/** Passou do limite, mas até 20% acima: o que acontece, sem jargão ("desenquadrado" vira "vira microempresa"). */
+export function toleranceConsequence(year: number, toleranceLimitCents: number): string {
+  return `Até ${formatReais(toleranceLimitCents)}, você termina ${year} como MEI, mas paga imposto a mais sobre o que passou e vira microempresa em 1º de janeiro de ${year + 1}.`;
+}
+
+/** Passou de 20% acima do limite: a saída do MEI vale para trás. */
+export function retroactiveConsequence(year: number, openingDate: string | null, toleranceLimitCents: number): string {
+  return `Acima de ${formatReais(toleranceLimitCents)}, você deixa de ser MEI ${retroactiveSince(year, openingDate)}, e paga a diferença de imposto desse período, com juros e multa.`;
 }

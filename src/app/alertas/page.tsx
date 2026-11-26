@@ -4,6 +4,7 @@ import { rulesFor, type AlertKind } from "@/core";
 import Link from "next/link";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { getEnv } from "@/server/env";
+import { retroactiveSince } from "@/lib/copy";
 import { formatFullShortDate, formatPercent } from "@/lib/format";
 import { getAlertsOverview } from "@/server/alerts/overview";
 import { loadPanelSafe } from "@/server/panel-safe";
@@ -44,8 +45,8 @@ async function Conteudo() {
   const bands: Array<{ kind: AlertKind; title: string; text: string }> = [
     { kind: "threshold_warning", title: `${formatPercent(cfg.warningRatio)} do limite`, text: "Atenção: ainda dá tempo de planejar." },
     { kind: "threshold_critical", title: `${formatPercent(cfg.criticalRatio)} do limite`, text: "Crítico: simule antes de aceitar vendas grandes." },
-    { kind: "over_limit", title: "Passou do limite", text: "Você segue MEI até 20% acima, mas é desenquadrado em janeiro." },
-    { kind: "over_tolerance", title: `Passou de ${formatPercent(cfg.toleranceRate)} acima do limite`, text: "Desenquadramento retroativo. Procure um contador." },
+    { kind: "over_limit", title: "Passou do limite", text: "Até 20% acima, você termina o ano como MEI, mas paga imposto a mais e vira microempresa em janeiro." },
+    { kind: "over_tolerance", title: `Passou de ${formatPercent(cfg.toleranceRate)} acima do limite`, text: `Você deixa de ser MEI ${retroactiveSince(overview.year, r.panel.profile.openingDate)}. Procure um contador.` },
   ];
 
   return (

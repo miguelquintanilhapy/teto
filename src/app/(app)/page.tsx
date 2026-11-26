@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { monthOf, yearOf } from "@/core";
-import { BrandMark } from "@/components/brand";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
@@ -67,10 +66,6 @@ async function PainelConteudo() {
     <>
       <header className="mt-2 mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-bold tracking-wide text-label-2">
-            <BrandMark size={18} />
-            Teto
-          </p>
           <h1 className="t-large-title">Painel</h1>
           <p className="t-body mt-0.5 truncate text-label-2">
             {profile.name} · {year}

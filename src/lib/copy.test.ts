@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildDashboard, type Transaction } from "@/core";
-import { bandAdvice, bandView, dasCompetence, daysUntilLabel, forecastView, limitExplainer, paceLine, pendingAria, pendingLabel } from "./copy";
+import { bandAdvice, bandView, dasCompetence, daysUntilLabel, forecastView, paceLine, retroactiveSince, pendingAria, pendingLabel } from "./copy";
 
 const nb = (s: string) => s.replace(/ /g, " ");
 
@@ -28,32 +28,33 @@ describe("bandView", () => {
 
 describe("forecastView", () => {
   it("avisa quando ainda não há receita confirmada", () => {
-    const f = forecastView(dash([]));
+    const f = forecastView(dash([]), "2026-03-01");
     expect(f.headline).toBe("Ainda não há receita confirmada em 2026.");
   });
 
   it("prevê o dia em que o limite será ultrapassado", () => {
     // 60.000 em 269 dias desde 1/3: ritmo de ~223 por dia, limite de 67.500 em 28/12
-    const f = forecastView(dash([rev("a", "2026-03-10", 30_000_00), rev("b", "2026-11-05", 30_000_00)]));
+    const f = forecastView(dash([rev("a", "2026-03-10", 30_000_00), rev("b", "2026-11-05", 30_000_00)]), "2026-03-01");
     expect(f.headline).toBe("Você deve passar do limite em 28 de dezembro.");
     expect(nb(f.body)).toContain("2026 fecha em R$ 68.252");
-    expect(f.body).toContain("Até 20% acima você segue MEI neste ano.");
+    expect(nb(f.body)).toContain("Até R$ 81.000 você termina o ano como MEI, mas paga imposto a mais");
   });
 
   it("diz que o limite já foi ultrapassado e quanto passou", () => {
-    const f = forecastView(dash([rev("a", "2026-03-10", 70_000_00)]));
+    const f = forecastView(dash([rev("a", "2026-03-10", 70_000_00)]), "2026-03-01");
     expect(f.headline).toBe("Você já passou do limite de 2026.");
-    expect(nb(f.body)).toContain("O excesso é de R$ 2.500");
-    expect(f.body).toContain("1º de janeiro de 2027");
+    expect(nb(f.body)).toContain("Passou R$ 2.500");
+    expect(f.body).toContain("vira microempresa em 1º de janeiro de 2027");
   });
 
-  it("avisa do desenquadramento retroativo acima de 20%", () => {
-    const f = forecastView(dash([rev("a", "2026-03-10", 90_000_00)]));
-    expect(f.body).toContain("desenquadramento vale desde janeiro");
+  it("acima de 20%, a saída do MEI vale desde a abertura no ano em que a empresa abriu", () => {
+    const f = forecastView(dash([rev("a", "2026-03-10", 90_000_00)]), "2026-03-01");
+    expect(f.body).toContain("deixa de ser MEI desde a abertura, em março");
+    expect(f.body).not.toContain("desenquadr");
   });
 
   it("diz que termina o ano dentro do limite quando o ritmo permite", () => {
-    const f = forecastView(dash([rev("a", "2026-03-10", 10_000_00)], "2026-06-30"));
+    const f = forecastView(dash([rev("a", "2026-03-10", 10_000_00)], "2026-06-30"), "2026-03-01");
     expect(f.headline).toBe("No ritmo atual, você termina 2026 dentro do limite.");
   });
 });
@@ -80,7 +81,7 @@ describe("bandAdvice", () => {
     expect(bandAdvice("ok")).toBeNull();
     expect(bandAdvice("attention")).toContain("simule");
     expect(bandAdvice("critical")).toContain("contador");
-    expect(bandAdvice("over_tolerance")).toContain("desenquadramento");
+    expect(bandAdvice("over_tolerance")).toContain("avisar a Receita");
   });
 });
 
@@ -106,21 +107,13 @@ describe("paceLine", () => {
   });
 });
 
-describe("limitExplainer", () => {
-  it("explica as três faixas e o limite proporcional", () => {
-    const rows = limitExplainer(dash([]), "2026-03-01");
-    expect(rows.map((r) => r.title)).toEqual(["Limite do ano", "Até 20% acima", "Acima disso"]);
-    expect(rows[0]!.text).toContain("abriu em março");
-    expect(rows[0]!.text).toContain("10 meses");
-    expect(nb(rows[1]!.value)).toBe("R$ 81.000");
-    expect(rows[1]!.text).toContain("1º de janeiro de 2027");
-    expect(rows[2]!.text).toContain("desde a abertura");
+describe("retroactiveSince", () => {
+  it("no ano de abertura, conta desde a abertura", () => {
+    expect(retroactiveSince(2026, "2026-03-01")).toBe("desde a abertura, em março");
   });
 
-  it("no ano completo, o limite é o anual", () => {
-    const d = buildDashboard({ transactions: [], today: "2026-06-30", openingDate: "2020-01-10" });
-    const rows = limitExplainer(d, "2020-01-10");
-    expect(rows[0]!.text).toContain("anual completo");
-    expect(rows[2]!.text).toContain("desde janeiro de 2026");
+  it("nos outros anos, e sem data de abertura, conta desde 1º de janeiro", () => {
+    expect(retroactiveSince(2026, "2020-01-10")).toBe("desde 1º de janeiro de 2026");
+    expect(retroactiveSince(2026, null)).toBe("desde 1º de janeiro de 2026");
   });
 });

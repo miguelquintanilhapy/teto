@@ -18,7 +18,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 | Rota | O que faz |
 |---|---|
 | `/` (aba Painel) | Faturamento do ano (com centavos), faixa de risco, a sala do limite, "Lançar sem nota" logo abaixo do número, barra do limite com a faixa de tolerância, previsão, DAS com atalho "Gerar guia" (PGMEI), notas ("Tudo conferido" quando não há pendentes) e receita por mês (valor e mês ao toque) |
-| `/simular` (aba Simular) | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado; estado vazio sem venda inventada e "O que cabe" como ação própria |
+| `/simular` (aba Simular) | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado. Uma resposta só, em número grande (quanto ainda cabe ou quanto a venda passa do limite), com uma frase de consequência embaixo; atalhos numa linha e "Usar o que ainda cabe" junto do campo |
 | `/historico` (aba Histórico) | Lançamentos do ano por dia, com filtros de largura igual guardados no endereço, cancelados escondidos até pedir e aviso de "Possível duplicidade" |
 | `/perfil` (aba Mais) | Cartão do MEI, preferências (tema e ocultar valores), atalhos do MEI, ajuda e "Sobre" (a IA); a versão do app aparece com um toque |
 | `/enviar` (botão Enviar) | "Tirar foto" como ação principal (ou escolher arquivo), aviso de que a imagem vai para a IA, espera da leitura, conferência e confirmação |
@@ -30,7 +30,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 | `/ia` | Como a IA lê, em linguagem simples; a cadeia de modelos, a cota de hoje, tempos, falhas e o rastro de cada leitura ficam em "Detalhes técnicos" |
 | `/bem-vindo` | Primeiro cadastro do MEI (CNPJ e data de abertura). Quem já tem cadastro vai direto ao Painel |
 | `/perfil/editar` | Editar o cadastro (só quando a edição está liberada; ver [SEGURANCA.md](SEGURANCA.md)) |
-| `/regras` | As faixas do limite, os alertas e o vencimento do DAS, em frases inteiras ("Entenda o limite", no Painel, leva para cá) |
+| `/regras` | Escrita para quem nunca ouviu falar em desenquadramento: abre com "Conta tudo que entra, não o lucro", mostra a conta do limite (R$ 6.750 por mês × meses de atividade), as três faixas com o que acontece na prática e "Você está aqui", os avisos com o valor de cada um, o DAS e o que fazer se for passar ("Entenda o limite", no Painel, leva para cá) |
 | `/instalar` | Como adicionar o Teto à tela inicial: no Android, botão de instalar de verdade; no iPhone, os passos com o ícone de Compartilhar |
 | `/primeiros-passos` | Três passos para começar, marcados conforme o que já foi feito (passo feito não é link) |
 | 404 | "Esta página saiu do ar", com a sala vazia |
@@ -164,6 +164,11 @@ As telas não calculam regra de negócio. Elas leem o painel (`loadPanelSafe` �
 `src/server`), que usa o núcleo (`src/core`), e só escrevem o resultado em português (`src/lib/copy.ts`,
 `src/lib/simulate.ts`). Os valores de custo do estouro são sempre rotulados como estimativa.
 
+Linguagem das regras: a consequência vem antes do termo técnico ("vira microempresa em 1º de janeiro", "deixa de ser
+MEI desde a abertura"), e não "é desenquadrado". As frases de estouro saem de um lugar só (`toleranceConsequence`,
+`retroactiveConsequence` e `retroactiveSince`, em `src/lib/copy.ts`), usadas no Simular, na Previsão, nos avisos e no
+e-mail. No ano de abertura, a saída acima de 20% vale desde a abertura, não desde janeiro.
+
 ## Animações e interação
 
 Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada suave das folhas, estado de toque
@@ -171,7 +176,9 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 se desenhando. `:hover` só existe onde há mouse.
 
 A sala e o gráfico só animam **na primeira visita da sessão**; depois aparecem prontos (animar a cada troca de
-aba cansava). As abas trocam sem animação de entrada.
+aba cansava). Na troca de aba, a cápsula da barra desliza até a aba tocada (curva de mola do iOS, 0,42 s, com uma
+leve esticada no caminho) e sai no toque, sem esperar a tela carregar; o conteúdo novo entra num fundido de 0,18 s,
+sem deslizar, como no iOS (`TabBar` e `TabContent`, em `src/components`).
 
 A troca de tema imita o iPhone: a tela inteira se dissolve de uma aparência para a outra em 0,4 s
 (View Transitions API, com um fundido de cores por CSS onde ela não existe), e o marcador do seletor
