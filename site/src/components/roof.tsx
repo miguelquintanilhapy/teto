@@ -18,13 +18,18 @@ export function Roof({
   delay = 0,
   lift,
   stroke = "#ffffff",
+  trigger = "mount",
 }: {
   className?: string;
   delay?: number;
   /** Deslocamento vertical do pontilhado, ligado à rolagem (o telhado da tolerância "sobe"). */
   lift?: MotionValue<number>;
   stroke?: string;
+  /** "mount": desenha ao abrir a página (hero); "view": quando o telhado entra na tela (fecho). */
+  trigger?: "mount" | "view";
 }) {
+  const play = (to: Record<string, number>) =>
+    trigger === "view" ? { whileInView: to, viewport: { once: true, margin: "0px 0px -15% 0px" } } : { animate: to };
   return (
     <svg viewBox="-12 -12 424 178" className={className} aria-hidden="true" overflow="visible">
       <motion.g style={lift ? { y: lift } : undefined}>
@@ -36,7 +41,7 @@ export function Roof({
             r={6.5}
             fill="var(--color-warn)"
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            {...play({ scale: 1, opacity: 1 })}
             transition={{ delay: delay + 0.9 + i * 0.07, type: "spring", stiffness: 420, damping: 18 }}
             style={{ transformBox: "fill-box", transformOrigin: "center" }}
           />
@@ -50,7 +55,7 @@ export function Roof({
         strokeLinecap="round"
         strokeLinejoin="round"
         initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
+        {...play({ pathLength: 1, opacity: 1 })}
         transition={{ delay, duration: 1.1, ease: [0.65, 0, 0.35, 1] }}
       />
     </svg>
