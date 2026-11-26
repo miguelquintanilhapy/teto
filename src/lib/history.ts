@@ -58,7 +58,9 @@ export function searchHistory<T extends HistoryItem>(items: ReadonlyArray<T>, qu
   if (q === "") return [...items];
   return items.filter((t) => {
     const money = formatMoney(t.amountCents).replace(/[^\d.,]/g, ""); // "3.015,00"
-    const haystack = normalize(`${t.description} ${t.counterparty} ${money} ${money.replace(/\./g, "")}`);
+    // O documento chega mascarado ("CNPJ 11.222.333/••••-••"): os dígitos à mostra também valem sem pontuação.
+    const docDigits = t.counterparty.replace(/\D/g, "");
+    const haystack = normalize(`${t.description} ${t.counterparty} ${docDigits} ${money} ${money.replace(/\./g, "")}`);
     return haystack.includes(q);
   });
 }

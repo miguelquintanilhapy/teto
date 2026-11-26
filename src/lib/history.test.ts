@@ -61,6 +61,7 @@ describe("searchHistory", () => {
 
   it("busca pelo documento da outra parte", () => {
     expect(searchHistory(list, "11.222")).toHaveLength(1);
+    expect(searchHistory(list, "11222333")).toHaveLength(1);
   });
 
   it("busca vazia devolve tudo", () => {
