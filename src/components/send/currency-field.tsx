@@ -19,7 +19,7 @@ export function CurrencyField({
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3 focus-within:bg-track/40">
+    <div className="relative px-5 py-3 focus-within:after:pointer-events-none focus-within:after:absolute focus-within:after:inset-1 focus-within:after:rounded-[1.25rem] focus-within:after:ring-2 focus-within:after:ring-action focus-within:after:content-['']">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
@@ -33,7 +33,7 @@ export function CurrencyField({
         onChange={(e) => onChange(centsFromInput(e.target.value))}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2"
+        className="mt-0.5 block w-full bg-transparent text-[1.375rem] font-semibold tracking-tight outline-none placeholder:text-label-2/55"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">
@@ -75,7 +75,7 @@ export function TextField({
   const id = useId();
   const errId = `${id}-err`;
   return (
-    <div className="px-5 py-3 focus-within:bg-track/40">
+    <div className="relative px-5 py-3 focus-within:after:pointer-events-none focus-within:after:absolute focus-within:after:inset-1 focus-within:after:rounded-[1.25rem] focus-within:after:ring-2 focus-within:after:ring-action focus-within:after:content-['']">
       <label htmlFor={id} className="t-sub text-label-2">
         {label}
       </label>
@@ -94,7 +94,7 @@ export function TextField({
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errId : undefined}
-        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2"
+        className="mt-0.5 block w-full bg-transparent text-[1.1875rem] font-medium outline-none placeholder:text-label-2/55"
       />
       {error && (
         <p id={errId} role="alert" className="t-sub mt-1 text-danger-text">

@@ -1,38 +1,21 @@
-import { CaretDown, Info } from "@phosphor-icons/react/dist/ssr";
-import type { Dashboard } from "@/core";
-import { limitExplainer } from "@/lib/copy";
+import Link from "next/link";
+import { CaretRight, Info } from "@phosphor-icons/react/dist/ssr";
 
 /**
- * "O que acontece se eu passar?" no mesmo lugar em que o número aparece, sem mandar o usuário ao Perfil.
- * Fechado por padrão: quem já sabe não paga com a tela, quem não sabe abre com um toque.
+ * "O que acontece se eu passar?": uma linha que leva às Regras do ano, onde as três faixas do limite são
+ * explicadas. Antes o mesmo texto aparecia duplicado aqui e em /regras.
  */
-export function LimitExplainer({ dashboard, openingDate }: { dashboard: Dashboard; openingDate: string | null }) {
-  const rows = limitExplainer(dashboard, openingDate);
+export function LimitExplainer() {
   return (
-    <details className="group rounded-card bg-card">
-      <summary className="pressable flex min-h-12 cursor-pointer list-none items-center gap-2.5 rounded-card px-5 py-3 text-[1.0625rem] font-semibold [&::-webkit-details-marker]:hidden">
-        <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-label">
-          <Info size={19} weight="fill" aria-hidden="true" />
-        </span>
-        <span className="flex-1">Entenda o limite</span>
-        <CaretDown size={17} weight="bold" className="text-label-2 transition-transform group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      <div className="px-5 pb-4">
-        <dl className="divide-y divide-sep">
-          {rows.map((r) => (
-            <div key={r.title} className="py-3 first:pt-0">
-              <div className="flex items-baseline justify-between gap-3">
-                <dt className="t-row">{r.title}</dt>
-                <dd className="sensitive shrink-0 text-[1.0625rem] font-semibold">{r.value}</dd>
-              </div>
-              <p className="t-sub mt-0.5 text-label-2">{r.text}</p>
-            </div>
-          ))}
-        </dl>
-        <p className="t-sub mt-1 text-label-2">
-          Só receita conta para o limite. Confirme as regras no Portal do Empreendedor ou com seu contador.
-        </p>
-      </div>
-    </details>
+    <Link href="/regras" className="pressable hoverable flex min-h-14 items-center gap-3.5 rounded-card bg-card px-5 py-3.5">
+      <span className="grid size-[1.875rem] shrink-0 place-items-center rounded-lg bg-tile text-label">
+        <Info size={19} weight="fill" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[1.0625rem] font-semibold">Entenda o limite</span>
+        <span className="t-sub block text-label-2">Tolerância de 20% e o que acontece se passar</span>
+      </span>
+      <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
+    </Link>
   );
 }

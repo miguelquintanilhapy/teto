@@ -1,4 +1,4 @@
-import { addDays, isValidAccessKey, isValidISODate, isValidTaxId, type ISODate } from "@/core";
+import { ACCESS_KEY_DROPPED_NOTE, addDays, isValidAccessKey, isValidISODate, isValidTaxId, type ISODate } from "@/core";
 import type { ExtractedReceipt } from "./schema";
 
 export interface BusinessRules {
@@ -6,6 +6,19 @@ export interface BusinessRules {
   minConfidence: number;
   /** Data de hoje, injetada para manter a função pura e testável. */
   today: ISODate;
+}
+
+/**
+ * A chave de acesso só serve para reconhecer a mesma nota enviada duas vezes: não entra no valor nem na data. Os
+ * modelos erram um dígito dela com frequência, e reprovar a nota inteira por isso mandava para conferência uma nota
+ * com valor, data e partes certos. Uma chave que não passa no dígito verificador é descartada (vira `null`) e o
+ * resto segue; o aviso diz ao usuário. CPF/CNPJ inválido continua reprovando: ele decide receita ou despesa.
+ */
+export function sanitizeExtraction(r: ExtractedReceipt): { data: ExtractedReceipt; notes: string[] } {
+  if (r.accessKey !== null && !isValidAccessKey(r.accessKey)) {
+    return { data: { ...r, accessKey: null }, notes: [ACCESS_KEY_DROPPED_NOTE] };
+  }
+  return { data: r, notes: [] };
 }
 
 /**

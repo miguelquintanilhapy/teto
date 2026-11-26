@@ -110,7 +110,7 @@ function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendCont
       setStage({
         name: "review",
         values: out.values,
-        notice: { duplicate: out.duplicate, lowTrust: out.lowTrust, manual: false },
+        notice: { duplicate: out.duplicate, lowTrust: out.lowTrust, keyDropped: out.keyDropped, manual: false },
         saving: false,
         error: null,
       });

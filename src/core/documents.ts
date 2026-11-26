@@ -74,6 +74,12 @@ export function accessKeyCheckDigit(first43: string): number {
   return dv >= 10 ? 0 : dv;
 }
 
+/**
+ * Aviso devolvido quando a chave de acesso lida não passa no dígito verificador e é descartada.
+ * Texto único: o servidor o devolve e a tela o reconhece.
+ */
+export const ACCESS_KEY_DROPPED_NOTE = "chave de acesso ilegível, ignorada";
+
 /** Chave de acesso de NF-e/NFC-e: 44 dígitos com dígito verificador correto. */
 export function isValidAccessKey(input: string): boolean {
   const d = onlyDigits(input);

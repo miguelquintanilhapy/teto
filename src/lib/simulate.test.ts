@@ -51,7 +51,7 @@ describe("simulationView", () => {
   it("mostra as duas referências e o que sobra até cada uma", () => {
     const v = simulationView(ctx, 100_00);
     expect(nb(v.references)).toBe("Limite R$ 67.500 · com 20% a mais: R$ 81.000");
-    expect(nb(v.detail)).toContain("sobram R$ 7.400 até o limite e R$ 20.900 até o teto de 20% acima");
+    expect(nb(v.detail)).toContain("sobram R$ 7.400 até o limite e R$ 20.900 até o limite com tolerância");
   });
 
   it("pede o valor quando ainda não há venda", () => {

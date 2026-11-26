@@ -1,15 +1,15 @@
 {
   "providerId": "gemini:gemini-flash-lite-latest",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "23ccb9e9b105c7c44422f59ad5e2f8dfa66e8df3225fa8a8c179d97a47506158",
-  "recordedAt": "2026-11-25T18:54:56.650Z",
-  "latencyMs": 1908,
+  "recordedAt": "2026-11-25T20:07:34.050Z",
+  "latencyMs": 2539,
   "raw": {
     "documentType": "comprovante_pix",
     "issueDate": "2026-05-19",
     "totalCents": 56000,
-    "issuerTaxId": "11.222.333/0001-81",
-    "recipientTaxId": "123.456.789-09",
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "12345678909",
     "accessKey": null,
     "description": "Transferência realizada com sucesso via Pix para Doces da Marta MEI",
     "confidence": 1

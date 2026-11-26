@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
+import { NavMemory } from "@/components/nav/nav-memory";
 import { PREFS_SCRIPT } from "@/lib/prefs";
 import "./globals.css";
 
@@ -33,7 +35,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Aplica o tema e a privacidade guardados antes da primeira pintura, para a tela não piscar. */}
         <script dangerouslySetInnerHTML={{ __html: PREFS_SCRIPT }} />
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {/* Película do tamanho da barra de status (zero fora do celular): o conteúdo que rola por baixo some em vez de colidir com a hora e a bateria. */}
+        <div
+          aria-hidden="true"
+          className="no-print pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top,0px)] bg-gradient-to-b from-bg from-75% to-transparent"
+        />
+        {/* Lê o caminho da página: com o cache de componentes, isso precisa de um Suspense próprio. */}
+        <Suspense fallback={null}>
+          <NavMemory />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

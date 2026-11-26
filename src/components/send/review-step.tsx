@@ -2,7 +2,8 @@
 
 import { Lock, Sparkle, Warning } from "@phosphor-icons/react/dist/ssr";
 import { useEffect, useState } from "react";
-import { LimitBar } from "@/components/limit-bar";
+import { BarKey, LimitBar, TONE_FILL } from "@/components/limit-bar";
+import { rulesFor } from "@/core";
 import { bandView } from "@/lib/copy";
 import { formatMoney, formatPercent, formatReais, maskTaxId } from "@/lib/format";
 import { directionOf, impactOf, reviewErrors, type ReviewValues, type SendContext } from "@/lib/send";
@@ -16,6 +17,8 @@ export interface ReviewNotice {
   duplicate: boolean;
   /** A IA teve dúvida ou a validação achou problemas. */
   lowTrust: boolean;
+  /** A chave de acesso não passou no dígito verificador e foi ignorada; o resto da nota foi lido. */
+  keyDropped?: boolean;
   /** Não foi possível ler a nota: o usuário preenche tudo. */
   manual: boolean;
   /** O usuário escolheu lançar sem nota (nada falhou, então não há aviso). */
@@ -79,12 +82,18 @@ export function ReviewStep({
       {manual && !notice.chosen && (
         <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
           <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
-          Não consegui ler esta nota. Preencha os dados abaixo.
+          Não foi possível ler esta nota. Preencha os dados abaixo.
         </p>
       )}
       {!manual && (
         <p className="t-sub mb-3 flex items-center gap-1.5 px-1 text-label-2">
           <Sparkle size={14} weight="fill" aria-hidden="true" /> Lida pela IA. Confira antes de confirmar.
+        </p>
+      )}
+      {notice.keyDropped && !notice.lowTrust && !manual && (
+        <p role="status" className="t-body mb-3 flex items-start gap-2 rounded-card bg-card p-4">
+          <Warning size={20} weight="fill" className="mt-0.5 shrink-0 text-warn" aria-hidden="true" />
+          A chave de acesso não pôde ser lida e foi ignorada. O resto da nota foi lido: confira os dados.
         </p>
       )}
       {notice.lowTrust && !manual && (
@@ -98,7 +107,7 @@ export function ReviewStep({
       <div className="divide-y divide-sep rounded-card bg-card">
         {mustChoose ? (
           <div className="px-5 py-3.5">
-            <p id="tipo-label" className="t-row">
+            <p id="tipo-label" className="t-sub text-label-2">
               Tipo
             </p>
             <div role="group" aria-labelledby="tipo-label" className="mt-2 flex rounded-2xl bg-track p-[3px] text-[1.0625rem] font-semibold">
@@ -114,14 +123,19 @@ export function ReviewStep({
                 </button>
               ))}
             </div>
+            {attempted && waitingChoice && (
+              <p role="alert" className="t-sub mt-1.5 text-danger-text">
+                Escolha se é uma receita ou uma despesa.
+              </p>
+            )}
           </div>
         ) : (
-          <div className="flex items-center justify-between px-5 py-3.5">
-            <span className="t-row">Tipo</span>
-            <span className="t-row flex items-center gap-2 text-label-2">
+          <div className="px-5 py-3">
+            <p className="t-sub text-label-2">Tipo</p>
+            <p className="mt-0.5 flex items-center gap-2 text-[1.1875rem] font-medium">
               {derived === "receita" ? "Receita" : "Despesa"}
-              <Lock size={15} weight="fill" aria-hidden="true" />
-            </span>
+              <Lock size={15} weight="fill" className="text-label-2" aria-label="definido pelo CNPJ" />
+            </p>
           </div>
         )}
         <CurrencyField label="Valor" cents={values.amountCents} onChange={(c) => set("amountCents", c)} error={errors.amount} />
@@ -138,7 +152,7 @@ export function ReviewStep({
         {mustChoose
           ? manual
             ? "Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
-            : "Não encontrei o CNPJ do seu MEI na nota. Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
+            : "O CNPJ do seu MEI não aparece na nota. Escolha se é uma receita ou uma despesa. Só receita conta para o limite."
           : direction === "despesa"
             ? "Você é quem recebeu a nota, então é uma despesa. Despesa não conta para o limite."
             : "Você é quem emitiu a nota, então ela é uma receita."}
@@ -159,10 +173,14 @@ export function ReviewStep({
               addedRatio={ctx.limitCents > 0 ? impact.addedCents / ctx.limitCents : 0}
               tone={tone}
               label={`Com esta nota você usa ${formatPercent(impact.ratio)} do limite`}
+              scaleMax={1 + rulesFor(ctx.year).toleranceRate}
             />
-            <div className="t-caption mt-2 flex justify-between text-label-2">
-              <span>{impact.addedCents > 0 ? `+ ${formatMoney(impact.addedCents)} desta nota` : "R$ 0"}</span>
-              <span>Limite de {formatReais(ctx.limitCents)}</span>
+            <div className="t-caption mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-label-2">
+              <BarKey className={TONE_FILL[tone]}>Já faturado</BarKey>
+              <BarKey className="bg-label">
+                <span className="sensitive">{impact.addedCents > 0 ? `+ ${formatMoney(impact.addedCents)} desta nota` : "Esta nota"}</span>
+              </BarKey>
+              <BarKey mark>Limite {formatReais(ctx.limitCents)}</BarKey>
             </div>
           </section>
         </>
@@ -176,7 +194,7 @@ export function ReviewStep({
       )}
 
       <BottomAction>
-        <button type="button" onClick={submit} disabled={saving || waitingChoice} className={primaryButton}>
+        <button type="button" onClick={submit} disabled={saving} className={primaryButton}>
           {saving ? "Salvando…" : notice.chosen ? "Confirmar lançamento" : "Confirmar nota"}
         </button>
       </BottomAction>

@@ -1,15 +1,15 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "cf4e9857d2e55533c11d9ea294eb114d7ed09024961f381e15aec671ca63faa0",
-  "recordedAt": "2026-11-25T18:42:03.651Z",
-  "latencyMs": 1856,
+  "recordedAt": "2026-11-25T19:45:27.742Z",
+  "latencyMs": 1944,
   "raw": {
     "documentType": "recibo",
     "issueDate": "2026-08-14",
     "totalCents": 110000,
-    "issuerTaxId": "11222333000181",
-    "recipientTaxId": "23456789000195",
+    "issuerTaxId": "11.222.333/0001-81",
+    "recipientTaxId": "23.456.789/0001-95",
     "accessKey": null,
     "description": "fornecimento de lanches para evento",
     "confidence": 1

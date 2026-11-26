@@ -1,4 +1,5 @@
 import { LimitBar } from "@/components/limit-bar";
+import { rulesFor } from "@/core";
 import { bandView } from "@/lib/copy";
 import { formatMoney, formatPercent, formatReais } from "@/lib/format";
 import type { Impact, SendContext } from "@/lib/send";
@@ -57,7 +58,7 @@ export function DoneStep({
           <p className={`mb-3 text-[1.0625rem] font-bold ${TONE_TEXT[tone]}`}>
             {label} · {formatPercent(impact.ratio)} do limite
           </p>
-          <LimitBar ratio={impact.ratio} tone={tone} label={`Você usou ${formatPercent(impact.ratio)} do limite`} />
+          <LimitBar ratio={impact.ratio} tone={tone} label={`Você usou ${formatPercent(impact.ratio)} do limite`} scaleMax={1 + rulesFor(ctx.year).toleranceRate} />
           <div className="t-caption mt-2 flex justify-between text-label-2">
             <span className="sensitive">{formatReais(impact.afterCents)}</span>
             <span>Limite de {formatReais(ctx.limitCents)}</span>

@@ -13,14 +13,24 @@ quem decide é código.** Responda e escreva textos de interface e documentaçã
 5. [docs/PLANO.md](docs/PLANO.md): prazo e pendências. **[docs/TAREFAS.md](docs/TAREFAS.md): as tarefas da equipe,
    com critério de pronto. Pegue uma e não saia do escopo dela.**
 
+Conforme o que você vai mexer:
+
+- **IA, prompt ou eval:** [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md) (cadeia de modelos, roteador, medições).
+- **Banco:** [docs/DATA-MODEL.md](docs/DATA-MODEL.md) (tabelas, restrições, o que é reservado).
+- **Regra do MEI** (limite, tolerância, DAS): [docs/mei-rules.md](docs/mei-rules.md) (fontes e o que segue em aberto).
+
 ## Comandos
 
 ```bash
-npm run check      # lint + tipos + testes: tem que passar antes de qualquer PR (406 testes hoje)
+npm run check      # lint + tipos + testes: tem que passar antes de qualquer PR
 npm run dev        # http://localhost:3000
 npm run build && npm start   # o que a Vercel roda; várias telas são pré-renderizadas, então refaça o build
-npm run eval       # avaliação da extração repetindo respostas gravadas (sem rede, sem chave)
+npm run eval -- --no-write   # avaliação da extração repetindo respostas gravadas (sem rede, sem chave)
 ```
+
+A CI roda o `check` **e** o eval em replay com limiares (`--min-correct 0.75 --max-silent-wrong 0.10`); um PR que
+derruba a qualidade da extração reprova. `npm run eval` **sem** `--no-write` reescreve `docs/EVAL-RESULTS.md`:
+não commite essa mudança sem querer.
 
 ## Regras que não se negociam
 
@@ -53,10 +63,15 @@ npm run eval       # avaliação da extração repetindo respostas gravadas (sem
 - Next.js 16 com `cacheComponents` (veja o bloco abaixo): `"use cache"` + `cacheTag`/`cacheLife`,
   `revalidateTag(tag, { expire: 0 })`, `error.tsx` usa `retry()`, `params` e `searchParams` são assíncronos.
   O painel vem de `getPanel` (`src/server/panel-cache.ts`) e é invalidado quando um lançamento é confirmado.
+  As telas leem por `loadPanelSafe` (`src/server/panel-safe.ts`), que não deixa a tela quebrar se o banco falhar.
 - Tailwind v4 com tokens de cor em `src/app/globals.css`. **Não escreva cor solta**: use `bg-primary`,
-  `text-action`, `text-warn-text`, etc. (azul = o que se toca; âmbar, laranja-avermelhado e vermelho = risco;
-  verde = confirmação). O risco nunca vem só em cor: sempre com ícone e texto.
-- Valores em dinheiro na tela levam a classe `sensitive` (é o que "Ocultar valores" esconde).
+  `text-action`, `text-warn-text`, `text-alert-text`, `text-danger-text`, etc. (azul = o que se toca; `warn` âmbar,
+  `alert` laranja-avermelhado e `danger` vermelho = risco; `ok` verde = confirmação). O risco nunca vem só em cor:
+  sempre com ícone e texto.
+- Valores em dinheiro na tela levam a classe `sensitive` (é o que "Ocultar valores" esconde). Desenho que revela o
+  valor (a sala, o preenchimento das barras) leva `privacy-hide`.
+- Reais inteiros na tela são **truncados**, nunca arredondados (`src/lib/format.ts`): o mesmo valor não pode
+  aparecer como 56.180 num lugar e 56.181 em outro.
 - Lógica pura de interface vai em `src/lib` (com teste ao lado); componentes em `src/components`; telas em `src/app`.
 - Textos de erro são específicos e dizem o que fazer; nada de "inválido" genérico.
 - Estado de tela com Next: a tela anterior fica guardada escondida **com o estado**. O fluxo de envio se
@@ -68,6 +83,10 @@ npm run eval       # avaliação da extração repetindo respostas gravadas (sem
 - `npm run dev` e produção se comportam diferente (a tela de Perfil, por exemplo, é pré-renderizada).
 - O lápis de "Editar perfil" só aparece em produção com `ALLOW_PROFILE_EDIT=true` (o app não tem login).
 - O Gemini às vezes responde 503 "alta demanda"; a cadeia cai para o próximo modelo, e isso não é bug nosso.
+- As cotas gratuitas acabam no meio do dia: o OpenRouter tem limite diário por conta para os modelos `:free`, e o
+  `gemini-3.6-flash` lê poucas notas por dia. `check:ai` e `eval:record` gastam essa cota.
+- Abas (Painel, Simular, Histórico, Mais) ficam em `src/app/(app)/`; as outras telas são folhas com X, que volta à
+  tela de origem (`NavMemory` + `CloseButton`, em `src/components/nav`). Tela nova: decida se é aba ou folha.
 - A interface **não tem testes automatizados** (só a lógica). Verifique no navegador, em 375 px, nos temas claro e escuro.
 
 <!-- BEGIN:nextjs-agent-rules -->

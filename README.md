@@ -14,18 +14,22 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
 
 ## O que faz
 
-- Lê foto, PDF ou XML de notas e recibos com IA, e **você confere** antes de qualquer valor entrar no limite.
-  Fotos grandes são reduzidas no próprio aparelho, sem o usuário precisar saber de megabytes.
+- Lê foto ou PDF de notas, recibos e comprovantes de Pix com IA, e **você confere** antes de qualquer valor entrar no limite.
+  Fotos grandes são reduzidas no próprio aparelho, sem o usuário precisar saber de megabytes. (XML não é aceito.)
+- Quatro abas (Painel, Simular, Histórico e Mais) e o botão "Enviar" ao lado delas.
 - Painel: faturamento do ano, faixa de risco (verde, âmbar, laranja-avermelhado, vermelho), a "sala" do limite,
-  previsão de quando o limite será ultrapassado (com a média usada), DAS e receita por mês.
-- Limite proporcional para quem abriu o MEI no meio do ano, e explicação das três faixas (limite, 20% acima,
-  acima disso) na própria tela.
-- Simulador: "e se eu aceitar uma venda de R$ X?", com o custo estimado.
-- Histórico com detalhe, correção e cancelamento (tudo registrado), lançamento sem nota e importação do
-  extrato bancário (CSV, lido no navegador) cruzada com as receitas.
+  barra do limite com a faixa de tolerância, previsão de quando o limite será ultrapassado (com a média usada),
+  DAS com atalho para gerar a guia e receita por mês.
+- Limite proporcional para quem abriu o MEI no meio do ano, e as três faixas (limite, 20% acima, acima disso)
+  explicadas na tela de Regras.
+- Simulador: "e se eu aceitar uma venda de R$ X?", com o custo estimado, e "O que cabe" até o limite.
+- Histórico com detalhe, correção e cancelamento (tudo registrado) e aviso de possível duplicidade; lançamento sem
+  nota e importação do extrato bancário (CSV, lido no navegador) cruzada com as receitas.
 - Alertas por e-mail ao cruzar 80%, 90%, 100% e 120% do limite (idempotentes, com cron diário).
-- Relatório do ano em CSV e PDF, tema claro e escuro, "ocultar valores" e instalação na tela inicial do celular.
-- Tela "Como a IA lê": modelos, cota do dia, tempos e falhas, para a IA não ser uma caixa-preta.
+- Relatório do ano em CSV (e em PDF pela impressão do navegador), tema claro e escuro, "ocultar valores" e
+  instalação na tela inicial do celular.
+- Tela "Como a IA lê": em linguagem simples, com modelos, cota do dia, tempos e falhas em "Detalhes técnicos",
+  para a IA não ser uma caixa-preta.
 
 Mais detalhes das telas e das decisões de design em [docs/INTERFACE.md](docs/INTERFACE.md).
 
@@ -112,8 +116,9 @@ MODEL_CHAIN=gemini:gemini-3.5-flash-lite,openrouter:nvidia/nemotron-3.5-super-vl
 
 Por que esta cadeia (medida em 25/11, ver [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md)): os modelos
 `gemini-3.1-flash-lite` e `gemini-3.8-flash`, usados antes, davam 503 "alta demanda" em quase todas as
-tentativas. O Nemotron (outra infraestrutura) é o mais estável; os `lite` são rápidos; o `3.6-flash` acerta bem,
-mas tem cota diária pequena e fica de reserva. **Se mudar a cadeia na Vercel, mude a variável lá também.**
+tentativas. O Nemotron (outra infraestrutura) foi o mais estável na bancada, mas o OpenRouter gratuito tem limite
+diário por conta; os `lite` são rápidos; o `3.6-flash` acerta bem, mas tem cota diária pequena e fica de reserva.
+**Se mudar a cadeia, mude a variável na Vercel também.**
 
 Para gerar um `CRON_SECRET` no PowerShell:
 
@@ -162,8 +167,8 @@ npm run check:supabase
 npm run check:db
 ```
 
-Deve listar as 10 tabelas como `OK`, o bucket `documents` como privado e terminar com
-`Tudo certo.`
+O `check:supabase` deve listar as 10 tabelas como `OK`, o bucket `documents` como privado e terminar com
+`Tudo certo.` O `check:db` testa a cota, o cooldown, o storage e o perfil no banco real (e apaga o que cria).
 
 **Dados de demonstração** (receitas fictícias de março a outubro, para o painel não ficar vazio):
 
@@ -186,9 +191,13 @@ Para testar só um provedor: `npm run check:ai -- gemini`.
 
 ```bash
 npm run dev     # http://localhost:3000
-npm run check   # lint + tipos + testes (o mesmo que a CI roda)
-npm run eval    # avaliação da extração, repetindo respostas gravadas (sem rede)
+npm run check   # lint + tipos + testes
+npm run eval -- --no-write --min-correct 0.75 --max-silent-wrong 0.10   # o eval como a CI roda (sem rede)
 ```
+
+A CI roda o `check` e, depois, o eval em replay com esses limiares: se a qualidade da extração cair, o PR
+reprova. **`npm run eval` sem `--no-write` reescreve `docs/EVAL-RESULTS.md`**; só commite essa mudança quando
+regravar de propósito.
 
 ## Publicar na Vercel
 
@@ -201,7 +210,8 @@ npm run eval    # avaliação da extração, repetindo respostas gravadas (sem r
    **Settings → Deployment Protection** a opção *Vercel Authentication*. Com ela ligada, só quem tem conta
    no time abre o endereço.
 5. O cron diário dos alertas está em [`vercel.json`](vercel.json) (`0 12 * * *`, 12h UTC).
-6. O Perfil mostra a versão publicada (os 7 primeiros caracteres do commit), para saber qual build está no ar.
+6. A aba Mais mostra a versão publicada (os 7 primeiros caracteres do commit) com um toque, para saber qual build
+   está no ar. Confira também se o `MODEL_CHAIN` da Vercel é o mesmo do passo 3.
 
 ## API
 
@@ -215,7 +225,7 @@ curl -X POST http://localhost:3000/api/documents \
 
 | Resposta | Significado |
 |---|---|
-| `200` `status: "extracted"` | Extraída. `extraction.data` traz os campos; `extraction.status` é `accepted` ou `needs_review`; `trace` mostra cada tentativa (modelo, resultado, latência) |
+| `200` `status: "extracted"` | Extraída. `extraction.data` traz os campos; `extraction.status` é `accepted` ou `needs_review`; `trace` mostra cada tentativa (modelo, resultado, latência). `issues` pode trazer avisos mesmo numa extração aceita: por exemplo, a chave de acesso que não passou no dígito verificador e foi descartada |
 | `200` `status: "duplicate"` | Esse arquivo já foi enviado: devolve a extração existente, sem gastar IA |
 | `200` `status: "manual_entry"` | A IA não pôde ler (`reason`: `quota_exceeded` ou `all_providers_failed`): abrir o formulário manual |
 | `400` / `413` / `415` | Sem arquivo ou `kind` inválido / arquivo grande demais / formato não suportado |
@@ -256,6 +266,21 @@ recusa requisições de outra origem (`403`) e limita o tamanho do corpo. Ver [d
 Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no histórico (`transaction_events`).
 `404` se não existe, `409` ao corrigir um lançamento cancelado, `422` nas regras de valor e data.
 
+### Testar o e-mail de alerta
+
+O remetente padrão (`onboarding@resend.dev`) só entrega ao e-mail da **conta do Resend**. Para testar:
+1. Troque o e-mail do perfil para o da sua conta do Resend (aba Mais → lápis; em desenvolvimento a edição aparece sozinha).
+2. Dispare o cron, no PowerShell, lendo o segredo do `.env.local` sem mostrá-lo:
+
+```powershell
+$s = (Select-String -Path .env.local -Pattern '^CRON_SECRET=(.*)$').Matches[0].Groups[1].Value
+Invoke-RestMethod -Uri http://localhost:3000/api/cron/alerts -Headers @{Authorization="Bearer $s"}
+```
+
+A resposta é `sent` (saiu), `failed` (o Resend recusou; o alerta volta para a fila), `not_configured` (sem chave) ou
+`nothing_due` (nada pendente). O alerta é idempotente: para repetir o teste, no SQL Editor do Supabase,
+`update alerts set sent_at = null where kind = 'threshold_warning';`. Depois do teste, volte o e-mail do perfil para um fictício.
+
 ### Outras rotas
 
 - `PUT /api/profile`: cadastra o MEI no primeiro uso. Em produção, **mudar um cadastro existente é recusado**
@@ -281,13 +306,13 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | `npm test` | Testes unitários (Vitest) |
 | `npm run typecheck` | Checagem de tipos |
 | `npm run lint` | ESLint |
-| `npm run check` | Lint + tipos + testes (o mesmo que a CI roda) |
+| `npm run check` | Lint + tipos + testes (a CI roda isso e mais o eval em replay com limiares) |
 | `npm run check:supabase` | Confere a conexão e o schema do banco (não imprime chaves) |
 | `npm run check:ai` | Faz uma chamada real a cada modelo da cadeia (usa a cota gratuita) |
 | `npm run check:db` | Testa no banco real a cota diária, o cooldown, o storage e o perfil de demo (apaga o que cria) |
 | `npm run seed` | Cria o perfil de demonstração fictício (idempotente; só quem criou o banco) |
 | `npm run seed:demo` | Cria receitas fictícias para o painel (`-- --reset` apaga, `-- --total N` define o total) |
-| `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede) |
+| `npm run eval` | Avalia a extração nas notas sintéticas, repetindo respostas gravadas (sem rede). Reescreve `docs/EVAL-RESULTS.md`; `-- --no-write` só mostra |
 | `npm run eval:record` | Regrava as respostas chamando os modelos de verdade (usa a cota gratuita) |
 | `npm run fixtures:generate` | Regenera as notas sintéticas e o gabarito |
 
@@ -349,32 +374,39 @@ Só valor, data e descrição mudam; tipo e partes nunca. Tudo fica no históric
 | [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) | Resultados da avaliação da extração (gerado) |
 | [docs/INTERFACE.md](docs/INTERFACE.md) | Telas, decisões de design, acessibilidade e navegação fluida |
 | [docs/SEGURANCA.md](docs/SEGURANCA.md) | Modelo de ameaças, defesas, riscos aceitos e o que falta |
-| [docs/REVISAO.md](docs/REVISAO.md) | Revisões de UX, acessibilidade, segurança e cor: o que foi corrigido e o que ficou |
+| [docs/REVISAO.md](docs/REVISAO.md) | Quatro rodadas de revisão (UX, acessibilidade, segurança, cor e design): o que foi corrigido e o que ficou |
 
 ## Qualidade da extração (medida)
 
-Avaliação em **26 notas sintéticas** com gabarito (prompt v3), repetindo respostas gravadas dos modelos
+Avaliação em **26 notas sintéticas** com gabarito (prompt v4), repetindo respostas gravadas dos modelos
 (`npm run eval`, sem rede). Resultado da cadeia completa, o que o usuário vive:
 
 | Resultado | Notas | Taxa |
 |---|---|---|
-| Aceita automaticamente e completa (data, valor, emissor e destinatário certos) | 23 | 88% |
+| Aceita automaticamente e completa (data, valor, emissor e destinatário certos) | 26 | 100% |
 | Aceita automaticamente e **errada para o limite** (erro silencioso) | 0 | 0% |
-| Enviada para revisão manual | 3 | 12% |
+| Enviada para revisão manual | 0 | 0% |
 | Falha total (nenhum modelo respondeu) | 0 | 0% |
 
-Por modelo, cada um sozinho: `gemini-3.5-flash-lite` 25 de 26 notas lidas (mediana 2,2 s), Nemotron 24 de 26
-(3,4 s) e `gemini-flash-lite-latest` 25 de 26 (1,7 s). Os três acertam o limite em 96% a 100% das notas.
+Por modelo, cada um sozinho: `gemini-3.5-flash-lite` e `gemini-flash-lite-latest` gravados nas 26 notas, núcleo
+completo em 100%, chave de acesso certa em 96%, passam nas regras em 96%, mediana de 2,3 s e 2,5 s. Comparado ao
+prompt v3 nesses dois modelos: núcleo 96% → 100%, destinatário 96% → 100%, chave 88% → 96%, regras 84% → 96%.
 
-**Leia com cuidado:** o conjunto é pequeno e sintético, e cada resposta foi gravada **uma vez** (os modelos não
-são determinísticos). O `gemini-3.6-flash`, 4º da cadeia, tem cota diária pequena e **não foi gravado** (0 de 26).
-O ponto fraco é a **chave de acesso** de 44 dígitos: os modelos erram um dígito com frequência, e a validação
-(dígito verificador) manda a nota para conferência em vez de aceitá-la errada. Mesmo assim, nada entra no
-acumulado sem a confirmação do usuário. Detalhes em [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md).
+**Leia com cuidado:**
 
-No app de verdade (6 notas fictícias, 25/11): mediana de **8,7 s por leitura** (a cadeia anterior levava 26 s), 3 aceitas direto,
-3 para conferência por dígito mal lido, nenhuma caiu para o preenchimento manual. Amostra pequena, num dia
-em que a cota gratuita do Nemotron e do `3.6-flash` já estava esgotada pelos meus próprios testes.
+- O conjunto é pequeno e sintético, e cada resposta foi gravada **uma vez** (os modelos não são determinísticos).
+- O Nemotron e o `gemini-3.6-flash` estão **sem gravação no v4** (0 de 26): a cota diária gratuita do OpenRouter
+  acabou durante os testes de 25/11, e a do `3.6-flash` é pequena.
+- O "0% para revisão" vem em parte de uma decisão de código: a chave de acesso que não passa no dígito verificador
+  é **descartada** (a nota segue, com aviso na conferência), em vez de mandar a nota para revisão. A chave só serve
+  para reconhecer nota repetida; não muda valor, data nem direção.
+- Nada entra no acumulado sem a confirmação do usuário. Detalhes em [docs/EVAL-RESULTS.md](docs/EVAL-RESULTS.md) e
+  [docs/AI-ENGINEERING.md](docs/AI-ENGINEERING.md).
+
+No app de verdade (6 notas fictícias, 25/11, **antes** das otimizações de tempo e do prompt v4): mediana de
+**8,7 s por leitura** (a cadeia anterior levava 26 s), nenhuma caiu para o preenchimento manual. Depois disso, o
+tempo fora da IA (gravar o arquivo, consultar o banco) caiu de 2,0–3,8 s para 0,9–1,3 s, medido da máquina local
+contra o Supabase em Oregon; a leitura completa não foi medida de novo.
 
 ## Limitações conhecidas
 
@@ -387,35 +419,41 @@ em que a cota gratuita do Nemotron e do `3.6-flash` já estava esgotada pelos me
 - PDF acima de 4 MB é recusado (fotos grandes são reduzidas no aparelho, PDF não).
 - O lembrete do vencimento do DAS por e-mail não existe (a tabela de alertas guarda uma data por ano).
 - A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba.
-- A interface não tem testes automatizados (só a lógica tem, 406 testes); foi verificada à mão no navegador,
-  não em aparelho nem com leitor de tela. Ver [docs/REVISAO.md](docs/REVISAO.md).
+- "Para conferir" nunca recebe notas: nenhum fluxo grava o status `pendente` (a nota lida fica só na tela até
+  ser confirmada). O contador é sempre 0, e o Painel mostra "Tudo conferido".
+- A interface não tem testes automatizados (só a lógica tem); foi verificada à mão no navegador e no iPhone do
+  dono do projeto, não em Android nem com leitor de tela. Ver [docs/REVISAO.md](docs/REVISAO.md).
 
 ## Estado atual
 
 Feito:
 
 - [x] Núcleo de regras do MEI com testes
-- [x] Roteador de modelos em cadeia (failover, cooldown, orçamento de tempo, cota diária) e adaptadores Gemini e OpenRouter
+- [x] Roteador de modelos em cadeia (failover, cooldown, orçamento de tempo, cota diária, segundo modelo em
+  paralelo depois de 7 s e "último recurso" para quem estava em cooldown) e adaptadores Gemini e OpenRouter
 - [x] Harness de avaliação da extração ([resultados](docs/EVAL-RESULTS.md)) e porta de qualidade na CI
-- [x] Upload e extração com persistência, confirmação de lançamentos, cancelar e corrigir (com histórico)
-- [x] Interface completa: painel, enviar nota, lançar sem nota, simulador, histórico e detalhe, extrato, relatório, alertas, transparência da IA, perfil, regras, instalar e primeiros passos
-- [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica
-- [x] Revisões de UX, acessibilidade, segurança e cor ([REVISAO.md](docs/REVISAO.md), [SEGURANCA.md](docs/SEGURANCA.md))
-- [x] 406 testes automatizados (39 arquivos), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
+- [x] Upload e extração com persistência (a IA lê enquanto o arquivo é gravado), confirmação de lançamentos,
+  cancelar e corrigir (com histórico)
+- [x] Interface completa: painel, enviar nota, lançar sem nota, simulador, histórico e detalhe, extrato, relatório, alertas, transparência da IA, perfil, regras, instalar e primeiros passos (16 telas)
+- [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica; e-mail real enviado e recebido em
+  25/11 (chamada local ao cron). O cron agendado da Vercel ainda não rodou
+- [x] Revisões de UX, acessibilidade, segurança e cor, quatro rodadas ([REVISAO.md](docs/REVISAO.md), [SEGURANCA.md](docs/SEGURANCA.md))
+- [x] 449 testes automatizados em 42 arquivos (em 25/11), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
 
 Falta para o envio (prazo: 30/11, 23h59):
 
+- [ ] Abrir e mesclar o PR da `feat/chave-e-latencia` (prompt v4, upload mais rápido, abas novas, quarta revisão)
 - [ ] Desligar a proteção por login da Vercel (link público). A migração `0002` já está aplicada no banco do projeto
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
-- [x] `gitleaks` e `npm audit` na CI
-- [x] Arquivo `LICENSE` (MIT) e Dependabot semanal
-- [ ] Gravar o `gemini-3.6-flash` no eval (a cota gratuita dele é de poucas leituras por dia) e repetir as gravações em outro horário
+- [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`
+- [ ] Gravar o Nemotron e o `gemini-3.6-flash` no eval v4 (com cota nova) e repetir as gravações em outro horário
 
 Depois do hackathon:
 
 - [ ] Autenticação e vários MEIs (hoje: perfil único, sem login)
 - [ ] Lembrete do vencimento do DAS (precisa guardar uma data por mês)
+- [ ] Guardar a nota lida e não confirmada como `pendente`, para "Para conferir" ter uso
 - [ ] Melhorar o funcionamento dos modelos (menos 503 do Gemini, mais cobertura de gravações)
 
 ## Nota técnica

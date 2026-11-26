@@ -1,17 +1,17 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "79d02e39bb721949a9ddfadd4bc962a663864405c9d3fb7ae292b9b6dc43fd24",
-  "recordedAt": "2026-11-25T18:44:31.131Z",
-  "latencyMs": 2236,
+  "recordedAt": "2026-11-25T19:46:23.012Z",
+  "latencyMs": 1352,
   "raw": {
     "documentType": "recibo",
     "issueDate": "2026-10-01",
     "totalCents": 62000,
-    "issuerTaxId": "11.222.333/0001-81",
-    "recipientTaxId": "345.678.912-28",
+    "issuerTaxId": "11222333000181",
+    "recipientTaxId": "34567891228",
     "accessKey": null,
-    "description": "referente a kit festa.",
+    "description": "kit festa",
     "confidence": 1
   }
 }

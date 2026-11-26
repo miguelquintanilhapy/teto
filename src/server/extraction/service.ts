@@ -127,42 +127,44 @@ export async function processUpload(input: UploadInput, deps: UploadDeps): Promi
   if (!check.ok) return { status: "rejected", code: check.code, message: check.message };
 
   const hash = sha256(input.bytes);
-  let document = await deps.documents.findByHash(input.profileId, hash);
+  const { max, windowMs } = deps.throttle ?? DEFAULT_THROTTLE;
+  const since = new Date((deps.now ?? Date.now)() - windowMs).toISOString();
 
+  // As duas consultas são independentes: juntas custam uma ida e volta ao banco, e não duas.
+  const [found, recent] = await Promise.all([
+    deps.documents.findByHash(input.profileId, hash),
+    deps.documents.countSince(input.profileId, since),
+  ]);
+
+  let document = found;
   if (document) {
     const existing = await deps.extractions.findByDocumentId(document.id);
     if (existing && existing.status !== "failed") return { status: "duplicate", document, extraction: existing };
     // Sem extração, ou a anterior falhou: tenta de novo sobre o mesmo documento.
-  } else {
-    const { max, windowMs } = deps.throttle ?? DEFAULT_THROTTLE;
-    const since = new Date((deps.now ?? Date.now)() - windowMs).toISOString();
-    if ((await deps.documents.countSince(input.profileId, since)) >= max) {
-      return { status: "rejected", code: "rate_limited", message: "Muitos envios em pouco tempo. Tente de novo em alguns minutos." };
-    }
-    const storagePath = `${input.profileId}/${hash}.${check.extension}`;
-    await deps.storage.put(storagePath, input.bytes, check.mimeType);
-    const row: NewDocument = {
-      profileId: input.profileId,
-      storagePath,
-      contentHash: hash,
-      mimeType: check.mimeType,
-      sizeBytes: input.bytes.byteLength,
-      kind: input.kind,
-    };
-    try {
-      document = await deps.documents.insert(row);
-    } catch (e) {
-      if (!(e instanceof DuplicateDocumentError)) throw e;
-      // Outro upload do mesmo arquivo chegou primeiro: usa o documento dele.
-      document = await deps.documents.findByHash(input.profileId, hash);
-      if (!document) throw e;
-    }
+  } else if (recent >= max) {
+    return { status: "rejected", code: "rate_limited", message: "Muitos envios em pouco tempo. Tente de novo em alguns minutos." };
   }
 
-  try {
-    const result = await deps.extractor.extract({ mimeType: check.mimeType, data: input.bytes });
+  // A IA só precisa dos bytes. Gravar o arquivo e o registro leva 1 a 2 s, e antes isso esperava a leitura
+  // começar: agora os dois andam juntos. Se a gravação falhar, a leitura já feita se perde (e gasta cota);
+  // é raro e preferível a deixar todo envio mais lento.
+  const persisting = document ? null : persistNewDocument(input, hash, check, deps);
+  const extracting = deps.extractor
+    .extract({ mimeType: check.mimeType, data: input.bytes })
+    .then(
+      (result) => ({ result }),
+      (error: unknown) => ({ error }),
+    ); // nunca rejeita: o erro é tratado abaixo, depois que o documento existir
+
+  if (persisting) document = await persisting;
+  if (!document) throw new Error("documento ausente");
+  const doc = document;
+
+  const outcome = await extracting;
+  if ("result" in outcome) {
+    const result = outcome.result;
     const extraction = await deps.extractions.save({
-      documentId: document.id,
+      documentId: doc.id,
       status: result.status,
       providerId: result.providerId,
       promptVersion: PROMPT_VERSION,
@@ -170,23 +172,51 @@ export async function processUpload(input: UploadInput, deps: UploadDeps): Promi
       attempts: result.attempts,
       rawResult: result.data,
     });
-    return { status: "extracted", document, extraction, issues: result.issues };
+    return { status: "extracted", document: doc, extraction, issues: result.issues };
+  }
+
+  const e = outcome.error;
+  if (e instanceof QuotaExceededError) {
+    return { status: "manual_entry", reason: "quota_exceeded", document: doc, extraction: null };
+  }
+  if (e instanceof AllProvidersFailedError) {
+    const extraction = await deps.extractions.save({
+      documentId: doc.id,
+      status: "failed",
+      providerId: null,
+      promptVersion: PROMPT_VERSION,
+      schemaVersion: SCHEMA_VERSION,
+      attempts: e.attempts,
+      rawResult: null,
+    });
+    return { status: "manual_entry", reason: "all_providers_failed", document: doc, extraction };
+  }
+  throw e;
+}
+
+/** Guarda o arquivo no storage e cria o registro. Se outro envio do mesmo arquivo chegou primeiro, usa o dele. */
+async function persistNewDocument(
+  input: UploadInput,
+  hash: string,
+  check: { extension: string; mimeType: string },
+  deps: UploadDeps,
+): Promise<DocumentRecord> {
+  const storagePath = `${input.profileId}/${hash}.${check.extension}`;
+  await deps.storage.put(storagePath, input.bytes, check.mimeType);
+  const row: NewDocument = {
+    profileId: input.profileId,
+    storagePath,
+    contentHash: hash,
+    mimeType: check.mimeType,
+    sizeBytes: input.bytes.byteLength,
+    kind: input.kind,
+  };
+  try {
+    return await deps.documents.insert(row);
   } catch (e) {
-    if (e instanceof QuotaExceededError) {
-      return { status: "manual_entry", reason: "quota_exceeded", document, extraction: null };
-    }
-    if (e instanceof AllProvidersFailedError) {
-      const extraction = await deps.extractions.save({
-        documentId: document.id,
-        status: "failed",
-        providerId: null,
-        promptVersion: PROMPT_VERSION,
-        schemaVersion: SCHEMA_VERSION,
-        attempts: e.attempts,
-        rawResult: null,
-      });
-      return { status: "manual_entry", reason: "all_providers_failed", document, extraction };
-    }
-    throw e;
+    if (!(e instanceof DuplicateDocumentError)) throw e;
+    const existing = await deps.documents.findByHash(input.profileId, hash);
+    if (!existing) throw e;
+    return existing;
   }
 }

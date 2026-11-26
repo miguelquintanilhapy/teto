@@ -78,30 +78,17 @@ async function Conteudo() {
   return (
     <>
       <section className="rounded-card bg-card p-5">
-        <h2 className="t-title">A IA só lê. O código decide.</h2>
+        <h2 className="t-title">A IA só lê a nota. Quem confirma é você.</h2>
         <p className="t-body mt-2 text-label-2">
-          Os modelos extraem valor, data e partes da nota. Se o CNPJ do seu MEI aparece, o código decide se é receita ou despesa, e só o que você confirma entra no limite.
+          A IA copia da nota o valor, a data e quem vendeu e quem comprou. O Teto confere esses dados (CNPJ, data, valor) e decide se é receita ou despesa pelo CNPJ do seu MEI. Nada entra no limite antes de você conferir e confirmar.
         </p>
       </section>
 
       <section aria-label="Resumo das leituras" className="mt-3 rounded-card bg-card p-5">
-        <p className="t-body">
-          {summary.total === 0
-            ? "Ainda não houve leituras. Envie uma nota para ver como a IA se sai."
-            : `Nas últimas ${summary.total} leituras, ${summary.acceptRate === null ? "nenhuma" : formatPercent(summary.acceptRate)} foram aceitas direto, em ${seconds(summary.avgTotalMs)} em média.`}
+        <h2 className="t-headline">E se a IA errar?</h2>
+        <p className="t-body mt-1 text-label-2">
+          Quando ela tem dúvida, a tela de conferência avisa e pede atenção. Se uma IA falha, outra assume; se todas falham, você preenche à mão, sem perder a nota.
         </p>
-        <p className="t-sub mt-2 text-label-2">
-          Você sempre confere os dados antes de a nota entrar no limite. Se um modelo falha, o Teto tenta o próximo; se todos falham, você preenche à mão.
-        </p>
-      </section>
-
-      <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Cota de hoje</h2>
-      <section aria-label="Cota diária de leituras" className="rounded-card bg-card p-5">
-        <p className="mb-3 text-[1.0625rem] font-semibold">
-          {quota.used} de {quota.limit} leituras
-        </p>
-        <LimitBar ratio={quotaRatio} tone={quotaTone} label={`${quota.used} de ${quota.limit} leituras usadas hoje`} />
-        <p className="t-sub mt-2.5 text-label-2">Ao chegar no teto, o Teto passa para o preenchimento manual, sem derrubar nada.</p>
       </section>
 
       <details className="group mt-6">
@@ -109,6 +96,22 @@ async function Conteudo() {
           Detalhes técnicos
           <CaretDown size={17} weight="bold" className="text-label-2 transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
+      <section aria-label="Resumo das leituras" className="mt-4 rounded-card bg-card p-5">
+        <p className="t-body">
+          {summary.total === 0
+            ? "Ainda não houve leituras."
+            : `Nas últimas ${summary.total} leituras, ${summary.acceptRate === null ? "nenhuma" : formatPercent(summary.acceptRate)} passaram direto na conferência automática (as outras pediram atenção), em ${seconds(summary.avgTotalMs)} em média.`}
+        </p>
+      </section>
+      <h2 className="mt-4 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Cota de hoje</h2>
+      <section aria-label="Cota diária de leituras" className="rounded-card bg-card p-5">
+        <p className="mb-3 text-[1.0625rem] font-semibold">
+          {quota.used} de {quota.limit} leituras
+        </p>
+        <LimitBar ratio={quotaRatio} tone={quotaTone} fill={quotaTone === "ok" ? "bg-label-2" : undefined} label={`${quota.used} de ${quota.limit} leituras usadas hoje`} />
+        <p className="t-sub mt-2.5 text-label-2">Ao chegar no limite diário, as notas passam a ser preenchidas à mão, sem derrubar nada.</p>
+      </section>
+
       <h2 className="mt-4 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Últimas {summary.total} leituras</h2>
       <div className="grid grid-cols-2 gap-3">
         <Stat label="Aceitas direto" value={summary.acceptRate === null ? "—" : formatPercent(summary.acceptRate)} />

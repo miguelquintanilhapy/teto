@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { User } from "@phosphor-icons/react/dist/ssr";
 import { monthOf, yearOf } from "@/core";
+import { BrandMark } from "@/components/brand";
 import { Bento } from "@/components/panel/bento";
 import { Forecast } from "@/components/panel/forecast";
 import { Hero } from "@/components/panel/hero";
@@ -30,6 +30,9 @@ function Mensagem({ titulo, texto }: { titulo: string; texto: string }) {
       <div role="alert" className="rounded-card bg-card p-5">
         <h2 className="t-headline">{titulo}</h2>
         <p className="t-body mt-1 text-label-2">{texto}</p>
+        <Link href="/" className="pressable mt-4 flex h-12 items-center justify-center rounded-full bg-primary text-[1.0625rem] font-bold text-on-primary">
+          Tentar de novo
+        </Link>
       </div>
     </>
   );
@@ -64,6 +67,10 @@ async function PainelConteudo() {
     <>
       <header className="mt-2 mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
+          <p className="mb-1 flex items-center gap-1.5 text-[0.8125rem] font-bold tracking-wide text-label-2">
+            <BrandMark size={18} />
+            Teto
+          </p>
           <h1 className="t-large-title">Painel</h1>
           <p className="t-body mt-0.5 truncate text-label-2">
             {profile.name} · {year}
@@ -71,18 +78,15 @@ async function PainelConteudo() {
         </div>
         <div className="flex shrink-0 gap-2">
           <PrivacyToggle />
-          <Link href="/perfil" aria-label="Perfil e regras" className="glass grid size-11 shrink-0 place-items-center rounded-full text-label">
-            <User size={20} weight="bold" aria-hidden="true" />
-          </Link>
         </div>
       </header>
       <div className="flex flex-col gap-3">
         <Hero dashboard={dashboard} />
-        <LimitExplainer dashboard={dashboard} openingDate={profile.openingDate} />
+        <QuickEntry />
+        <LimitExplainer />
         <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
         <Bento dashboard={dashboard} />
         <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
-        <QuickEntry />
       </div>
     </>
   );
@@ -96,10 +100,7 @@ function PainelSkeleton() {
           <h1 className="t-large-title">Painel</h1>
           <div className="mt-1.5 h-5 w-48 rounded bg-card" />
         </div>
-        <div className="flex gap-2">
-          <div className="size-11 rounded-full bg-card" />
-          <div className="size-11 rounded-full bg-card" />
-        </div>
+        <div className="size-11 rounded-full bg-card" />
       </header>
       <div className="flex flex-col gap-3">
         <div className="h-[16.5rem] rounded-card bg-card" />

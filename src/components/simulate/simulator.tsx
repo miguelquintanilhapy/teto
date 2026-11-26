@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LimitBar } from "@/components/limit-bar";
+import { Target } from "@phosphor-icons/react/dist/ssr";
+import { BarKey, LimitBar, TONE_FILL } from "@/components/limit-bar";
+import { rulesFor } from "@/core";
 import { CurrencyField } from "@/components/send/currency-field";
 import { formatPercent, formatReais } from "@/lib/format";
 import { simulationView, type SimulateContext } from "@/lib/simulate";
@@ -26,12 +28,12 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
   const settled = useDebounced(cents, 700);
   const spoken = useMemo(() => (settled > 0 ? simulationView(ctx, settled) : null), [ctx, settled]);
 
-  const presets: Array<{ label: string; value: number }> = [
-    { label: formatReais(500_00), value: 500_00 },
-    { label: formatReais(1_000_00), value: 1_000_00 },
-    { label: formatReais(5_000_00), value: 5_000_00 },
-    ...(headroom > 0 ? [{ label: "O que cabe", value: headroom }] : []),
-  ];
+  const presets = [500_00, 1_000_00, 5_000_00];
+  const scaleMax = 1 + rulesFor(ctx.year).toleranceRate;
+  const currentRatio = ctx.limitCents > 0 ? ctx.accumulatedCents / ctx.limitCents : 0;
+  // "Acima do limite · 105%" e não "Acima do limite · 105% do limite".
+  const pct = formatPercent(view.ratio);
+  const pctText = view.band.label.toLowerCase().includes("limite") ? pct : `${pct} do limite`;
 
   return (
     <>
@@ -39,45 +41,77 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
         <CurrencyField label="Valor da venda" cents={cents} onChange={setCents} />
       </div>
 
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {presets.map((p) => (
+      {/* Os atalhos quebram de linha: rolando de lado, o último ("O que cabe") ficava cortado na borda. */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {presets.map((value) => (
           <button
-            key={p.label}
+            key={value}
             type="button"
-            onClick={() => setCents(p.value)}
+            onClick={() => setCents(value)}
             className="pressable hoverable min-h-11 shrink-0 rounded-full bg-card px-4 py-2 text-[0.9375rem] font-semibold"
           >
-            {p.label}
+            {formatReais(value)}
           </button>
         ))}
+        {headroom > 0 && (
+          // Ação diferente dos atalhos de valor: preenche com o que ainda cabe no limite.
+          <button
+            type="button"
+            onClick={() => setCents(headroom)}
+            className="pressable hoverable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-sep px-4 py-2 text-[0.9375rem] font-semibold text-action"
+          >
+            <Target size={17} weight="bold" aria-hidden="true" />
+            O que cabe
+          </button>
+        )}
       </div>
 
       <p className="sr-only" aria-live="polite">
         {spoken ? `${spoken.band.label}. ${spoken.headline} ${spoken.detail}` : ""}
       </p>
-      <section aria-label="Resultado da simulação" className="mt-5 rounded-card bg-card p-5">
-        <p className={`mb-1 text-[1.0625rem] font-bold ${TONE_TEXT[view.band.tone]}`}>
-          {view.band.label} · {formatPercent(view.ratio)} do limite
-        </p>
-        <h2 className="t-title sensitive">{view.headline}</h2>
-        <p className="t-body sensitive mt-2 text-label-2">{view.detail}</p>
-
-        <div className="mt-4">
-          <LimitBar
-            ratio={view.ratio}
-            addedRatio={view.addedRatio}
-            tone={view.band.tone}
-            label={`Com esta venda você usaria ${formatPercent(view.ratio)} do limite`}
-          />
-          <div className="t-caption mt-2 flex justify-between text-label-2">
-            <span className="sensitive">{formatReais(view.result.after.accumulatedCents)}</span>
-            <span>Limite de {formatReais(ctx.limitCents)}</span>
+      {cents === 0 ? (
+        // Sem valor, não há venda para simular: mostra onde você está hoje.
+        <section aria-label="Situação de hoje" className="mt-5 rounded-card bg-card p-5">
+          <h2 className="t-title">Quanto é a venda?</h2>
+          <p className="t-body mt-2 text-label-2">
+            Digite um valor ou toque num atalho. Hoje você está em <span className="sensitive">{formatPercent(currentRatio)}</span> do limite.
+          </p>
+          <div className="mt-4">
+            <LimitBar ratio={currentRatio} tone={view.band.tone} label={`Hoje você usou ${formatPercent(currentRatio)} do limite`} scaleMax={scaleMax} />
+            <div className="t-caption mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-label-2">
+              <BarKey className={TONE_FILL[view.band.tone]}>Já faturado</BarKey>
+              <BarKey mark>Limite</BarKey>
+            </div>
+            <p className="t-caption mt-1 text-label-2">{view.references}</p>
           </div>
-          <p className="t-caption sensitive mt-1 text-label-2">{view.references}</p>
-        </div>
+        </section>
+      ) : (
+        <section aria-label="Resultado da simulação" className="mt-5 rounded-card bg-card p-5">
+          <p className={`mb-1 text-[1.0625rem] font-bold ${TONE_TEXT[view.band.tone]}`}>
+            {view.band.label} · {pctText}
+          </p>
+          <h2 className="t-title sensitive">{view.headline}</h2>
+          <p className="t-body sensitive mt-2 text-label-2">{view.detail}</p>
 
-        {view.costLine && <p className="t-body sensitive mt-4 rounded-2xl bg-tile p-3.5 text-label-2">{view.costLine}</p>}
-      </section>
+          <div className="mt-4">
+            <LimitBar
+              ratio={view.ratio}
+              addedRatio={view.addedRatio}
+              tone={view.band.tone}
+              label={`Com esta venda você usaria ${formatPercent(view.ratio)} do limite`}
+              scaleMax={scaleMax}
+            />
+            <div className="t-caption mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-label-2">
+              <BarKey className={TONE_FILL[view.band.tone]}>Já faturado</BarKey>
+              <BarKey className="bg-label">Esta venda</BarKey>
+              <BarKey mark>Limite</BarKey>
+            </div>
+            <p className="t-caption mt-1 text-label-2">{view.references}</p>
+          </div>
+
+          {view.costLine && <p className="t-body sensitive mt-4 rounded-2xl bg-tile p-3.5 text-label-2">{view.costLine}</p>}
+        </section>
+      )}
 
       <p className="t-sub mt-4 px-2 text-label-2">
         É só uma simulação: nada é lançado. A conta usa a receita bruta (o que entra), não o lucro. Os custos são estimativas e não substituem o cálculo oficial.

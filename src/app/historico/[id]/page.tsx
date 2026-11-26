@@ -14,38 +14,67 @@ export const metadata = { title: "Lançamento · Teto" };
 export default function DetalhePage({ params }: PageProps<"/historico/[id]">) {
   return (
     <SheetShell title="Lançamento" closeHref="/historico">
-      <Suspense fallback={<div aria-busy="true" className="h-64 animate-pulse rounded-card bg-card motion-reduce:animate-none" />}>
+      <Suspense fallback={<DetalheSkeleton />}>
         <Conteudo params={params} />
       </Suspense>
     </SheetShell>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** Esqueleto com a forma do conteúdo: o cartão do valor e a lista de dados. */
+function DetalheSkeleton() {
   return (
-    <div className="flex items-start justify-between gap-4 px-5 py-3.5">
-      <p className="t-row shrink-0">{label}</p>
-      <p className="t-row min-w-0 text-right text-label-2">{value}</p>
+    <div aria-busy="true" aria-label="Carregando o lançamento" className="animate-pulse motion-reduce:animate-none">
+      <div className="h-44 rounded-card bg-card" />
+      <div className="mt-8 h-52 rounded-card bg-card" />
     </div>
   );
 }
 
-const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+/** Rótulo e valor lado a lado; valor longo (CNPJ, descrição) desce para a linha de baixo, alinhado à esquerda. */
+function Row({ label, value, nowrap = false }: { label: string; value: string; nowrap?: boolean }) {
+  const stacked = value.length > 22;
+  return stacked ? (
+    <div className="px-5 py-3.5">
+      <p className="t-sub text-label-2">{label}</p>
+      <p className={`mt-0.5 text-[1.0625rem] ${nowrap ? "whitespace-nowrap" : ""}`}>{value}</p>
+    </div>
+  ) : (
+    <div className="flex items-baseline justify-between gap-4 px-5 py-3.5">
+      <p className="text-[1.0625rem] shrink-0">{label}</p>
+      <p className={`min-w-0 text-right text-[1.0625rem] text-label-2 ${nowrap ? "whitespace-nowrap" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+/** "24 nov 2026, 16:54", no fuso de Brasília: o mesmo formato de data do resto do app. */
+function stamp(iso: string): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(new Date(iso))
+      .map((x) => [x.type, x.value]),
+  ) as Record<string, string>;
+  return `${formatFullShortDate(`${p.year}-${p.month}-${p.day}`)}, ${p.hour}:${p.minute}`;
+}
 
 async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["params"] }) {
   const { id } = await params;
   const r = await loadPanelSafe("detalhe");
   if (!r.ok) {
-    return (
-      <>
-        {r.reason === "no_profile" ? (
-          <NoProfile />
-        ) : (
-          <p role="alert" className="t-body rounded-card bg-card p-5">
-            Não foi possível carregar o lançamento. Tente de novo em instantes.
-          </p>
-        )}
-      </>
+    return r.reason === "no_profile" ? (
+      <NoProfile />
+    ) : (
+      <p role="alert" className="t-body rounded-card bg-card p-5">
+        Não foi possível carregar o lançamento. Tente de novo em instantes.
+      </p>
     );
   }
   const t = r.panel.transactions.find((x) => x.id === id);
@@ -64,8 +93,12 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
   return (
     <>
       <section className="rounded-card bg-card p-5 text-center">
-        <p className="t-sub text-label-2">{income ? "Receita" : "Despesa"} · {STATUS_LABEL[t.status]}</p>
-        <p className={`sensitive t-display mt-1 ${t.status === "cancelada" ? "text-label-2 line-through" : ""}`}>
+        {/* O título é o que foi vendido ou comprado: é por isso que a pessoa reconhece o lançamento. */}
+        <h2 className={`line-clamp-3 text-[1.25rem] leading-tight font-bold ${t.description ? "" : "text-label-2"}`}>{t.description || "Sem descrição"}</h2>
+        <p className="t-sub mt-1 text-label-2">
+          {income ? "Receita" : "Despesa"} · {STATUS_LABEL[t.status]}
+        </p>
+        <p className={`sensitive t-display mt-2 ${t.status === "cancelada" ? "text-label-2 line-through" : ""}`}>
           {income ? "+ " : "− "}
           {formatMoney(t.amountCents)}
         </p>
@@ -77,10 +110,9 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
         <Row label="Data" value={formatFullShortDate(t.date)} />
         {t.issueDate && t.issueDate !== t.date && <Row label="Emissão" value={formatFullShortDate(t.issueDate)} />}
         <Row label="Origem" value={sourceLabel(t.source)} />
-        <Row label={income ? "Cliente" : "Fornecedor"} value={t.counterparty} />
-        <Row label="Descrição" value={t.description || "Sem descrição"} />
+        <Row label={income ? "Cliente" : "Fornecedor"} value={t.counterparty} nowrap />
         {t.accessKeySuffix && <Row label="Chave de acesso" value={`…${t.accessKeySuffix}`} />}
-        {t.confidence !== null && <Row label="Confiança da IA" value={`${Math.round(t.confidence * 100)}%`} />}
+        {t.confidence !== null && <Row label="Leitura" value="Pela IA, conferida por você" />}
       </div>
 
       {events.length > 0 && (
@@ -91,8 +123,8 @@ async function Conteudo({ params }: { params: PageProps<"/historico/[id]">["para
               const d = describeEvent(e);
               return (
                 <li key={`${e.createdAt}-${i}`} className="px-5 py-3.5">
-                  <p className="t-row">{d.title}</p>
-                  <p className="t-sub text-label-2">{dateTime.format(new Date(e.createdAt))}</p>
+                  <p className="text-[1.0625rem] font-medium">{d.title}</p>
+                  <p className="t-sub text-label-2">{stamp(e.createdAt)}</p>
                   {d.lines.map((line) => (
                     <p key={line} className="t-sub mt-1">
                       {line}

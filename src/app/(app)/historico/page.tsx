@@ -12,7 +12,7 @@ export default function HistoricoPage() {
       <div className="mt-2 mb-3 flex items-center justify-between gap-3">
         <h1 className="t-large-title">Histórico</h1>
         <Link href="/extrato" className="glass pressable inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[0.9375rem] font-semibold">
-          Conciliar extrato
+          Comparar extrato
         </Link>
       </div>
       <Suspense fallback={<HistoricoSkeleton />}>

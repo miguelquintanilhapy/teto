@@ -1,9 +1,9 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "3bec4942d33e1aae4698851a87510278f5cb8d3838c1df5be6596786815cc810",
-  "recordedAt": "2026-11-25T18:46:43.216Z",
-  "latencyMs": 1867,
+  "recordedAt": "2026-11-25T19:48:22.227Z",
+  "latencyMs": 1455,
   "raw": {
     "documentType": "comprovante_pix",
     "issueDate": "2026-08-21",
@@ -11,7 +11,7 @@
     "issuerTaxId": "34567890000130",
     "recipientTaxId": "11222333000181",
     "accessKey": null,
-    "description": "Transferência Pix realizada para Atacado Doce Mundo Ltda",
+    "description": "Comprovante de Pix",
     "confidence": 1
   }
 }

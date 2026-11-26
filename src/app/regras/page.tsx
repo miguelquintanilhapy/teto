@@ -57,12 +57,12 @@ async function Conteudo() {
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Avisos e prazos</h2>
       <div className="divide-y divide-sep rounded-card bg-card">
-        <Row label="Alerta de atenção" value={formatPercent(cfg.warningRatio)} hint="do limite: o Painel muda para Atenção" />
-        <Row label="Alerta crítico" value={formatPercent(cfg.criticalRatio)} hint="do limite: o Painel muda para Crítico" />
-        <Row label="Vencimento do DAS" value={`dia ${cfg.dasDueDay}`} hint="de cada mês, referente ao mês anterior" />
+        <Row label="Atenção" value={`aos ${formatPercent(cfg.warningRatio)}`} hint="O Painel fica âmbar e você recebe um e-mail." />
+        <Row label="Crítico" value={`aos ${formatPercent(cfg.criticalRatio)}`} hint="O Painel fica laranja e você recebe outro e-mail." />
+        <Row label="Vencimento do DAS" value={`dia ${cfg.dasDueDay}`} hint="Todo mês, referente ao mês anterior." />
       </div>
       <p className="t-sub mt-2 px-5 text-label-2">
-        Só receita conta para o limite. Estas regras ficam no código do Teto e valem para {year}. Confirme sempre no Portal do Empreendedor ou com seu contador.
+        Só receita conta para o limite. São as regras do MEI para {year} (Lei Complementar 123/2006). Confirme sempre no Portal do Empreendedor ou com seu contador.
       </p>
     </>
   );

@@ -1,9 +1,9 @@
 {
   "providerId": "gemini:gemini-3.5-flash-lite",
-  "promptVersion": "v3",
+  "promptVersion": "v4",
   "docSha256": "4d9d1b907bc581f85186aaf845029e8d71a231703d04d3578832fd14e0cd26e1",
-  "recordedAt": "2026-11-25T18:45:56.244Z",
-  "latencyMs": 1912,
+  "recordedAt": "2026-11-25T19:48:01.002Z",
+  "latencyMs": 6690,
   "raw": {
     "documentType": "nota_fiscal",
     "issueDate": "2026-08-08",

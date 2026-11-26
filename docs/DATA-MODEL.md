@@ -1,14 +1,17 @@
 # Modelo de dados
 
 Schema do Supabase (Postgres), implementado em `supabase/migrations/`:
-`0001_init.sql` (tabelas, restrições e RLS) e `0002_one_transaction_per_document.sql`
+`0001_init.sql` (tabelas, restrições, a função `consume_daily_quota`, o trigger de `updated_at` e RLS) e
+`0002_one_transaction_per_document.sql`
 (um documento vira no máximo um lançamento).
 
 Convenções:
 - Chave primária `uuid` (`gen_random_uuid()`).
 - Dinheiro em **centavos** (`bigint`), nunca `numeric` decimal nem `float`.
 - Datas de negócio em `date`; instantes em `timestamptz`.
-- `profile_id` em toda tabela de dados, para isolamento futuro por usuário.
+- `profile_id` em `documents`, `transactions`, `bank_entries` e `alerts`, para isolamento futuro por usuário.
+  `extractions`, `transaction_events` e `reconciliation_links` **não** têm `profile_id`: chegam ao perfil pelo
+  documento ou pelo lançamento.
 - Todas as tabelas com **RLS ativada e sem políticas para `anon`** (nega tudo).
   O servidor usa a chave de serviço.
 
@@ -62,11 +65,14 @@ Rastro do que a IA fez, uma linha por documento extraído.
 | document_id | uuid FK único | |
 | status | text | `accepted` · `needs_review` · `failed` |
 | provider_id | text | quem produziu o resultado final |
-| prompt_version | text | liga o resultado ao prompt do eval |
+| prompt_version | text | liga o resultado ao prompt do eval (hoje `v4`) |
 | schema_version | text | |
 | attempts | jsonb | lista de `Attempt` (provedor, resultado, latência, issues) |
-| raw_result | jsonb | saída validada do modelo (emissor e destinatário; o modelo não devolve `kind`) |
+| raw_result | jsonb | saída validada do modelo (emissor e destinatário; o modelo não devolve `kind`). Chave de acesso que não passou no dígito verificador já vem como `null` |
 | created_at | timestamptz | |
+
+O upload grava `documents` e `extractions`, e **nenhuma** linha em `transactions`: o lançamento só nasce quando
+o usuário confirma.
 
 ### `transactions`
 | Coluna | Tipo | Observação |
@@ -79,12 +85,12 @@ Rastro do que a IA fez, uma linha por documento extraído.
 | amount_cents | bigint | CHECK `> 0` |
 | kind | text | `receita` · `despesa`; derivada por `deriveDirection` a partir do CNPJ do perfil, e o usuário pode corrigir |
 | source | text | `nota` · `pix` · `manual` |
-| status | text | `pendente` · `confirmada` · `cancelada` |
+| status | text | `pendente` · `confirmada` · `cancelada`. Hoje o app grava só `confirmada` (na confirmação) e `cancelada`; **nenhum fluxo grava `pendente`**, então "Para conferir" fica sempre em 0 |
 | counterparty_tax_id | text nulo | a outra parte, depois de derivada a direção |
 | access_key | text nulo | 44 dígitos |
 | description | text | |
 | confidence | real nulo | 0 a 1 |
-| created_at / updated_at | timestamptz | |
+| created_at / updated_at | timestamptz | `updated_at` é mantido pelo trigger `transactions_set_updated_at` (função `set_updated_at`) |
 
 Restrições e índices:
 - Único parcial `(profile_id, access_key)` quando `access_key` não é nulo.
@@ -103,6 +109,9 @@ Histórico imutável de alterações (confirmar, corrigir, cancelar).
 | action | text (`created` · `corrected` · `confirmed` · `cancelled`) |
 | changes | jsonb (campo → antes/depois) |
 | created_at | timestamptz |
+
+O schema aceita `created`, mas o app nunca grava essa ação: o lançamento nasce já confirmado e o primeiro evento
+é `confirmed`. Índice `(transaction_id, created_at)`.
 
 ### `bank_entries`
 > **Reservada, ainda sem uso.** A importação do extrato roda inteira no navegador (o CSV é lido e conciliado
@@ -149,19 +158,28 @@ Garante o pareamento um-para-um.
 | day | date PK | dia em Brasília |
 | extractions | integer | contador do teto diário |
 
+A função `consume_daily_quota(p_day date, p_limit integer) returns boolean` consome uma unidade da cota do dia
+de forma atômica (`insert … on conflict do update … where extractions < p_limit`) e devolve `false` quando o teto
+foi atingido. O acesso público a ela é revogado; o servidor a chama com a chave de serviço.
+
 ## Storage
 
 - Bucket `documents`, **privado**. Limite do app: 4 MB por arquivo (a Vercel corta em 4,5 MB).
 - Caminho: `{profile_id}/{content_hash}.{ext}`.
-- Acesso só por URL assinada de curta duração.
-- Rotina de limpeza dos arquivos da demo.
+- O app só grava no bucket; nenhuma tela lê o arquivo de volta.
+- Planejado, **não existe**: acesso ao arquivo por URL assinada de curta duração e rotina de limpeza dos arquivos
+  da demo.
 
 ## Regras de consistência
 
 1. Só `status = 'confirmada'` e `kind = 'receita'` entram no acumulado.
 2. Toda mudança de `status` ou de valor gera um `transaction_event`.
-3. Confirmação e gravação do evento ocorrem **na mesma transação** do banco.
+3. Lançamento e evento **não** ficam na mesma transação do banco: são dois comandos. Se o evento falha, o código
+   desfaz o primeiro (apaga o lançamento recém-criado; na correção e no cancelamento, devolve os valores
+   anteriores). Uma queda entre os dois comandos ainda pode deixar um lançamento sem evento.
 4. Alerta enviado não é retirado quando o valor cai; o painel mostra o estado atual.
 5. Nenhum dado pessoal real: tudo sintético.
 6. Um documento vira no máximo um lançamento (índice único da `0002`).
 7. CPF e CNPJ da outra parte e a chave de acesso saem **mascarados** do servidor para a tela; o dado inteiro fica só no banco.
+   O CNPJ do próprio MEI é a exceção: vai inteiro para `/enviar` e `/lancar`, que precisam dele para mostrar
+   receita ou despesa antes de confirmar.
