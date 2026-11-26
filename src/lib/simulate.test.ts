@@ -64,3 +64,39 @@ describe("simulationView", () => {
     expect(v.addedRatio).toBeCloseTo(0.1);
   });
 });
+
+describe("simulationView: a resposta em destaque", () => {
+  it("sem venda, mostra quanto cabe hoje", () => {
+    const v = simulationView(ctx, 0);
+    expect(v.answer).toEqual({ label: "Hoje ainda cabem", cents: 7_500_00 });
+    expect(v.note).toContain("Digite um valor");
+  });
+
+  it("dentro do limite, o número é quanto ainda cabe depois da venda", () => {
+    const v = simulationView(ctx, 100_00);
+    expect(v.answer).toEqual({ label: "Depois desta venda, ainda cabem", cents: 7_400_00 });
+    expect(v.note).toBe("Você continua em atenção.");
+  });
+
+  it("quando muda de faixa, a frase diz para onde vai", () => {
+    expect(simulationView(ctx, 1_280_00).note).toBe("Esta venda leva você para crítico.");
+  });
+
+  it("exatamente no limite, cabe zero e a frase avisa", () => {
+    const v = simulationView(ctx, 7_500_00);
+    expect(v.answer.cents).toBe(0);
+    expect(v.note).toContain("Qualquer venda a mais passa do limite");
+  });
+
+  it("acima do limite, o número é quanto passa", () => {
+    const v = simulationView(ctx, 10_000_00);
+    expect(v.answer).toEqual({ label: "Esta venda passa do limite em", cents: 2_500_00 });
+    expect(v.note).toContain("1º de janeiro de 2027");
+  });
+
+  it("acima de 20%, a frase fala do desenquadramento retroativo", () => {
+    const v = simulationView(ctx, 30_000_00);
+    expect(v.answer.cents).toBe(22_500_00);
+    expect(v.note).toContain("desde janeiro de 2026");
+  });
+});

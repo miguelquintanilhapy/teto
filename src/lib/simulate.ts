@@ -19,6 +19,13 @@ export interface SimulationView {
   references: string;
   /** Só existe quando a venda acrescenta custo. Sempre dito como estimativa. */
   costLine: string | null;
+  /**
+   * A resposta da simulação, em destaque: quanto ainda cabe até o limite ou quanto passa dele.
+   * É o número que a pessoa procura; o resto do cartão só explica.
+   */
+  answer: { label: string; cents: Cents };
+  /** Uma frase só, com a consequência. */
+  note: string;
 }
 
 /**
@@ -70,5 +77,29 @@ export function simulationView(ctx: SimulateContext, extraCents: Cents): Simulat
       : null;
 
   const references = `Limite ${formatReais(ctx.limitCents)} · com 20% a mais: ${formatReais(toleranceCents)}`;
-  return { result, band, ratio, addedRatio, headline: headline!, detail: detail!, references, costLine };
+
+  let answer: SimulationView["answer"];
+  let note: string;
+  if (extraCents === 0) {
+    answer = { label: "Hoje ainda cabem", cents: left };
+    note = "Digite um valor ou toque num atalho para ver o efeito de uma venda.";
+  } else if (atLimit) {
+    answer = { label: "Depois desta venda, ainda cabem", cents: 0 };
+    note = `Qualquer venda a mais passa do limite. Até ${formatReais(toleranceCents)} você ainda segue MEI neste ano.`;
+  } else if (after.band === "over_tolerance") {
+    answer = { label: "Esta venda passa do limite em", cents: over };
+    note = `Até ${formatReais(toleranceCents)} você segue MEI neste ano, mas é desenquadrado em 1º de janeiro de ${ctx.year + 1}.`;
+  } else if (after.band === "over_retroactive") {
+    answer = { label: "Esta venda passa do limite em", cents: over };
+    note = `Passa de ${formatReais(toleranceCents)}: o desenquadramento vale desde janeiro de ${ctx.year}, e os impostos do ano são recalculados.`;
+  } else {
+    answer = { label: "Depois desta venda, ainda cabem", cents: left };
+    note =
+      after.band === "ok"
+        ? "Cabe com folga no limite do ano."
+        : result.changesBand
+          ? `Esta venda leva você para ${band.label.toLowerCase()}.`
+          : `Você continua em ${band.label.toLowerCase()}.`;
+  }
+  return { result, band, ratio, addedRatio, headline: headline!, detail: detail!, references, costLine, answer, note };
 }
