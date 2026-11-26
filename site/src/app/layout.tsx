@@ -12,7 +12,13 @@ const interTight = Inter_Tight({
   display: "swap",
 });
 
+/** Endereço absoluto das imagens de compartilhamento: o domínio de produção na Vercel, ou o local. */
+const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3100";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Teto · o limite do MEI, à vista",
   description: SITE_DESCRIPTION,
   openGraph: {
@@ -35,6 +41,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${inter.variable} ${interTight.variable}`}>
       <body>
+        {/* Sem JavaScript, as entradas animadas ficariam presas invisíveis: mostra tudo de uma vez. */}
+        <noscript>
+          <style>{`[style*="opacity:0"]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <a className="skip" href="#conteudo">
           Pular para o conteúdo
         </a>

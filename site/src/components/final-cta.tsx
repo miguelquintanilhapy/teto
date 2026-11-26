@@ -44,8 +44,8 @@ export function FinalCta() {
         </Reveal>
 
         <Reveal as="p" delay={0.2} className="mt-14 max-w-[30rem] text-sm leading-relaxed text-mute-dark">
-          A versão publicada mostra um MEI de demonstração, com dados fictícios. O Teto não substitui um contador:
-          valores de custo são estimativas.
+          A versão publicada mostra um MEI de demonstração, com dados fictícios. Valores de custo são sempre
+          estimativas.
         </Reveal>
       </div>
     </section>

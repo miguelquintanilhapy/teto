@@ -55,6 +55,7 @@ supabase/      migrações do banco
 fixtures/      notas sintéticas, gabarito e respostas gravadas dos modelos (eval)
 scripts/       verificações de ambiente, gerador de notas, runner do eval e dados de demonstração
 docs/          arquitetura, modelo de dados, interface, segurança, regras do MEI, plano
+site/          site de apresentação: projeto Next à parte, com dependências próprias (ver site/README.md)
 ```
 
 ## Configuração passo a passo
