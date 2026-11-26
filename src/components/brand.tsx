@@ -1,18 +1,5 @@
 import { roofDots } from "@/lib/roof";
 
-/**
- * A marca do Teto desenhada em SVG (o telhado sobre o T), na cor do texto: funciona nos temas claro e escuro
- * sem trocar de imagem.
- */
-export function BrandMark({ size = 18, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
-      <path d="M2 11 L12 3 L22 11" strokeWidth="2.4" />
-      <path d="M5.5 14 H18.5 M12 14 V22" strokeWidth="2.4" />
-    </svg>
-  );
-}
-
 /** A sala vazia, com o telhado: ilustração para páginas sem conteúdo (404, nada encontrado). */
 export function EmptyRoom({ className }: { className?: string }) {
   return (
