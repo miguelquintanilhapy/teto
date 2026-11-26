@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // O site de apresentação é um projeto à parte, com tipos e dependências próprios.
+    "site/**",
   ]),
 ]);
 

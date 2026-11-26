@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/*
+ * Site do Teto. As cores vêm do app (docs/INTERFACE.md): cada uma tem um papel.
+ * Neutros são o palco; azul é o que se toca; âmbar é a tolerância (o pontilhado do telhado);
+ * verde, laranja e vermelho só aparecem quando a seção fala de risco.
+ * O site alterna palcos escuros e claros de propósito, como uma apresentação de produto.
+ */
+@theme {
+  --color-ink: #000000;
+  --color-ink-2: #0b0b0c;
+  --color-graphite: #1d1d1f;
+  --color-paper: #f5f5f7;
+  --color-snow: #ffffff;
+
+  /* Texto secundário: #a1a1a6 dá 8,1:1 sobre o preto; #6e6e73 dá 4,9:1 sobre o #f5f5f7. */
+  --color-mute-dark: #a1a1a6;
+  --color-mute-light: #6e6e73;
+  --color-line-dark: rgb(255 255 255 / 0.12);
+  --color-line-light: rgb(0 0 0 / 0.1);
+
+  /* Ação: o azul do app. Botão com texto branco acima de 4,5:1 nos dois palcos. */
+  --color-primary: #0a6fdf;
+  --color-primary-hover: #1a7cf0;
+  --color-action-dark: #409cff;
+  --color-action-light: #0062cc;
+
+  /* Risco, nos tons do app (escuro / claro). */
+  --color-warn: #ff9f0a;
+  --color-warn-light: #b25000;
+  --color-alert: #ff6a2a;
+  --color-danger: #ff453a;
+  --color-ok: #30d158;
+
+  --font-display: var(--font-inter-tight), "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    color: var(--color-snow);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: rgb(10 111 223 / 0.45);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-action-dark);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Títulos: Inter Tight apertada, como uma peça de catálogo. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .lead {
+    font-size: clamp(1.125rem, 0.95rem + 0.6vw, 1.375rem);
+    line-height: 1.45;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Botões: pílula, alvo de 44 px ou mais. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.875rem;
+    padding: 0 1.35rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition:
+      background-color 0.25s var(--ease-out-soft),
+      color 0.25s var(--ease-out-soft),
+      transform 0.25s var(--ease-out-soft);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+  }
+
+  @media (hover: hover) {
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+    }
+  }
+
+  .btn-small {
+    min-height: 2.25rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.875rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-action-dark);
+  }
+
+  @media (hover: hover) {
+    .link-arrow:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  .skip {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+  }
+
+  .skip:focus {
+    top: 1rem;
+  }
+}
