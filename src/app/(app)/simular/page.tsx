@@ -39,6 +39,7 @@ async function Conteudo() {
         year: yearOf(panel.today),
         limitCents: panel.dashboard.limitCents,
         accumulatedCents: panel.dashboard.accumulatedCents,
+        openingDate: panel.profile.openingDate,
       }}
     />
   );

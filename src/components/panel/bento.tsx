@@ -3,9 +3,8 @@ import { ArrowSquareOut, CalendarBlank, SealCheck } from "@phosphor-icons/react/
 import type { Dashboard } from "@/core";
 import { dasCompetence, daysUntilLabel, pendingAria } from "@/lib/copy";
 import { formatShortDate } from "@/lib/format";
+import { PGMEI_URL } from "@/lib/links";
 
-/** Onde o MEI gera a guia do DAS (Portal do Simples Nacional, PGMEI). */
-const PGMEI_URL = "https://www8.receita.fazenda.gov.br/SimplesNacional/Aplicacoes/ATSPO/pgmei.app/Identificacao";
 
 function Tile({ children }: { children: React.ReactNode }) {
   return <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-label">{children}</span>;

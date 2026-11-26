@@ -49,6 +49,7 @@ export async function runAlerts(input: {
     accumulatedCents: dash.accumulatedCents,
     limitCents: dash.limitCents,
     toleranceLimitCents: dash.toleranceLimitCents,
+    openingDate: profile.openingDate,
     projectedCrossing: crossing,
   });
 

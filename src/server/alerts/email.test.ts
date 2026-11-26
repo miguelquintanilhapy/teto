@@ -10,6 +10,7 @@ const ctx: AlertContext = {
   accumulatedCents: 60_000_00,
   limitCents: 67_500_00,
   toleranceLimitCents: 81_000_00,
+  openingDate: "2020-01-10",
   projectedCrossing: "2026-12-28",
 };
 
@@ -26,7 +27,9 @@ describe("buildAlertEmail", () => {
     expect(nb(over.text)).toContain("passou do limite de 2026 em R$ 2.500");
     expect(over.text).toContain("1º de janeiro de 2027");
     const retro = buildAlertEmail("over_tolerance", { ...ctx, accumulatedCents: 90_000_00 });
-    expect(retro.text).toContain("desde janeiro de 2026");
+    expect(retro.text).toContain("desde 1º de janeiro de 2026");
+    const aberto = buildAlertEmail("over_tolerance", { ...ctx, accumulatedCents: 90_000_00, openingDate: "2026-03-01" });
+    expect(aberto.text).toContain("desde a abertura, em março");
   });
 
   it("escapa o conteúdo no HTML, por mais estranho que seja o nome", () => {

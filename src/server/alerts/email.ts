@@ -1,4 +1,5 @@
 import type { AlertKind } from "@/core";
+import { retroactiveConsequence, toleranceConsequence } from "@/lib/copy";
 import { formatDayMonth, formatPercent, formatReais } from "@/lib/format";
 
 export interface AlertContext {
@@ -7,6 +8,8 @@ export interface AlertContext {
   accumulatedCents: number;
   limitCents: number;
   toleranceLimitCents: number;
+  /** No ano de abertura, a saída retroativa vale desde a abertura, e não desde janeiro. */
+  openingDate: string | null;
   /** Quando o limite será ultrapassado, se a projeção disser. */
   projectedCrossing: string | null;
 }
@@ -43,14 +46,19 @@ function copy(kind: AlertKind, c: AlertContext): { subject: string; headline: st
         subject: "Teto: você passou do limite do MEI",
         headline: `Você passou do limite de ${c.year} em ${excess}`,
         body: [
-          `Até ${formatReais(c.toleranceLimitCents)} (20% a mais) você segue MEI neste ano, mas é desenquadrado em 1º de janeiro de ${c.year + 1}.`,
+          toleranceConsequence(c.year, c.toleranceLimitCents),
+          "Fale com um contador: você precisa avisar a Receita até o último dia útil do mês seguinte.",
         ],
       };
     case "over_tolerance":
       return {
         subject: "Teto: você passou de 20% acima do limite do MEI",
-        headline: "O limite passou de 20%: desenquadramento retroativo",
-        body: [`O faturamento (${formatReais(c.accumulatedCents)}) passou de ${formatReais(c.toleranceLimitCents)}. O desenquadramento vale desde janeiro de ${c.year}. Procure um contador.`],
+        headline: "Você passou de 20% acima do limite",
+        body: [
+          `O faturamento confirmado chegou a ${formatReais(c.accumulatedCents)}.`,
+          retroactiveConsequence(c.year, c.openingDate, c.toleranceLimitCents),
+          "Procure um contador o quanto antes.",
+        ],
       };
   }
 }
