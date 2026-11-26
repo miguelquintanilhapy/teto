@@ -265,6 +265,10 @@ body {
   user-select: none;
   -webkit-user-select: none;
 }
+/* Partes com cor própria dentro do valor (os centavos do Painel, por exemplo) também somem: antes, o ",50" vazava. */
+:root[data-privacy="on"] .sensitive * {
+  color: transparent !important;
+}
 /* Depois da primeira visita da sessão, a sala e o gráfico aparecem prontos: animar a cada troca de aba cansava. */
 :root[data-seen] .room-fill,
 :root[data-seen] .bar-grow {
