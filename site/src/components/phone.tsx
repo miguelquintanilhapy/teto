@@ -41,8 +41,8 @@ export function Phone({
             placeholder="blur"
             className="block h-auto w-full"
           />
-          {/* câmera frontal: uma cápsula discreta */}
-          <span aria-hidden="true" className="absolute left-1/2 top-[1.4%] h-[3.3%] w-[29%] -translate-x-1/2 rounded-full bg-black" />
+          {/* câmera frontal: um ponto discreto, na folga do alto da tela (a captura não tem barra de status) */}
+          <span aria-hidden="true" className="absolute left-1/2 top-[1.1%] aspect-square w-[3.4%] -translate-x-1/2 rounded-full bg-black ring-1 ring-white/10" />
           {/* reflexo leve do vidro */}
           <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgb(255_255_255/0.07),transparent_38%)]" />
         </div>

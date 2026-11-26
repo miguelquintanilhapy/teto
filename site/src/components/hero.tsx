@@ -43,6 +43,7 @@ export function Hero() {
     <section
       ref={ref}
       id="topo"
+      data-nav="dark"
       aria-labelledby="hero-titulo"
       className="relative isolate overflow-hidden bg-ink px-4 pb-24 pt-28 sm:px-6 sm:pt-36 lg:pb-32"
     >
