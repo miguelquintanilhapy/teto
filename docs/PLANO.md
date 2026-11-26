@@ -93,12 +93,13 @@ alertas, `eval` básico, tratamento de erro na interface e o vídeo.
 
 - [ ] Repositório público, criado após 4/11, sem fork, com commits dos três
 - [x] `npm run check` verde (406 testes)
-- [ ] CI com `gitleaks` e `npm audit` (hoje roda lint, tipos, testes e o eval em replay)
+- [x] CI com `gitleaks` e `npm audit` (além de lint, tipos, testes e o eval em replay)
 - [ ] Demo em HTTPS testada em outro dispositivo e em janela anônima
 - [ ] Vídeo de até 3 minutos, aberto sem login, mostrando o produto funcionando
 - [ ] README com demo, arquitetura, tabela do eval, limitações e como rodar (falta só o link da demo)
 - [ ] Regras do MEI confirmadas em fonte oficial e registradas (feito, menos a data que conta)
-- [ ] Nenhuma chave no histórico; nenhum dado real de terceiros (conferir com `gitleaks` antes de enviar)
+- [ ] Nenhuma chave no histórico (`gitleaks` limpo em 26/11, 164 commits, e roda na CI); nenhum dado real de
+      terceiros (falta conferir)
 - [ ] Nome, frase, descrição e trilha preenchidos no painel do hackathon
 - [ ] Último commit antes de 30/11 às 23h59
 
@@ -113,7 +114,8 @@ O detalhe de cada tarefa, com critério de pronto, está em [TAREFAS.md](TAREFAS
 4. Rodar `npm run seed:demo -- --reset` e `npm run seed:demo` para a demo começar com dados limpos.
 5. Gravar o vídeo (roteiro abaixo), publicar sem login e colocar o link no README.
 6. Preencher nome, frase, descrição e trilha no painel do hackathon.
-7. Opcional se sobrar tempo: `gitleaks` e `npm audit` na CI, `LICENSE`, gravações completas do eval.
+7. Opcional se sobrar tempo: gravações completas do eval. (`gitleaks` e `npm audit` na CI, `LICENSE` e
+   Dependabot: feitos em 26/11.)
 
 ## Roteiro do vídeo (3 minutos)
 
