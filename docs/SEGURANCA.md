@@ -70,7 +70,12 @@ fraca da política; o resto está fechado.
 
 ## Verificado em 25/11/2026
 
-- `npm audit --omit=dev`: 0 vulnerabilidades. **Não roda na CI ainda.**
+- `npm audit --omit=dev`: 0 vulnerabilidades. Roda na CI a cada PR (`--audit-level=high`: alta ou crítica reprova).
+- `gitleaks`: varre o histórico inteiro do Git na CI, num job próprio (`secrets`), a cada PR e push na `main`.
+  Em 26/11: 164 commits, nenhum vazamento. O único achado era o `CRON_SECRET` fictício do teste de ambiente,
+  liberado pela impressão digital exata em `.gitleaksignore` e por `gitleaks:allow` na linha (a regra continua
+  valendo para o resto). Um token falso commitado num clone descartável foi detectado, como esperado.
+- Dependabot (`.github/dependabot.yml`): `npm` e GitHub Actions, toda segunda-feira.
 - Requisições hostis contra o servidor de produção local: `Origin` de outro site (`403`), `text/plain` (`415`),
   edição do cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
 - Console do navegador sem violação de CSP.
@@ -91,4 +96,4 @@ toques simultâneos em "Confirmar".
 4. **Reserva de cota antes de gravar no storage.** O arquivo é gravado antes de a IA consumir a cota.
 5. **Cota de IA global:** um script consegue gastar a cota do dia (`200`) e deixar o júri sem leitura por IA;
    o app degrada para preenchimento manual, sem cair.
-6. `npm audit` periódico e Dependabot.
+6. ~~`npm audit` periódico e Dependabot.~~ Feito em 26/11 (CI e `.github/dependabot.yml`).

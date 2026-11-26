@@ -408,7 +408,8 @@ Falta para o envio (prazo: 30/11, 23h59):
 - [ ] Desligar a proteção por login da Vercel (link público). A migração `0002` já está aplicada no banco do projeto
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
-- [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`
+- [x] `gitleaks` e `npm audit` na CI
+- [x] Arquivo `LICENSE` (MIT) e Dependabot semanal
 - [ ] Gravar o `gemini-3.6-flash` no eval (a cota gratuita dele é de poucas leituras por dia) e repetir as gravações em outro horário
 
 Depois do hackathon:
@@ -422,3 +423,7 @@ Depois do hackathon:
 `package.json` fixa `typescript-eslint` em `8.73.0` (campo `overrides`) por causa
 de uma publicação parcial da versão 8.74.0 no npm em 23/11/2026. Remover quando
 o registro estabilizar.
+
+## Licença
+
+[MIT](LICENSE).

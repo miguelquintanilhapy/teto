@@ -8,7 +8,7 @@ const VALID = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
   SUPABASE_SERVICE_ROLE_KEY: "service",
-  CRON_SECRET: "0123456789abcdef",
+  CRON_SECRET: "0123456789abcdef", // gitleaks:allow (valor fictício de teste)
 };
 
 describe("parseModelChain", () => {

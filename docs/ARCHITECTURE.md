@@ -214,10 +214,10 @@ O modelo de ameaças completo, o que um estranho consegue fazer e o que falta es
 | Origem | Rotas que gravam recusam `Origin` de outro site (`403`). ✅ |
 | Dado pessoal | CPF/CNPJ da outra parte, chave de acesso e e-mail saem **mascarados do servidor**. ✅ |
 | Prompt injection | O documento é **dado, nunca instrução**. Saída restrita a schema e revalidada por código; a IA não decide receita ou despesa. Casos adversariais no `eval`. ✅ |
-| Segredos | Nenhuma chave com prefixo `NEXT_PUBLIC` além das públicas do Supabase. Varredura com `gitleaks` ainda **não** está na CI. 🟡 |
+| Segredos | Nenhuma chave com prefixo `NEXT_PUBLIC` além das públicas do Supabase. `gitleaks` varre o histórico inteiro do Git na CI a cada PR. ✅ |
 | Cron | `Authorization: Bearer <CRON_SECRET>`, comparação em tempo constante. ✅ |
 | Cabeçalhos | CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP e HSTS em `next.config.ts`. `script-src` tem `'unsafe-inline'` (o Next injeta o script de hidratação sem nonce). ✅ |
-| Dependências | `npm audit` de produção sem vulnerabilidades em 25/11; ainda **não** roda na CI. 🟡 |
+| Dependências | `npm audit --omit=dev --audit-level=high` na CI: vulnerabilidade alta ou crítica em dependência de produção reprova o PR. ✅ |
 | Logs | Sem dados pessoais nem conteúdo de documentos; só a causa do erro, cortada em 200 caracteres. ✅ |
 | Abuso da cota gratuita | Teto diário global de extrações (`QuotaGuard`) e limite por janela. Ao atingir, degrada para entrada manual. ✅ |
 | Concorrência | Índice único por documento; reserva atômica de alertas. ✅ |

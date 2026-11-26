@@ -1,0 +1,5 @@
+# Falsos positivos conferidos à mão. Cada linha libera UM achado (commit + arquivo + regra + linha),
+# nunca a regra inteira. Antes de acrescentar uma linha, confira que o valor é fictício.
+
+# CRON_SECRET fictício ("0123456789abcdef") usado no teste da validação de ambiente.
+746f92673a53d1827f6e439bf9408141294da870:src/server/env.test.ts:generic-api-key:11
