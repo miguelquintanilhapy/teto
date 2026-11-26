@@ -176,7 +176,9 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 se desenhando. `:hover` só existe onde há mouse.
 
 A sala e o gráfico só animam **na primeira visita da sessão**; depois aparecem prontos (animar a cada troca de
-aba cansava). As abas trocam sem animação de entrada.
+aba cansava). Na troca de aba, a cápsula da barra desliza até a aba tocada (curva de mola do iOS, 0,42 s, com uma
+leve esticada no caminho) e sai no toque, sem esperar a tela carregar; o conteúdo novo entra num fundido de 0,18 s,
+sem deslizar, como no iOS (`TabBar` e `TabContent`, em `src/components`).
 
 A troca de tema imita o iPhone: a tela inteira se dissolve de uma aparência para a outra em 0,4 s
 (View Transitions API, com um fundido de cores por CSS onde ela não existe), e o marcador do seletor
