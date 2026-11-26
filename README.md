@@ -461,3 +461,7 @@ Depois do hackathon:
 `package.json` fixa `typescript-eslint` em `8.73.0` (campo `overrides`) por causa
 de uma publicação parcial da versão 8.74.0 no npm em 23/11/2026. Remover quando
 o registro estabilizar.
+
+## Licença
+
+[MIT](LICENSE).

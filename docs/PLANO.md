@@ -122,7 +122,8 @@ Quase todo o escopo já foi feito. Se o prazo apertar, sacrificar nesta ordem:
 - [ ] Vídeo de até 3 minutos, aberto sem login, mostrando o produto funcionando
 - [ ] README com demo, arquitetura, tabela do eval, limitações e como rodar (falta só o link da demo)
 - [ ] Regras do MEI confirmadas em fonte oficial e registradas (feito, menos a data que conta)
-- [ ] Nenhuma chave no histórico; nenhum dado real de terceiros (conferir com `gitleaks` antes de enviar)
+- [ ] Nenhuma chave no histórico (`gitleaks` limpo em 26/11, 164 commits, e roda na CI); nenhum dado real de
+      terceiros (falta conferir)
 - [ ] Nome, frase, descrição e trilha preenchidos no painel do hackathon
 - [ ] Último commit antes de 30/11 às 23h59
 

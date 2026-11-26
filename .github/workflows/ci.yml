@@ -15,8 +15,21 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Reprova se uma dependência de produção tiver vulnerabilidade alta ou crítica.
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       # Repete as respostas gravadas (sem rede nem chave) e reprova se a qualidade cair.
       - run: npm run eval -- --no-write --min-correct 0.75 --max-silent-wrong 0.10
+
+  # Varre o histórico inteiro do Git atrás de chaves e segredos commitados por engano.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

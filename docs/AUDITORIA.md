@@ -74,7 +74,7 @@ Resolvidas ou técnicas:
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
 | Cobertura das gravações no prompt v4: `gemini-3.5-flash-lite` 26/26, `gemini-flash-lite-latest` 26/26, Nemotron 0/26 (cota diária do OpenRouter acabou), `gemini-3.6-flash` 0/26 (cota pequena). Uma gravação por nota | 🟡 completar |
 | Segurança: Origin, corpo estrito, cabeçalhos e CSP, máscara de CPF/CNPJ, limite por janela | ✅ (sem login; ver SEGURANCA.md) |
-| `gitleaks` e `npm audit` na CI | ❌ só rodados à mão (`npm audit` sem vulnerabilidades de produção em 25/11) |
+| `gitleaks` e `npm audit` na CI | ✅ `npm audit --omit=dev --audit-level=high` no job `check`; `gitleaks` no histórico inteiro, job `secrets` |
 | Deploy público | 🟡 existe na Vercel, mas com proteção por login ligada |
 | Lembrete do vencimento do DAS por e-mail | ❌ não implementado |
 
@@ -83,7 +83,7 @@ Resolvidas ou técnicas:
 - [x] Página inicial ainda é a do `create-next-app` (substituída por página própria)
 - [x] Imagens de exemplo do Next em `public/` (removidas)
 - [x] Favicon padrão (substituído por `src/app/icon.svg`)
-- [ ] Sem `LICENSE` ou aviso de licença (o regulamento só exige que não impeça
+- [x] Sem `LICENSE` ou aviso de licença (agora MIT; o regulamento só exige que não impeça
       leitura, execução e teste do código)
 - [x] Sem `engines` / `.nvmrc` com a versão do Node
 - [ ] README sem link da demo (a tabela de avaliação já está)

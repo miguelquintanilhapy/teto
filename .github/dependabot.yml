@@ -1,0 +1,26 @@
+# Atualizações de dependências: uma checagem por semana, PRs agrupados para não encher a fila.
+# Correções de segurança chegam assim que publicadas, fora deste calendário (alertas do Dependabot).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+    groups:
+      dependencias:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Sao_Paulo
+    commit-message:
+      prefix: chore
