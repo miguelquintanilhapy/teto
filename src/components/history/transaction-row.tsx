@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Warning } from "@phosphor-icons/react/dist/ssr";
 import { formatMoney } from "@/lib/format";
+import { displayTitle } from "@/lib/history";
 import type { TransactionView } from "@/server/panel";
 
 const SOURCE: Record<TransactionView["source"], string> = {
@@ -20,21 +21,19 @@ export function TransactionRow({ t, duplicate = false }: { t: TransactionView; d
   const pending = t.status === "pendente";
   const sign = income ? "+" : "−";
   const kindLabel = income ? "Receita" : "Despesa";
+  const title = displayTitle(t.description);
 
   return (
-    <li className="relative [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:right-5 [&:not(:first-child)]:before:left-[4rem] [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-sep">
+    <li className="relative [&:not(:first-child)]:before:absolute [&:not(:first-child)]:before:top-0 [&:not(:first-child)]:before:right-5 [&:not(:first-child)]:before:left-[4.375rem] [&:not(:first-child)]:before:h-px [&:not(:first-child)]:before:bg-sep">
       <Link href={`/historico/${t.id}`} className="pressable hoverable flex items-center gap-3.5 px-5 py-3">
-        <span className={`grid size-[1.875rem] shrink-0 place-items-center rounded-lg bg-tile ${income ? "text-label" : "text-label-2"}`}>
-          <Icon size={18} weight="bold" aria-hidden="true" />
+        <span className={`grid size-9 shrink-0 place-items-center rounded-[0.625rem] bg-tile ${income ? "text-label" : "text-label-2"}`}>
+          <Icon size={19} weight="bold" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p
-            className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "line-through" : ""} ${cancelled || !t.description ? "text-label-2" : ""}`}
-          >
-            {t.description || "Sem descrição"}
-          </p>
-          <p className="t-sub truncate text-label-2">
-            {kindLabel} · {SOURCE[t.source]}
+          {/* Sem descrição, o título vira o tipo: o cinza fazia a linha parecer desabilitada. */}
+          <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{title || kindLabel}</p>
+          <p className="t-sub mt-0.5 truncate text-label-2">
+            {title ? `${kindLabel} · ${SOURCE[t.source]}` : SOURCE[t.source]}
           </p>
           {pending && (
             <p className="t-caption mt-0.5 flex items-center gap-1 font-semibold text-warn-text">
