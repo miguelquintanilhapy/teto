@@ -1,4 +1,5 @@
 import type { Tone } from "@/lib/copy";
+import { roofDots } from "@/lib/roof";
 
 const FILL: Record<Tone, string> = {
   ok: "var(--ok)",
@@ -40,15 +41,9 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
       {/* limite */}
       <path d={`M10,${TOP} L52,${TOP - 26.6} L94,${TOP}`} fill="none" stroke="var(--label)" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
       {/* limite + 20% (tolerância), pontilhado */}
-      <path
-        d={`M10,${TOP - 30} L52,${TOP - 56.6} L94,${TOP - 30}`}
-        fill="none"
-        stroke="var(--warn)"
-        strokeWidth="6.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray="0.1 11"
-      />
+      {roofDots({ left: 10, right: 94, base: TOP - 30, peak: TOP - 56.6 }, 5).map(([cx, cy]) => (
+        <circle key={`${cx},${cy}`} cx={cx} cy={cy} r="3.25" fill="var(--warn)" />
+      ))}
     </svg>
   );
 }
@@ -57,15 +52,13 @@ export function Room({ ratio, tone, label }: { ratio: number; tone: Tone; label:
 export function RoofKey({ dotted = false }: { dotted?: boolean }) {
   return (
     <svg width="20" height="11" viewBox="0 0 20 11" aria-hidden="true" className="shrink-0">
-      <path
-        d="M2.5,9 L10,2.5 L17.5,9"
-        fill="none"
-        stroke={dotted ? "var(--warn)" : "var(--label)"}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray={dotted ? "0.1 5" : undefined}
-      />
+      {dotted ? (
+        roofDots({ left: 2.5, right: 17.5, base: 9, peak: 2.5 }, 2).map(([cx, cy]) => (
+          <circle key={`${cx},${cy}`} cx={cx} cy={cy} r="1.3" fill="var(--warn)" />
+        ))
+      ) : (
+        <path d="M2.5,9 L10,2.5 L17.5,9" fill="none" stroke="var(--label)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      )}
     </svg>
   );
 }
