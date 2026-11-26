@@ -30,7 +30,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 | `/ia` | Como a IA lê, em linguagem simples; a cadeia de modelos, a cota de hoje, tempos, falhas e o rastro de cada leitura ficam em "Detalhes técnicos" |
 | `/bem-vindo` | Primeiro cadastro do MEI (CNPJ e data de abertura). Quem já tem cadastro vai direto ao Painel |
 | `/perfil/editar` | Editar o cadastro (só quando a edição está liberada; ver [SEGURANCA.md](SEGURANCA.md)) |
-| `/regras` | As faixas do limite, os alertas e o vencimento do DAS, em frases inteiras ("Entenda o limite", no Painel, leva para cá) |
+| `/regras` | Escrita para quem nunca ouviu falar em desenquadramento: abre com "Conta tudo que entra, não o lucro", mostra a conta do limite (R$ 6.750 por mês × meses de atividade), as três faixas com o que acontece na prática e "Você está aqui", os avisos com o valor de cada um, o DAS e o que fazer se for passar ("Entenda o limite", no Painel, leva para cá) |
 | `/instalar` | Como adicionar o Teto à tela inicial: no Android, botão de instalar de verdade; no iPhone, os passos com o ícone de Compartilhar |
 | `/primeiros-passos` | Três passos para começar, marcados conforme o que já foi feito (passo feito não é link) |
 | 404 | "Esta página saiu do ar", com a sala vazia |
@@ -163,6 +163,11 @@ com a saída dita ("tire uma foto da nota ou exporte um PDF menor"). O envio ace
 As telas não calculam regra de negócio. Elas leem o painel (`loadPanelSafe` → `getPanel` → `loadPanel`, em
 `src/server`), que usa o núcleo (`src/core`), e só escrevem o resultado em português (`src/lib/copy.ts`,
 `src/lib/simulate.ts`). Os valores de custo do estouro são sempre rotulados como estimativa.
+
+Linguagem das regras: a consequência vem antes do termo técnico ("vira microempresa em 1º de janeiro", "deixa de ser
+MEI desde a abertura"), e não "é desenquadrado". As frases de estouro saem de um lugar só (`toleranceConsequence`,
+`retroactiveConsequence` e `retroactiveSince`, em `src/lib/copy.ts`), usadas no Simular, na Previsão, nos avisos e no
+e-mail. No ano de abertura, a saída acima de 20% vale desde a abertura, não desde janeiro.
 
 ## Animações e interação
 
