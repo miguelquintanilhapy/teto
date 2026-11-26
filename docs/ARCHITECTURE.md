@@ -40,7 +40,7 @@ pelo servidor. Chaves existem só no servidor.
 |---|---|---|---|
 | Núcleo de domínio | `src/core` | nada (nem Node, nem rede, nem relógio) | qualquer outra camada |
 | Servidor | `src/server` | `core` | `app`, `components` |
-| Lógica da interface | `src/lib` (textos, simulação, formatação, conciliação, geometria da barra, duplicidade) | `core` | `server`, banco, rede |
+| Lógica da interface | `src/lib` (textos, simulação, formatação, conciliação, geometria da barra e do telhado, duplicidade, histórico, guia das regras) | `core` | `server`, banco, rede |
 | Componentes | `src/components` | `lib`, `core`, e só tipos e validadores puros de `server` (`TransactionView`, `validateProfile`) | banco ou IA |
 | Telas e rotas | `src/app` | `server` (as telas leem o painel por `loadPanelSafe`/`getPanel`; as rotas chamam os handlers de `src/server/http`), `lib`, `components` | acesso direto a banco ou IA |
 

@@ -82,7 +82,7 @@ fraca da política; o resto está fechado.
 - Requisições hostis contra o servidor de produção local: `Origin` de outro site (`403`), `text/plain` (`415`),
   edição do cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
 - Console do navegador sem violação de CSP.
-- Rodada de testes automáticos: 449 em 42 arquivos (núcleo, serviços, handlers, lógica da interface).
+- Rodada de testes automáticos: 470 em 46 arquivos (núcleo, serviços, handlers, lógica da interface).
 
 ## Migração `0002` (já aplicada no banco do projeto)
 

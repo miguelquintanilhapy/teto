@@ -3,7 +3,8 @@
 Quatro rodadas. A primeira, em 24/11/2026, por dois revisores independentes (cada um leu o código sem a conclusão
 do outro) mais verificação no navegador em modo de produção; a segunda, uma auditoria externa por gravação de tela;
 a terceira, em 25/11, a partir do uso real no navegador e no iPhone; a quarta, em 25/11, uma auditoria de design
-independente. Este documento diz **o que achamos, o que foi corrigido e o que ficou**. Ver
+independente. Depois delas, em 26/11, vieram ajustes a partir do uso (última seção). Este documento diz **o que
+achamos, o que foi corrigido e o que ficou**. Ver
 [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 
 ## Primeira rodada: revisão de código e navegador (24/11)
@@ -168,3 +169,19 @@ Cada achado foi conferido no código antes de agir. O detalhe de como cada tela 
 | Link para ver o documento original | Não feito: exigiria servir o arquivo do bucket privado sem login, para qualquer pessoa com o endereço |
 | Reduzir a escala tipográfica a cerca de 6 degraus | Não feito: mexe em todas as telas a poucos dias do envio, com risco de quebrar layouts que já foram conferidos; fica para depois do hackathon |
 | Onboarding de 3 telas | Não feito: a demonstração já abre com um MEI cadastrado, então o júri não passaria por ele; o começo segue com o cadastro (`/bem-vindo`) e "Primeiros passos" |
+
+## Depois da quarta rodada: ajustes de uso (26/11)
+
+Achados do uso do app depois do PR #21, sem revisor externo. Cada um foi corrigido no código; o detalhe de como a
+tela ficou está em [INTERFACE.md](INTERFACE.md).
+
+| Achado | O que mudou |
+|---|---|
+| Com "Ocultar valores", os centavos do Painel continuavam à vista (têm cor própria dentro do valor) | **Corrigido**: tudo o que está dentro de um valor escondido some junto (`.sensitive *`) |
+| O Simular mostrava vários números do mesmo tamanho, e não ficava claro qual importava | **Corrigido**: uma resposta só em número grande (quanto ainda cabe ou quanto a venda passa do limite), uma frase com a consequência, atalhos numa linha e "Usar o que ainda cabe" junto do campo |
+| Telhado pontilhado torto (sem ponto no topo, lado direito diferente do esquerdo) na sala, na legenda "+20%" e no 404 | **Corrigido**: pontos calculados um a um e espelhados (`src/lib/roof.ts`) |
+| A tela de Regras usava "desenquadrado", "proporcional" e "DAS" sem explicar, e deixava no rodapé que o limite é de faturamento, não de lucro | **Corrigido**: reescrita para leigo (`src/lib/rules-guide.ts`), abrindo com "Conta tudo que entra, não o lucro" e com "Você está aqui" na faixa atual |
+| Simular, Previsão, Avisos e o e-mail diziam que acima de 20% a saída vale "desde janeiro"; no ano de abertura ela vale desde a abertura | **Corrigido**: as frases de estouro saem de um lugar só (`src/lib/copy.ts`) e recebem a data de abertura, inclusive no e-mail |
+| O selo "Teto" no topo do Painel, pequeno, parecia a seta de enviar | **Corrigido**: saiu; o topo mostra só o nome da tela, como nos apps de celular |
+| A troca de aba era um corte seco | **Corrigido**: a cápsula da barra desliza até a aba tocada, e o conteúdo entra num fundido de 0,18 s (nada anima com "reduzir movimento") |
+| O Histórico era o ano inteiro numa lista só, sem busca nem totais, e o filtro "Conferir" ficava sempre vazio | **Corrigido**, com ideias do Bolso: um mês por vez com resumo de receitas e despesas, busca no ano todo, saldo de cada dia, filtro Todos, Receitas ou Despesas, e o título da linha com inicial maiúscula (sem descrição, o tipo vira o título). "Conferir" saiu porque nenhum fluxo grava `pendente` |

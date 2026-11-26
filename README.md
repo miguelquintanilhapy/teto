@@ -22,8 +22,10 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
   DAS com atalho para gerar a guia e receita por mês.
 - Limite proporcional para quem abriu o MEI no meio do ano, e as três faixas (limite, 20% acima, acima disso)
   explicadas na tela de Regras.
-- Simulador: "e se eu aceitar uma venda de R$ X?", com o custo estimado, e "O que cabe" até o limite.
-- Histórico com detalhe, correção e cancelamento (tudo registrado) e aviso de possível duplicidade; lançamento sem
+- Simulador: "e se eu aceitar uma venda de R$ X?", respondido com um número só (quanto ainda cabe ou quanto a venda
+  passa do limite) e uma frase com a consequência, o custo estimado e o atalho "Usar o que ainda cabe".
+- Histórico mês a mês, com o resumo do mês, busca (descrição, valor ou CPF/CNPJ) e filtro de receitas e despesas;
+  detalhe, correção e cancelamento (tudo registrado) e aviso de possível duplicidade; lançamento sem
   nota e importação do extrato bancário (CSV, lido no navegador) cruzada com as receitas.
 - Alertas por e-mail ao cruzar 80%, 90%, 100% e 120% do limite (idempotentes, com cron diário).
 - Relatório do ano em CSV (e em PDF pela impressão do navegador), tema claro e escuro, "ocultar valores" e
@@ -47,7 +49,7 @@ e validação determinística da resposta.
 src/
   core/        regras do MEI: puras, sem I/O, 100% testáveis
   server/      extração com IA (cadeia de provedores), avaliação, alertas, casos de uso e handlers HTTP
-  lib/         lógica pura da interface (textos, simulação, conciliação, relatório, redução de foto)
+  lib/         lógica pura da interface (textos, simulação, histórico, regras, conciliação, relatório, redução de foto)
   components/  componentes da interface
   app/         telas e rotas (Next.js)
 public/brand/  logo e ícones
@@ -420,7 +422,8 @@ contra o Supabase em Oregon; a leitura completa não foi medida de novo.
 - O lembrete do vencimento do DAS por e-mail não existe (a tabela de alertas guarda uma data por ano).
 - A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba.
 - "Para conferir" nunca recebe notas: nenhum fluxo grava o status `pendente` (a nota lida fica só na tela até
-  ser confirmada). O contador é sempre 0, e o Painel mostra "Tudo conferido".
+  ser confirmada). O contador é sempre 0, e o Painel mostra "Tudo conferido"; o filtro "Conferir" saiu do Histórico
+  por isso.
 - A interface não tem testes automatizados (só a lógica tem); foi verificada à mão no navegador e no iPhone do
   dono do projeto, não em Android nem com leitor de tela. Ver [docs/REVISAO.md](docs/REVISAO.md).
 
@@ -438,15 +441,18 @@ Feito:
 - [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica; e-mail real enviado e recebido em
   25/11 (chamada local ao cron). O cron agendado da Vercel ainda não rodou
 - [x] Revisões de UX, acessibilidade, segurança e cor, quatro rodadas ([REVISAO.md](docs/REVISAO.md), [SEGURANCA.md](docs/SEGURANCA.md))
-- [x] 449 testes automatizados em 42 arquivos (em 25/11), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
+- [x] 470 testes automatizados em 46 arquivos (em 26/11), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
+- [x] `gitleaks` e `npm audit` na CI, arquivo `LICENSE` (MIT) e Dependabot (PR #13)
+- [x] PR #21 da `feat/chave-e-latencia` mesclado (prompt v4, upload mais rápido, abas novas, quarta revisão)
 
 Falta para o envio (prazo: 30/11, 23h59):
 
-- [ ] Abrir e mesclar o PR da `feat/chave-e-latencia` (prompt v4, upload mais rápido, abas novas, quarta revisão)
+- [ ] Abrir e mesclar o PR com os ajustes de interface feitos depois do #21 na mesma branch (Simular com uma
+  resposta só, Regras escritas para leigo, saída retroativa "desde a abertura" no ano de abertura, Histórico mês a
+  mês com busca, cápsula deslizante nas abas)
 - [ ] Desligar a proteção por login da Vercel (link público). A migração `0002` já está aplicada no banco do projeto
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))
-- [ ] `gitleaks` e `npm audit` na CI; arquivo `LICENSE`
 - [ ] Gravar o Nemotron e o `gemini-3.6-flash` no eval v4 (com cota nova) e repetir as gravações em outro horário
 
 Depois do hackathon:
