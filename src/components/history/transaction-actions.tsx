@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PencilSimple } from "@phosphor-icons/react/dist/ssr";
 import { CurrencyField, TextField } from "@/components/send/currency-field";
 import { formatMoney } from "@/lib/format";
 import { reviewErrors } from "@/lib/send";
@@ -32,7 +33,8 @@ async function patch(id: string, body: Record<string, unknown>): Promise<{ ok: t
   }
 }
 
-const secondary = "pressable flex h-[3.375rem] w-full items-center justify-center rounded-full bg-card text-[1.1875rem] font-semibold";
+/** Botão secundário: fundo de cartão e texto azul (azul é o que se toca), como o botão tingido do iOS. */
+const secondary = "pressable flex h-[3.375rem] w-full items-center justify-center gap-2 rounded-full bg-card text-[1.1875rem] font-semibold text-action";
 
 /** Corrigir e cancelar. Cancelar pede confirmação e diz o que muda no limite. */
 export function TransactionActions({ t, today }: { t: Editable; today: string }) {
@@ -147,7 +149,8 @@ export function TransactionActions({ t, today }: { t: Editable; today: string })
         </p>
       )}
       <button type="button" onClick={() => { setSaved(false); setMode("editing"); }} className={secondary}>
-        Corrigir valor, data ou descrição
+        <PencilSimple size={20} weight="bold" aria-hidden="true" className="shrink-0" />
+        Corrigir lançamento
       </button>
       <button
         type="button"

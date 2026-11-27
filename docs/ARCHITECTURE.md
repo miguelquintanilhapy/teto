@@ -40,7 +40,7 @@ pelo servidor. Chaves existem só no servidor.
 |---|---|---|---|
 | Núcleo de domínio | `src/core` | nada (nem Node, nem rede, nem relógio) | qualquer outra camada |
 | Servidor | `src/server` | `core` | `app`, `components` |
-| Lógica da interface | `src/lib` (textos, simulação, formatação, conciliação, geometria da barra, duplicidade) | `core` | `server`, banco, rede |
+| Lógica da interface | `src/lib` (textos, simulação, formatação, conciliação, geometria da barra e do telhado, duplicidade, histórico, guia das regras) | `core` | `server`, banco, rede |
 | Componentes | `src/components` | `lib`, `core`, e só tipos e validadores puros de `server` (`TransactionView`, `validateProfile`) | banco ou IA |
 | Telas e rotas | `src/app` | `server` (as telas leem o painel por `loadPanelSafe`/`getPanel`; as rotas chamam os handlers de `src/server/http`), `lib`, `components` | acesso direto a banco ou IA |
 
@@ -234,8 +234,14 @@ anteriores). Uma queda entre os dois comandos ainda pode deixar um lançamento s
 
 O CSV do extrato é lido **no navegador** (`src/lib/statement.ts`), cruzado com as receitas por
 `reconcile`/`src/lib/reconciliation.ts` (determinístico) e mostra "entradas sem nota" e "notas sem entrada".
-O usuário decide se cada entrada vira receita (`source = pix`): o botão abre o formulário já preenchido, e a
-correção segue o fluxo normal de confirmação. O extrato não é gravado (as tabelas `bank_entries` e
+O leitor acha as colunas pelo nome (data, valor, quem pagou e, quando existe, o tipo da linha) e entende o
+negativo escrito com o menos tipográfico. Entradas que são dinheiro do próprio dono mudando de lugar (resgate de
+cofrinho, aplicação, rendimento, estorno, transferência entre contas) são reconhecidas por `isOwnMovement`, pelo
+tipo e pela descrição, e ficam fora da conciliação; a tela só diz quantas foram.
+O usuário decide se cada entrada vira receita: "Lançar" abre `/lancar` já preenchido (valor, data e quem pagou,
+validados por `readLaunchParams`), e o lançamento segue o fluxo normal de confirmação, como lançamento manual
+(`source = manual`). "Não é receita" só tira a entrada da lista. O extrato lido e essas marcações ficam no
+`sessionStorage` da aba (somem ao fechar a aba ou em "Limpar"); nada disso é gravado (as tabelas `bank_entries` e
 `reconciliation_links` ficam reservadas).
 
 ## 6. Segurança e privacidade

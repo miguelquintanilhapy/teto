@@ -28,6 +28,8 @@ export function bandView(band: RiskBand): BandView {
 export interface ForecastView {
   headline: string;
   body: string;
+  /** O estado da previsão, para o ícone do cartão: dentro do limite, vai passar, já passou. Sem receita, null. */
+  tone: Tone | null;
 }
 
 /**
@@ -41,6 +43,7 @@ export function forecastView(d: Dashboard, openingDate: string | null): Forecast
     return {
       headline: `Ainda não há receita confirmada em ${year}.`,
       body: "Envie uma nota e confirme os dados. A previsão aparece assim que houver faturamento.",
+      tone: null,
     };
   }
 
@@ -53,6 +56,7 @@ export function forecastView(d: Dashboard, openingDate: string | null): Forecast
     return {
       headline: `Você já passou do limite de ${year}.`,
       body: `Passou ${formatReais(excess)}. ${body}`,
+      tone: bandView(d.band).tone,
     };
   }
 
@@ -65,6 +69,7 @@ export function forecastView(d: Dashboard, openingDate: string | null): Forecast
     return {
       headline: `Você deve passar do limite em ${formatDayMonth(projection.limitCrossing.date)}.`,
       body: `No ritmo atual, ${year} fecha em ${formatReais(end)}. ${tail}`,
+      tone: end <= toleranceLimitCents ? "warn" : "alert",
     };
   }
 
@@ -72,6 +77,7 @@ export function forecastView(d: Dashboard, openingDate: string | null): Forecast
   return {
     headline: `No ritmo atual, você termina ${year} dentro do limite.`,
     body: `A previsão é fechar em ${formatReais(projection.projectedYearEndCents)}, ${formatReais(Math.max(0, room))} abaixo do limite.`,
+    tone: "ok",
   };
 }
 

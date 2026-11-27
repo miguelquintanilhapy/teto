@@ -6,7 +6,7 @@ Janela: **23/11 a 30/11/2026**. O envio fecha em 30/11 às 23h59 e o repositóri
 Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) ·
 [auditoria](AUDITORIA.md) · [tarefas da equipe](TAREFAS.md).
 
-## Andamento (25/11)
+## Andamento (27/11)
 
 - [x] Fase 0 de fundação, mesclada na `main`
 - [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
@@ -22,9 +22,15 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [ ] Questão de negócio: a data que conta para o limite (emissão ou recebimento) segue **sem fonte oficial**
 - [x] Migração `0002` aplicada no banco do projeto
 - [x] PRs #10, #11 e #12 mesclados na `main` (interface e cadeia nova de 4 modelos)
-- [x] Na branch `feat/chave-e-latencia` (falta abrir o PR): prompt v4 para a chave de acesso, chave inválida
-  descartada em vez de reprovar a nota, upload mais rápido (a IA lê enquanto o arquivo é gravado), abas novas
-  (Painel, Simular, Histórico, Mais) e a quarta rodada de revisão de design
+- [x] PR #13 mesclado: `npm audit` e `gitleaks` na CI, `LICENSE` (MIT) e Dependabot
+- [x] PR #21 mesclado (`feat/chave-e-latencia`): prompt v4 para a chave de acesso, chave inválida descartada em vez
+  de reprovar a nota, upload mais rápido (a IA lê enquanto o arquivo é gravado), abas novas (Painel, Simular,
+  Histórico, Mais) e a quarta rodada de revisão de design
+- [x] PR #22 mesclado em 26/11 (mesma branch): Simular com uma resposta só, Regras escritas para leigo, saída
+  retroativa "desde a abertura" no ano de abertura, cápsula deslizante nas abas
+- [ ] Ajustes depois do #22, na mesma branch, ainda sem PR: Histórico mês a mês com busca (26/11); extrato do
+  PicPay e tela do extrato refeita, cancelados num grupo próprio, quadradinhos de ícone com cor no Painel, botões
+  secundários em azul, mãozinha e hover com mouse (27/11) ([REVISAO.md](REVISAO.md))
 - [ ] Deixar o link da Vercel público e gravar o vídeo
 
 ## Como trabalhamos
@@ -107,17 +113,17 @@ O plano original, com o que aconteceu de fato:
 Quase todo o escopo já foi feito. Se o prazo apertar, sacrificar nesta ordem:
 
 1. Testes de interface com Playwright (A4)
-2. `LICENSE` e Dependabot (A2)
-3. Ampliar o conjunto de notas e melhorar a leitura da chave (B2 e B3)
-4. `gitleaks` e `npm audit` na CI (A1). Antes de enviar, rode o `gitleaks` à mão pelo menos uma vez
+2. Ampliar o conjunto de notas e melhorar a leitura da chave (B2 e B3)
+
+(A1 e A2, a CI com `gitleaks` e `npm audit`, a `LICENSE` e o Dependabot, já estão feitos no PR #13.)
 
 **Não cortar:** o vídeo, o link público e o preenchimento do painel do hackathon.
 
 ## Definição de pronto para o envio
 
 - [ ] Repositório público, criado após 4/11, sem fork, com commits dos três (hoje, um autor só)
-- [x] `npm run check` verde (449 testes em 42 arquivos, em 25/11)
-- [ ] CI com `gitleaks` e `npm audit` (hoje roda lint, tipos, testes e o eval em replay)
+- [x] `npm run check` verde (475 testes em 46 arquivos, em 27/11)
+- [x] CI com `gitleaks` e `npm audit`, além de lint, tipos, testes e o eval em replay
 - [ ] Demo em HTTPS testada em outro dispositivo e em janela anônima
 - [ ] Vídeo de até 3 minutos, aberto sem login, mostrando o produto funcionando
 - [ ] README com demo, arquitetura, tabela do eval, limitações e como rodar (falta só o link da demo)

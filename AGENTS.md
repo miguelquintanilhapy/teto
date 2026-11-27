@@ -66,8 +66,10 @@ não commite essa mudança sem querer.
   As telas leem por `loadPanelSafe` (`src/server/panel-safe.ts`), que não deixa a tela quebrar se o banco falhar.
 - Tailwind v4 com tokens de cor em `src/app/globals.css`. **Não escreva cor solta**: use `bg-primary`,
   `text-action`, `text-warn-text`, `text-alert-text`, `text-danger-text`, etc. (azul = o que se toca; `warn` âmbar,
-  `alert` laranja-avermelhado e `danger` vermelho = risco; `ok` verde = confirmação). O risco nunca vem só em cor:
-  sempre com ícone e texto.
+  `alert` laranja-avermelhado e `danger` vermelho = risco; `ok` verde = confirmação; `tax` azul-petróleo = categoria
+  do DAS, só no quadradinho do ícone, o `IconTile`). O risco nunca vem só em cor: sempre com ícone e texto.
+  Botão secundário: fundo de cartão com `text-action`. A mãozinha e o hover leve vêm de uma regra global em
+  `globals.css`; não precisa repetir por componente.
 - Valores em dinheiro na tela levam a classe `sensitive` (é o que "Ocultar valores" esconde). Desenho que revela o
   valor (a sala, o preenchimento das barras) leva `privacy-hide`.
 - Reais inteiros na tela são **truncados**, nunca arredondados (`src/lib/format.ts`): o mesmo valor não pode

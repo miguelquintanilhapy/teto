@@ -46,7 +46,7 @@ export function ReadingStep({
         <button
           type="button"
           onClick={onCancel}
-          className="flex h-[3.375rem] w-full items-center justify-center rounded-full bg-card text-[1.1875rem] font-semibold"
+          className="pressable flex h-[3.375rem] w-full items-center justify-center rounded-full bg-card text-[1.1875rem] font-semibold text-action"
         >
           Cancelar
         </button>

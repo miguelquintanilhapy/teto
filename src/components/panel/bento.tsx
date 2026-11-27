@@ -1,38 +1,40 @@
 import Link from "next/link";
-import { ArrowSquareOut, CalendarBlank, SealCheck } from "@phosphor-icons/react/dist/ssr";
+import { ArrowSquareOut, CalendarBlank, SealCheck, Warning } from "@phosphor-icons/react/dist/ssr";
+import { IconTile } from "@/components/icon-tile";
 import type { Dashboard } from "@/core";
 import { dasCompetence, daysUntilLabel, pendingAria } from "@/lib/copy";
 import { formatShortDate } from "@/lib/format";
 import { PGMEI_URL } from "@/lib/links";
 
-
-function Tile({ children }: { children: React.ReactNode }) {
-  return <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-label">{children}</span>;
-}
+/** Com o vencimento a cinco dias ou menos, o DAS ganha o âmbar de atenção (nunca vermelho: o app não sabe se atrasou). */
+const DAS_SOON_DAYS = 5;
 
 /** Duas informações que pedem ação ou prazo: o DAS e as notas aguardando conferência. */
 export function Bento({ dashboard }: { dashboard: Dashboard }) {
   const { das, pendingCount } = dashboard;
+  const dasSoon = das.daysUntil <= DAS_SOON_DAYS;
   const notesLabel = (
     <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-label-2">
-      <Tile>
+      {/* Nada esperando é confirmação (verde); notas esperando são tarefa, então o azul do que se toca. */}
+      <IconTile tone={pendingCount > 0 ? "action" : "ok"}>
         <SealCheck size={19} weight="fill" aria-hidden="true" />
-      </Tile>
+      </IconTile>
       Notas
     </p>
   );
   return (
     <div className="grid grid-cols-2 gap-3">
-      <section aria-label="Próximo DAS" className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4">
+      <section aria-label="Próximo DAS" className="flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4">
         <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-label-2">
-          <Tile>
+          <IconTile tone={dasSoon ? "warn" : "tax"}>
             <CalendarBlank size={19} weight="fill" aria-hidden="true" />
-          </Tile>
+          </IconTile>
           DAS
         </p>
         <div>
           <p className="text-[1.875rem] leading-none font-extrabold tracking-tight">{formatShortDate(das.nextDueDate)}</p>
-          <p className="t-caption mt-1 text-label-2">
+          <p className={`t-caption mt-1 flex items-center gap-1 ${dasSoon ? "font-semibold text-warn-text" : "text-label-2"}`}>
+            {dasSoon && <Warning size={13} weight="fill" aria-hidden="true" className="shrink-0" />}
             {daysUntilLabel(das.daysUntil)} · ref. {dasCompetence(das.nextDueDate).slice(0, 3)}
           </p>
           <a
@@ -51,7 +53,7 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         <Link
           href="/historico?status=pendente"
           aria-label={pendingAria(pendingCount)}
-          className="pressable flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4"
+          className="pressable flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4"
         >
           {notesLabel}
           <div>
@@ -61,11 +63,12 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         </Link>
       ) : (
         // Sem nada para conferir, o cartão não leva a uma lista vazia: só diz que está em dia.
-        <section aria-label="Notas" className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4">
+        <section aria-label="Notas" className="flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4">
           {notesLabel}
           <div>
-            <p className="text-[1.375rem] leading-tight font-extrabold tracking-tight">Tudo conferido</p>
-            <p className="t-caption mt-1 text-label-2">nenhuma nota esperando</p>
+            {/* Mesmo formato do DAS ao lado: uma resposta curta e grande, e a legenda. O verde fica no ícone. */}
+            <p className="text-[1.875rem] leading-none font-extrabold tracking-tight">Em dia</p>
+            <p className="t-caption mt-1 text-label-2">nada para conferir</p>
           </div>
         </section>
       )}

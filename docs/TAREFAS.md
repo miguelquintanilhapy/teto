@@ -11,6 +11,7 @@ Nunca coloque chave no repositório, em issue ou em chat. Só dados fictícios.
 ## A. Qualidade e publicação (Pessoa 2)
 
 ### A1. CI com `npm audit` e `gitleaks`
+- **Feito** no PR #13 (job `check` com `npm audit` e job `secrets` com o `gitleaks`).
 - **Por quê:** a CI só roda lint, tipos, testes e o eval em replay; os documentos prometiam varredura de segredos
   e de dependências.
 - **Arquivo:** `.github/workflows/ci.yml` (hoje: checkout, Node 24, `npm ci`, lint, typecheck, test, eval).
@@ -21,6 +22,7 @@ Nunca coloque chave no repositório, em issue ou em chat. Só dados fictícios.
   dizem "ainda não está na CI").
 
 ### A2. `LICENSE` e Dependabot
+- **Feito** no PR #13 (`LICENSE` MIT e `.github/dependabot.yml`).
 - **Fazer:** criar `LICENSE` (combine a licença com o time; sugestão: MIT; o regulamento só exige que não
   impeça ler, executar e testar o código) e `.github/dependabot.yml` para `npm` e `github-actions`, semanal.
 - **Pronto quando:** o GitHub mostra a licença na página do repositório; marque o item em `docs/PLANO.md`
@@ -92,5 +94,6 @@ Nunca coloque chave no repositório, em issue ou em chat. Só dados fictícios.
 - **Link da demo no README** e **painel do hackathon** (nome, frase, descrição, trilha).
 - **Não gaste a cota de IA no dia da gravação** (nada de `check:ai` nem `eval:record`).
 - **Quem mexe no que é do dono do projeto:** aplicar migração no banco, desligar a proteção por login da
-  Vercel, conferir as variáveis da Vercel (inclusive o `MODEL_CHAIN`) e mesclar o PR da `feat/chave-e-latencia`.
+  Vercel, conferir as variáveis da Vercel (inclusive o `MODEL_CHAIN`) e mesclar o PR com os ajustes de interface da
+  `feat/chave-e-latencia` (os PRs #21 e #22 já foram mesclados; falta o que veio depois do #22).
   Não faça isso sem combinar.

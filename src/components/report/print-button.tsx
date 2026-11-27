@@ -8,7 +8,7 @@ export function PrintButton() {
     <button
       type="button"
       onClick={() => window.print()}
-      className="flex h-[3.375rem] w-full items-center justify-center gap-2 rounded-full bg-card text-[1.1875rem] font-semibold"
+      className="pressable flex h-[3.375rem] w-full items-center justify-center gap-2 rounded-full bg-card text-[1.1875rem] font-semibold text-action"
     >
       <Printer size={22} weight="bold" aria-hidden="true" />
       Imprimir ou salvar em PDF

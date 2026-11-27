@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { NoProfile } from "@/components/no-profile";
 import { HistoryList } from "@/components/history/history-list";
@@ -9,12 +8,7 @@ export const metadata = { title: "Histórico · Teto" };
 export default function HistoricoPage() {
   return (
     <main>
-      <div className="mt-2 mb-3 flex items-center justify-between gap-3">
-        <h1 className="t-large-title">Histórico</h1>
-        <Link href="/extrato" className="glass pressable inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[0.9375rem] font-semibold">
-          Comparar extrato
-        </Link>
-      </div>
+      <h1 className="t-large-title mt-2 mb-3">Histórico</h1>
       <Suspense fallback={<HistoricoSkeleton />}>
         <Conteudo />
       </Suspense>
@@ -26,10 +20,11 @@ export default function HistoricoPage() {
 function HistoricoSkeleton() {
   return (
     <div aria-busy="true" aria-label="Carregando o histórico" className="animate-pulse motion-reduce:animate-none">
-      <div className="mb-4 flex gap-2">
-        {[88, 124, 96].map((w) => (
-          <div key={w} className="h-10 rounded-full bg-card" style={{ width: w }} />
-        ))}
+      <div className="h-11 rounded-2xl bg-card" />
+      <div className="mt-3 h-11 rounded-2xl bg-card" />
+      <div className="mt-4 mb-5 grid grid-cols-2 gap-2.5">
+        <div className="h-[4.25rem] rounded-2xl bg-card" />
+        <div className="h-[4.25rem] rounded-2xl bg-card" />
       </div>
       {[0, 1, 2].map((i) => (
         <div key={i} className="mb-5">
@@ -53,5 +48,5 @@ async function Conteudo() {
       </div>
     );
   }
-  return <HistoryList transactions={r.panel.transactions} />;
+  return <HistoryList transactions={r.panel.transactions} today={r.panel.today} openingDate={r.panel.profile.openingDate} />;
 }

@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { CaretRight, ChartLineUp } from "@phosphor-icons/react/dist/ssr";
 import type { Dashboard } from "@/core";
+import { IconTile } from "@/components/icon-tile";
 import { forecastView, paceLine } from "@/lib/copy";
 
 /** A previsão em uma frase, como o app Clima: a manchete primeiro, a explicação depois. */
 export function Forecast({ dashboard, openingDate }: { dashboard: Dashboard; openingDate: string | null }) {
-  const { headline, body } = forecastView(dashboard, openingDate);
+  const { headline, body, tone } = forecastView(dashboard, openingDate);
   const pace = paceLine(dashboard, openingDate);
   return (
     <section aria-labelledby="forecast-title" className="rounded-card bg-card p-5">
       <p className="mb-2.5 flex items-center gap-2.5 text-[0.9375rem] font-semibold text-label-2">
-        <span className="grid size-[1.875rem] place-items-center rounded-lg bg-tile text-label">
+        {/* O ícone na cor do estado da previsão; a manchete diz o mesmo em texto. */}
+        <IconTile tone={tone ?? "neutral"}>
           <ChartLineUp size={19} weight="fill" aria-hidden="true" />
-        </span>
+        </IconTile>
         Previsão
       </p>
       <h2 id="forecast-title" className="t-title">

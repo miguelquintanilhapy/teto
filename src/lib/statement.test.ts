@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStatementAmount, parseStatementCsv, parseStatementDate, splitCsvLine } from "./statement";
+import { isOwnMovement, parseStatementAmount, parseStatementCsv, parseStatementDate, splitCsvLine } from "./statement";
 
 describe("splitCsvLine", () => {
   it("respeita aspas e aspas duplicadas", () => {
@@ -46,15 +46,33 @@ describe("parseStatementCsv", () => {
     const r = parseStatementCsv(csv);
     expect(r.error).toBeNull();
     expect(r.entries).toEqual([
-      { id: "l2", date: "2026-11-05", amountCents: 368500, description: "Cliente A" },
-      { id: "l3", date: "2026-11-06", amountCents: -51237, description: "Fornecedor" },
+      { id: "l2", date: "2026-11-05", amountCents: 368500, description: "Cliente A", type: "" },
+      { id: "l3", date: "2026-11-06", amountCents: -51237, description: "Fornecedor", type: "" },
     ]);
   });
 
   it("lê um extrato no estilo Nubank (vírgula, ponto decimal, aspas)", () => {
     const csv = 'Data,Valor,Identificador,Descrição\n19/11/2026,3015.00,abc,"Transferência recebida, Pix"\n';
     const r = parseStatementCsv(csv);
-    expect(r.entries).toEqual([{ id: "l1", date: "2026-11-19", amountCents: 301500, description: "Transferência recebida, Pix" }]);
+    expect(r.entries).toEqual([{ id: "l1", date: "2026-11-19", amountCents: 301500, description: "Transferência recebida, Pix", type: "" }]);
+  });
+
+  it("lê um extrato no estilo PicPay (menos tipográfico, \"origem / destino\" e tipo)", () => {
+    const csv = [
+      'data,hora,tipo,"origem / destino",valor,"forma de pagamento"',
+      '2026-11-19,14:56,"Pix recebido","CLIENTE FICTICIO LTDA","+R$ 200,00",',
+      '2026-11-19,17:16,"Compra realizada","Padaria Exemplo","−R$ 8,00","Com saldo"',
+      '2026-11-18,12:54,"Dinheiro resgatado","Do cofrinho Viagem","+R$ 10,00",',
+    ].join("\n");
+    const r = parseStatementCsv(csv);
+    expect(r.skipped).toBe(0);
+    expect(r.entries).toEqual([
+      { id: "l1", date: "2026-11-19", amountCents: 20000, description: "CLIENTE FICTICIO LTDA", type: "Pix recebido" },
+      { id: "l2", date: "2026-11-19", amountCents: -800, description: "Padaria Exemplo", type: "Compra realizada" },
+      { id: "l3", date: "2026-11-18", amountCents: 1000, description: "Do cofrinho Viagem", type: "Dinheiro resgatado" },
+    ]);
+    expect(isOwnMovement(r.entries[2]!)).toBe(true);
+    expect(isOwnMovement(r.entries[0]!)).toBe(false);
   });
 
   it("conta as linhas que não deu para ler", () => {

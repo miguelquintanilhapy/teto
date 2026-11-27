@@ -29,6 +29,15 @@ describe("buildYearReport", () => {
     expect(r).toMatchObject({ pendingCount: 1, cancelledCount: 2 });
   });
 
+  it("separa a receita com nota da receita sem nota, como no relatório mensal oficial", () => {
+    const r = buildYearReport(
+      [t(), t({ source: "manual", amountCents: 300_00 }), t({ source: "pix", amountCents: 200_00 }), t({ kind: "despesa", source: "manual", amountCents: 50_00 })],
+      2026,
+    );
+    expect(r.months[4]).toMatchObject({ revenueCents: 1_500_00, withNoteCents: 1_000_00, withoutNoteCents: 500_00 });
+    expect(r).toMatchObject({ withNoteCents: 1_000_00, withoutNoteCents: 500_00 });
+  });
+
   it("só olha o ano pedido", () => {
     expect(buildYearReport([t({ date: "2025-12-31" })], 2026).revenueCents).toBe(0);
   });

@@ -7,8 +7,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 
 - **Quatro abas** na barra de baixo: **Painel** (`/`), **Simular** (`/simular`), **Histórico** (`/historico`) e
   **Mais** (`/perfil`), e ao lado delas um botão circular azul, **Enviar** (`/enviar`). As abas ficam em
-  `src/app/(app)/` e compartilham o mesmo layout; trocam sem animação de entrada (a entrada deixava o número vazio
-  por um instante).
+  `src/app/(app)/` e compartilham o mesmo layout. Na troca, a cápsula da barra desliza até a aba tocada e o conteúdo
+  novo entra num fundido curto, sem deslizar (ver "Animações e interação").
 - **As outras telas são folhas**, abertas por cima, com um X. O X volta para a tela de origem quando ela é
   conhecida (o filtro e a rolagem continuam lá); senão vai para um destino fixo. Quem lembra a origem é o
   `NavMemory`, e quem usa é o `CloseButton` (`src/components/nav`).
@@ -17,15 +17,15 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 
 | Rota | O que faz |
 |---|---|
-| `/` (aba Painel) | Faturamento do ano (com centavos), faixa de risco, a sala do limite, "Lançar sem nota" logo abaixo do número, barra do limite com a faixa de tolerância, previsão, DAS com atalho "Gerar guia" (PGMEI), notas ("Tudo conferido" quando não há pendentes) e receita por mês (valor e mês ao toque) |
+| `/` (aba Painel) | Faturamento do ano (com centavos), faixa de risco, a sala do limite, "Lançar sem nota" logo abaixo do número, barra do limite com a faixa de tolerância, previsão, DAS com atalho "Gerar guia" (PGMEI), notas ("Em dia" quando não há pendentes, no mesmo formato do DAS: resposta grande e legenda curta, logo abaixo do título) e receita por mês (valor e mês ao toque). Cada cartão tem um quadradinho de ícone com cor (ver "Regras que saíram das revisões de cor") |
 | `/simular` (aba Simular) | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado. Uma resposta só, em número grande (quanto ainda cabe ou quanto a venda passa do limite), com uma frase de consequência embaixo; atalhos numa linha e "Usar o que ainda cabe" junto do campo |
-| `/historico` (aba Histórico) | Lançamentos do ano por dia, com filtros de largura igual guardados no endereço, cancelados escondidos até pedir e aviso de "Possível duplicidade" |
+| `/historico` (aba Histórico) | Lançamentos mês a mês (‹ Novembro de 2026 ›, do mês de abertura ou de janeiro até hoje), com o resumo do mês (Receitas e Despesas), busca no ano todo, filtro Todos, Receitas ou Despesas guardado no endereço, o saldo de cada dia ao lado da data, a linha "Conferir extrato do banco" abaixo do resumo (leva a `/extrato`), cancelados escondidos até pedir (aparecem num grupo próprio logo abaixo do botão, onde o toque foi) e aviso de "Possível duplicidade" |
 | `/perfil` (aba Mais) | Cartão do MEI, preferências (tema e ocultar valores), atalhos do MEI, ajuda e "Sobre" (a IA); a versão do app aparece com um toque |
 | `/enviar` (botão Enviar) | "Tirar foto" como ação principal (ou escolher arquivo), aviso de que a imagem vai para a IA, espera da leitura, conferência e confirmação |
 | `/lancar` | Lançar sem nota (também abre pré-preenchido a partir do extrato) |
-| `/historico/[id]` | Detalhe: a descrição como título, por que conta (ou não) no limite, "Pela IA, conferida por você", histórico de alterações, corrigir e cancelar |
-| `/extrato` | Importa o CSV do banco **no navegador** e concilia com as receitas (entradas sem nota, notas sem entrada) |
-| `/relatorio` | Receita mês a mês, CSV e impressão em PDF |
+| `/historico/[id]` | Detalhe: a descrição como título, por que conta (ou não) no limite, "Pela IA, conferida por você", histórico de alterações, "Corrigir lançamento" (com lápis) e cancelar |
+| `/extrato` ("Conferir extrato do banco") | Importa o CSV do banco **no navegador** e concilia com as receitas (entradas sem nota, notas sem entrada). Lê os formatos do Inter, do Nubank e do PicPay (menos tipográfico "−", colunas "origem / destino" e "tipo"); cada entrada mostra primeiro quem pagou. Dinheiro do próprio dono mudando de lugar (resgate de cofrinho ou caixinha, aplicação, rendimento, estorno, reembolso, transferência entre contas) fica de fora, porque não é venda, e a tela diz quantas linhas saíram (`isOwnMovement`, em `src/lib/statement.ts`). Depois de ler o arquivo, a explicação vira uma linha (arquivo, período, "Trocar"), a resposta vem em número grande ("Entraram no banco sem nota"), e as listas ficam num controle segmentado (Sem nota, Sem entrada, Conferidas), com as entradas sem nota agrupadas por dia. Cada entrada tem "Lançar" (cápsula azul cheia, abre `/lancar` preenchido) e "Não é receita" (texto azul), que a tira da lista (com "Desfazer"), então a lista encolhe conforme a pessoa confere. O extrato e as marcações ficam só na aba do navegador |
+| `/relatorio` | Receita do ano com o estado ("Atenção · ainda cabem R$ X"), receita mês a mês dividida em com nota e sem nota (a divisão do Relatório Mensal de Receitas Brutas oficial, que também separa por atividade, o que o Teto não sabe), despesas e cancelados em linhas, CSV e impressão em PDF (o total sai uma vez só, sem repetir no pé de cada página) |
 | `/alertas` ("Avisos do limite") | Cada faixa do limite: cruzada ou não, e-mail enviado, na fila ou aguardando configuração, com atalho para trocar o e-mail |
 | `/ia` | Como a IA lê, em linguagem simples; a cadeia de modelos, a cota de hoje, tempos, falhas e o rastro de cada leitura ficam em "Detalhes técnicos" |
 | `/bem-vindo` | Primeiro cadastro do MEI (CNPJ e data de abertura). Quem já tem cadastro vai direto ao Painel |
@@ -41,12 +41,13 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 
 - **O telhado da marca é o medidor.** A "sala" do painel mostra quanto do limite foi ocupado; o telhado cheio
   marca o limite e o pontilhado marca o limite com 20% a mais. É um medidor de capacidade, e não um anel de
-  progresso (a Apple reserva o anel para atividade). A marca (telhado sobre o T) fica no topo do Painel.
+  progresso (a Apple reserva o anel para atividade). O topo do Painel mostra só o nome da tela, como nos apps de
+  celular: o selo "Teto" que ficava acima do título saiu, porque, pequeno, parecia a seta de enviar.
 - **A barra do limite vai até 120%.** Um traço marca o limite, a faixa da tolerância (100% a 120%) vem tingida,
   e o já faturado não encolhe quando uma simulação soma um valor; o trecho novo tem legenda
   (`src/lib/limit-geometry.ts`).
 - **Cada cor tem um papel, e o estado nunca vem só em cor.** Branco e cinza são o conteúdo; **azul** é o que
-  se toca (botão principal, links, aba ativa); **âmbar, laranja-avermelhado e vermelho** são risco; **verde** é
+  se toca (botão principal, texto dos botões secundários, links, aba ativa); **âmbar, laranja-avermelhado e vermelho** são risco; **verde** é
   confirmação e "dentro do limite". O risco sempre vem com ícone e texto. A primeira versão tinha botão preto e
   branco; a revisão trouxe o azul de volta, porque separar "o que eu toco" de "o que o app me diz" deixa a tela
   mais fácil de aprender.
@@ -64,9 +65,27 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   | Acima do limite (vermelho) | `danger` / `danger-text` | `#ff453a` / `#ff6961` | `#d70015` / `#d70015` |
   | Confirmação | `ok` / `ok-text` | `#30d158` / `#30d158` | `#248a3d` / `#1f7a34` |
   | Fundo de mesa (computador e tablet) | `--desk` | `#1c1c1e` | `#e3e3e8` |
+  | Categoria: imposto/DAS (azul-petróleo), só no quadradinho do ícone | `tax` | `#40c8e0` | `#0e8a9e` |
 
   Regras que saíram das revisões de cor:
 
+  - **Quadradinho de ícone colorido, como no Ajustes do iPhone** (`IconTile`, em `src/components/icon-tile.tsx`).
+    Os cartões do Painel abaixo do principal eram todos cartão branco com ícone preto em quadradinho cinza, e pareciam
+    desabilitados. Agora o quadradinho tem cor: azul quando o cartão é uma ação ("Lançar sem nota"),
+    azul-petróleo como cor de categoria do DAS, e a cor do estado quando o cartão mostra um estado
+    de verdade (Previsão: verde dentro do limite, âmbar ou laranja se vai passar, a cor da faixa se já passou, cinza
+    sem receita, com o `tone` de `forecastView`; Notas: ícone verde em "Em dia", azul quando há notas para conferir;
+    DAS: âmbar, com ícone e texto, a cinco dias ou menos do vencimento, nunca vermelho). "Entenda o limite" fica cinza: é explicação, não ação nem estado (o roxo
+    foi testado e saiu). **A cor de categoria fica só no
+    quadradinho, nunca em texto ou número**, e amarelo, laranja, rosa e verde ficam de fora dela, para não serem
+    confundidos com risco ou confirmação. No gráfico mensal, a barra selecionada é azul e as outras ficam no cinza de
+    antes (azul com opacidade caía abaixo de 3:1); nenhuma usa a cor da faixa (um mês passado verde ou âmbar diria
+    algo falso).
+
+  - **Botão secundário tem texto azul.** Fundo de cartão com texto preto parecia rótulo, não botão; agora o texto é
+    azul (`text-action`), como o botão tingido do iOS: "Corrigir lançamento" (com lápis), "Descartar alterações" e
+    "Voltar" no detalhe, "Imprimir ou salvar em PDF" no relatório e "Cancelar" durante a leitura da nota. "Cancelar
+    lançamento" continua em vermelho, sem fundo: é a ação destrutiva.
   - **O azul do botão passa de 4,5:1 com texto branco nos dois temas.** O azul do iOS (`#007aff` e `#0a84ff`) não
     passava; os novos dão 5,07:1 (claro) e 4,83:1 (escuro).
   - **Receita não é verde.** No Teto, receita é o que aproxima do limite; verde significaria "bom" para o número
@@ -74,6 +93,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   - **Quatro degraus de risco**: verde, âmbar, laranja-avermelhado (Crítico, e também "Limite atingido") e
     vermelho (passou do limite). O vermelho tem ícone próprio (octógono), para quem não distingue laranja de vermelho.
   - **O pontilhado dos 20% é âmbar**, na sala e na legenda: é onde o risco começa. O telhado cheio do limite fica neutro.
+    Os pontos são calculados um a um (`src/lib/roof.ts`), com um em cada ponta e um no topo, espelhados; um tracejado
+    deixava o topo sem ponto e o lado direito torto. O mesmo cálculo desenha a sala, a legenda e o 404.
   - **A cota da IA não é verde**: não é confirmação de nada.
   - **O laranja do tema claro não dá para ficar mais vivo.** `#cc6600` é o mais claro que ainda passa de 3:1 sobre o
     trilho (3,06); `#d96c00` dá 2,74 e `#e07000` dá 2,58. A sala do claro é mais fechada que a do escuro por isso.
@@ -89,9 +110,24 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 - **Erro específico por campo**, nunca um "inválido" genérico, e uma saída sempre à vista (cancelar, preencher
   manualmente, tentar de novo). Uma voz só nas mensagens (impessoal); o botão de confirmar diz o que falta em vez
   de ficar apagado.
-- **Histórico enxuto.** A linha não mostra CPF/CNPJ (fica no detalhe), e "Sem descrição" vem em cinza. O aviso de
-  "Possível duplicidade" (`src/lib/duplicates.ts`) marca lançamentos com mesma data, valor, tipo, outra parte e
-  descrição; é só um aviso (duas vendas iguais no mesmo dia existem), e quem decide é o usuário.
+- **Histórico por mês, como um extrato.** A organização veio do Bolso: um mês por vez, com setas para o anterior e
+  o próximo, e o resumo do mês em dois cartões (Receitas e Despesas, sem os cancelados, como no limite). O resumo
+  não muda com o filtro. Cada data traz o saldo do dia (entradas menos saídas do que está na lista). O filtro é um
+  controle segmentado de três opções (Todos, Receitas, Despesas) com um marcador que desliza; o antigo "Conferir"
+  saiu, porque nenhum fluxo grava o status `pendente` e a lista ficava sempre vazia. Um link antigo como
+  `/historico?status=pendente` abre em "Todos". Os cancelados ficam fora dos dias: "Mostrar N cancelados" abre um
+  grupo próprio ("Cancelados · não contam no limite") logo abaixo do botão, com a data em cada linha, em vez de
+  espalhá-los pelos dias, longe do toque. O extrato entra pela linha "Conferir extrato do banco" ("Ache vendas que
+  faltam no Teto"), abaixo do resumo; o botão "Comparar extrato" do topo não dizia para que servia.
+- **Busca no ano todo.** Enquanto há texto no campo, a busca vale para o ano inteiro (o seletor de mês e o resumo
+  saem, e aparece "N resultados em 2026"). Ela acha pela descrição, pelo valor ("3015", "3.015" ou "3.015,00") e
+  pelo documento da outra parte, sem diferenciar maiúsculas nem acentos. O documento vem mascarado do servidor, então
+  só a parte visível dele é encontrada (no CNPJ, os oito primeiros dígitos, com ou sem pontos).
+- **Linha enxuta.** A linha não mostra CPF/CNPJ (fica no detalhe). O título leva inicial maiúscula; sem descrição,
+  o título vira o tipo (Receita ou Despesa), porque "Sem descrição" em cinza fazia a linha parecer desabilitada. O
+  aviso de "Possível duplicidade" (`src/lib/duplicates.ts`) marca lançamentos com mesma data, valor, tipo, outra
+  parte e descrição; é só um aviso (duas vendas iguais no mesmo dia existem), e quem decide é o usuário. A lógica do
+  histórico (meses, resumo, busca e título) fica em `src/lib/history.ts`, com testes.
 
 ## Navegação fluida
 
@@ -101,7 +137,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   explicar, em vez de quebrar.
 - Todas as telas são pré-renderizadas e o roteador do navegador reaproveita a tela por 60 s sem pedir nada ao
   servidor. Medido em produção local: trocar de aba leva cerca de 15 ms (antes, 0,6 a 1 s por visita).
-- O filtro do histórico roda no navegador, para a página continuar estática.
+- O filtro, a busca e a troca de mês do histórico rodam no navegador, para a página continuar estática.
 - Os esqueletos têm a forma do conteúdo, e não um bloco vazio.
 - Limite conhecido: o cache é do perfil único de demonstração. Com várias contas, o identificador do usuário
   entra como argumento de `getPanel`.
@@ -115,7 +151,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 - **Ocultar valores:** troca os valores em dinheiro (classe `sensitive`) por uma barra lisa (um borrão ainda deixa
   adivinhar os dígitos) no painel, na previsão, no histórico, na simulação, na conferência e na confirmação, para
   abrir o app em público. Também some o que revelaria o valor pelo desenho: a altura da sala e o preenchimento das
-  barras (classe `privacy-hide`). O botão fica no cabeçalho do Painel e na aba Mais. Na impressão, os valores
+  barras (classe `privacy-hide`). Partes com cor própria dentro de um valor também somem (`.sensitive *`): antes,
+  os centavos do Painel ficavam à vista. O botão fica no cabeçalho do Painel e na aba Mais. Na impressão, os valores
   voltam a aparecer.
 
 ## Acessibilidade
@@ -175,6 +212,13 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 (`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
 se desenhando. `:hover` só existe onde há mouse.
 
+Com mouse, tudo que se clica mostra a mãozinha: uma regra só em `src/app/globals.css` cobre botões, links,
+interruptores, controles segmentados, resumos que abrem e o rótulo que escolhe arquivo (o Tailwind v4 tirou o
+cursor de ponteiro dos botões). Botão desabilitado mostra o cursor de proibido. Sob o mouse, o que se clica
+clareia um pouco (opacidade 0,78), como o destaque do iOS; as linhas com `hoverable` ganham um fundo leve em vez
+disso, e a opção já escolhida de um controle segmentado não muda. O clarear fica dentro de
+`@media (hover: hover)`, então não "gruda" depois do toque no celular.
+
 A sala e o gráfico só animam **na primeira visita da sessão**; depois aparecem prontos (animar a cada troca de
 aba cansava). Na troca de aba, a cápsula da barra desliza até a aba tocada (curva de mola do iOS, 0,42 s, com uma
 leve esticada no caminho) e sai no toque, sem esperar a tela carregar; o conteúdo novo entra num fundido de 0,18 s,
@@ -182,13 +226,16 @@ sem deslizar, como no iOS (`TabBar` e `TabContent`, em `src/components`).
 
 A troca de tema imita o iPhone: a tela inteira se dissolve de uma aparência para a outra em 0,4 s
 (View Transitions API, com um fundido de cores por CSS onde ela não existe), e o marcador do seletor
-desliza de uma opção à outra. Com "reduzir movimento", a troca é instantânea.
+desliza de uma opção à outra (o filtro do Histórico e as listas do Extrato usam o mesmo marcador). Com "reduzir movimento", a troca é
+instantânea.
 
 ## O que ainda não existe
 
 - Autenticação e vários MEIs (ver [SEGURANCA.md](SEGURANCA.md)).
-- Notas "para conferir": nenhum fluxo grava o status `pendente`, então o Painel sempre mostra "Tudo conferido" e o
-  filtro "Conferir" do histórico fica vazio.
+- Notas "para conferir": nenhum fluxo grava o status `pendente`, então o Painel sempre mostra "Em dia". O
+  filtro "Conferir" saiu do histórico por isso; o código ainda trata `pendente` no cartão de Notas do Painel (que
+  leva a `/historico?status=pendente`, hoje aberto em "Todos"), no selo da linha do histórico, no detalhe e no
+  relatório, para quando esse status passar a ser gravado.
 - Teste em Android e com leitor de tela real (VoiceOver, TalkBack). Houve teste no iPhone do dono do projeto.
 - Tamanho de texto dinâmico do iOS dentro do app web.
 - Lembrete do vencimento do DAS por e-mail.

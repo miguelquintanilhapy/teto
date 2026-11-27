@@ -24,6 +24,11 @@
   --glow: 0 10px 28px rgba(0, 106, 224, 0.3);
 
   --tint: 12%;
+  /* Quadradinho de ícone colorido: um pouco mais forte que o tingido do cartão. */
+  --tile-tint: 15%;
+  /* Cor de categoria (como os ícones do Ajustes do iPhone): só no quadradinho do ícone, nunca em texto ou número.
+     Ícone a 3:1 ou mais sobre o quadradinho. Azul-petróleo = imposto (DAS). */
+  --tax: #0e8a9e;
   --on-ok: #ffffff;
   --ok: #248a3d;
   --ok-text: #1f7a34;
@@ -60,6 +65,8 @@
     --glow: 0 10px 28px rgba(10, 111, 223, 0.42);
 
     --tint: 22%;
+    --tile-tint: 24%;
+    --tax: #40c8e0;
     --on-ok: #000000;
     --ok: #30d158;
     --ok-text: #30d158;
@@ -96,6 +103,8 @@
   --glow: 0 10px 28px rgba(10, 111, 223, 0.42);
 
   --tint: 22%;
+  --tile-tint: 24%;
+  --tax: #40c8e0;
   --on-ok: #000000;
   --ok: #30d158;
   --ok-text: #30d158;
@@ -115,6 +124,30 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
+}
+
+/*
+ * Mãozinha em tudo que se clica. O Tailwind v4 tirou o cursor de ponteiro dos botões (só links o têm por padrão);
+ * esta regra devolve para botões, links, interruptores, controles segmentados, resumos que abrem e o rótulo que
+ * escolhe arquivo, sem depender de cada componente lembrar. Botão desabilitado mostra o cursor de proibido.
+ */
+@layer base {
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="switch"],
+  [role="radio"],
+  [role="tab"],
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label:has(> input[type="file"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @theme inline {
@@ -138,6 +171,7 @@
   --color-alert-text: var(--alert-text);
   --color-danger: var(--danger);
   --color-danger-text: var(--danger-text);
+  --color-tax: var(--tax);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --radius-card: 1.6875rem; /* 27 pt: raio medido no Ajustes do iOS 26 */
 }
@@ -242,6 +276,13 @@ body {
   .privacy-hide {
     visibility: visible !important;
   }
+  /* O navegador repete o rodapé da tabela em cada página: o "Total" do relatório apareceria no meio do ano. */
+  tfoot {
+    display: table-row-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
   * {
     box-shadow: none !important;
     backdrop-filter: none !important;
@@ -319,6 +360,34 @@ input[type="date"]::-webkit-date-and-time-value {
 @media (hover: hover) {
   .hoverable:hover {
     background: color-mix(in srgb, var(--label) 6%, transparent);
+  }
+  /* O resto do que se clica (botões cheios, links de texto, abas, atalhos) clareia um pouco sob o mouse, como o
+     destaque do iOS. A opção já escolhida de um controle segmentado não muda. */
+  :where(
+      a[href],
+      button:not(:disabled),
+      [role="button"],
+      [role="switch"],
+      [role="radio"]:not([aria-checked="true"]),
+      summary,
+      label:has(> input[type="file"])
+    ):not(.hoverable) {
+    /* Mantém as transições do toque (.pressable) e da barra de abas, que esta regra substituiria. */
+    transition:
+      opacity 150ms ease,
+      transform 120ms ease,
+      color 200ms ease;
+  }
+  :where(
+      a[href],
+      button:not(:disabled),
+      [role="button"],
+      [role="switch"],
+      [role="radio"]:not([aria-checked="true"]),
+      summary,
+      label:has(> input[type="file"])
+    ):not(.hoverable):hover {
+    opacity: 0.78;
   }
 }
 

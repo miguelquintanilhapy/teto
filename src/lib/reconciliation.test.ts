@@ -2,10 +2,35 @@ import { describe, expect, it } from "vitest";
 import { launchHref, readLaunchParams, reconcileStatement } from "./reconciliation";
 import type { StatementEntry } from "./statement";
 
-const credit = (id: string, date: string, amountCents: number, description = ""): StatementEntry => ({ id, date, amountCents, description });
+const credit = (id: string, date: string, amountCents: number, description = "", type = ""): StatementEntry => ({ id, date, amountCents, description, type });
 const receipt = (id: string, date: string, amountCents: number) => ({ id, date, amountCents, description: id });
 
 describe("reconcileStatement", () => {
+  it("tira da lista o que o usuário marcou como não receita, e diz o período do extrato", () => {
+    const entries = [credit("c1", "2026-11-05", 1000, "Pessoa Fictícia"), credit("c2", "2026-11-07", 2000, "Cliente Fictício"), credit("d1", "2026-11-02", -500)];
+    const r = reconcileStatement(entries, [], 3, new Set(["c1"]));
+    expect(r.unmatchedCredits.map((c) => c.id)).toEqual(["c2"]);
+    expect(r.dismissedCount).toBe(1);
+    expect(r.unmatchedCreditsTotalCents).toBe(2000);
+    expect(r.period).toEqual({ first: "2026-11-02", last: "2026-11-07" });
+  });
+
+  it("deixa de fora resgate de cofrinho e estorno, que não são venda, e conta as saídas", () => {
+    const r = reconcileStatement(
+      [
+        credit("c1", "2026-11-05", 2000, "Do cofrinho Viagem", "Dinheiro resgatado"),
+        credit("c2", "2026-11-05", 5000, "Cliente Fictício", "Pix recebido"),
+        credit("c3", "2026-11-06", 990, "Loja Exemplo", "Estorno"),
+        credit("d1", "2026-11-06", -1000, "Mercado Exemplo", "Compra realizada"),
+      ],
+      [],
+    );
+    expect(r.unmatchedCredits.map((c) => c.id)).toEqual(["c2"]);
+    expect(r.creditCount).toBe(1);
+    expect(r.ownMovementCount).toBe(2);
+    expect(r.debitCount).toBe(1);
+  });
+
   it("casa crédito e nota de mesmo valor em até 3 dias, e separa o resto", () => {
     const r = reconcileStatement(
       [credit("c1", "2026-11-05", 368500), credit("c2", "2026-11-19", 301500), credit("d1", "2026-11-06", -51237)],
