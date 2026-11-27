@@ -196,6 +196,34 @@ html {
   }
 }
 
+/*
+ * No computador, as abas e as folhas (SheetShell) deixam de ser uma coluna de celular: a barra vira lateral e o
+ * conteúdo ocupa a tela. Sem moldura, sem fundo de mesa.
+ */
+@media (min-width: 1024px) {
+  html:has(.app-tabs),
+  body:has(.app-tabs),
+  html:has(.app-sheet),
+  body:has(.app-sheet) {
+    background: var(--bg);
+  }
+  .app-tabs,
+  .app-sheet {
+    border-inline: 0;
+    box-shadow: none;
+  }
+}
+
+/* Cápsula da aba escolhida: desliza na horizontal na barra de baixo e na vertical na barra lateral (--tab-i). */
+.tab-capsule {
+  transform: translateX(calc(var(--tab-i, 0) * 100%));
+}
+@media (min-width: 1024px) {
+  .tab-capsule {
+    transform: translateY(calc(var(--tab-i, 0) * 100%));
+  }
+}
+
 body {
   background: var(--bg);
   color: var(--label);

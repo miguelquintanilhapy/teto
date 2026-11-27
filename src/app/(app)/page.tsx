@@ -75,13 +75,29 @@ async function PainelConteudo() {
           <PrivacyToggle />
         </div>
       </header>
-      <div className="flex flex-col gap-3">
-        <Hero dashboard={dashboard} />
-        <QuickEntry />
-        <LimitExplainer />
-        <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
-        <Bento dashboard={dashboard} />
-        <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
+      {/*
+        No computador, os mesmos cartões numa grade de 12 colunas: faturamento e previsão lado a lado, os dois
+        atalhos, e o gráfico ao lado do DAS e das notas. Cada célula estica o cartão até a altura da linha.
+      */}
+      <div className="flex flex-col gap-3 lg:grid lg:grid-cols-12 lg:gap-4">
+        <div className="lg:col-span-7 lg:row-start-1 lg:*:h-full">
+          <Hero dashboard={dashboard} />
+        </div>
+        <div className="lg:col-span-6 lg:row-start-2 lg:*:h-full">
+          <QuickEntry />
+        </div>
+        <div className="lg:col-span-6 lg:row-start-2 lg:*:h-full">
+          <LimitExplainer />
+        </div>
+        <div className="lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:*:h-full">
+          <Forecast dashboard={dashboard} openingDate={profile.openingDate} />
+        </div>
+        <div className="lg:col-span-4 lg:col-start-9 lg:row-start-3 lg:*:h-full lg:*:grid-cols-1">
+          <Bento dashboard={dashboard} />
+        </div>
+        <div className="lg:col-span-8 lg:row-start-3 lg:*:h-full">
+          <MonthlyChart year={year} months={months} firstMonth={firstMonth} currentMonth={monthOf(today) - 1} />
+        </div>
       </div>
     </>
   );
