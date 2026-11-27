@@ -16,7 +16,7 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
 
 - Lê foto ou PDF de notas, recibos e comprovantes de Pix com IA, e **você confere** antes de qualquer valor entrar no limite.
   Fotos grandes são reduzidas no próprio aparelho, sem o usuário precisar saber de megabytes. (XML não é aceito.)
-- Quatro abas (Painel, Simular, Histórico e Mais) e o botão "Enviar" ao lado delas.
+- Quatro abas (Painel, Simular, Histórico e Mais) e o botão "Enviar nota" no centro da barra.
 - Painel: faturamento do ano, faixa de risco (verde, âmbar, laranja-avermelhado, vermelho), a "sala" do limite,
   barra do limite com a faixa de tolerância, previsão de quando o limite será ultrapassado (com a média usada),
   DAS com atalho para gerar a guia (em âmbar a cinco dias ou menos do vencimento), notas e receita por mês.
