@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { NoProfile } from "@/components/no-profile";
 import { HistoryList } from "@/components/history/history-list";
@@ -9,12 +8,7 @@ export const metadata = { title: "Histórico · Teto" };
 export default function HistoricoPage() {
   return (
     <main>
-      <div className="mt-2 mb-3 flex items-center justify-between gap-3">
-        <h1 className="t-large-title">Histórico</h1>
-        <Link href="/extrato" className="glass pressable inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-[0.9375rem] font-semibold">
-          Comparar extrato
-        </Link>
-      </div>
+      <h1 className="t-large-title mt-2 mb-3">Histórico</h1>
       <Suspense fallback={<HistoricoSkeleton />}>
         <Conteudo />
       </Suspense>

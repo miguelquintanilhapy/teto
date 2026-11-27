@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, Warning } from "@phosphor-icons/react/dist/ssr";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatShortDate } from "@/lib/format";
 import { displayTitle } from "@/lib/history";
 import type { TransactionView } from "@/server/panel";
 
@@ -14,7 +14,8 @@ const SOURCE: Record<TransactionView["source"], string> = {
  * Uma linha do histórico. Receita entra com +, despesa com −, e o estado vem sempre escrito.
  * A linha mostra só o que se lê de relance (descrição, tipo, origem, valor); CPF/CNPJ mascarado fica no detalhe.
  */
-export function TransactionRow({ t, duplicate = false }: { t: TransactionView; duplicate?: boolean }) {
+/** `showDate`: a linha fora do grupo do dia (como no grupo de cancelados) mostra a data no subtítulo. */
+export function TransactionRow({ t, duplicate = false, showDate = false }: { t: TransactionView; duplicate?: boolean; showDate?: boolean }) {
   const income = t.kind === "receita";
   const Icon = income ? ArrowDownLeft : ArrowUpRight;
   const cancelled = t.status === "cancelada";
@@ -33,6 +34,7 @@ export function TransactionRow({ t, duplicate = false }: { t: TransactionView; d
           {/* Sem descrição, o título vira o tipo: o cinza fazia a linha parecer desabilitada. */}
           <p className={`line-clamp-2 text-[1.0625rem] leading-tight font-medium ${cancelled ? "text-label-2 line-through" : ""}`}>{title || kindLabel}</p>
           <p className="t-sub mt-0.5 truncate text-label-2">
+            {showDate && `${formatShortDate(t.date)} · `}
             {title ? `${kindLabel} · ${SOURCE[t.source]}` : SOURCE[t.source]}
           </p>
           {pending && (
@@ -47,7 +49,7 @@ export function TransactionRow({ t, duplicate = false }: { t: TransactionView; d
               Possível duplicidade
             </p>
           )}
-          {cancelled && <p className="t-caption mt-0.5 text-label-2">Cancelada</p>}
+          {cancelled && !showDate && <p className="t-caption mt-0.5 text-label-2">Cancelada</p>}
         </div>
         <p className={`sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap ${cancelled ? "text-label-2 line-through" : ""}`}>
           <span className="sr-only">{kindLabel} </span>

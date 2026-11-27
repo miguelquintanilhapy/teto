@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { CaretLeft, CaretRight, MagnifyingGlass, XCircle } from "@phosphor-icons/react/dist/ssr";
+import { Bank, CaretLeft, CaretRight, MagnifyingGlass, XCircle } from "@phosphor-icons/react/dist/ssr";
 import { suspectedDuplicates } from "@/lib/duplicates";
 import { formatDayMonth, formatMoney, formatReais } from "@/lib/format";
 import { historyMonths, monthTitle, searchHistory, totals } from "@/lib/history";
@@ -47,8 +47,10 @@ export function HistoryList({ transactions, today, openingDate }: { transactions
   const scope = searching ? searchHistory(transactions, query) : transactions.filter((t) => t.date.startsWith(month));
   const monthTotals = totals(scope);
   const filtered = filter === "todas" ? scope : scope.filter((t) => t.kind === filter);
-  const cancelledCount = filtered.filter((t) => t.status === "cancelada").length;
-  const list = showCancelled ? filtered : filtered.filter((t) => t.status !== "cancelada");
+  // Cancelados ficam fora dos dias: quando pedidos, aparecem num grupo próprio logo abaixo do botão, onde o toque foi.
+  const cancelled = filtered.filter((t) => t.status === "cancelada");
+  const cancelledCount = cancelled.length;
+  const list = filtered.filter((t) => t.status !== "cancelada");
   const duplicates = suspectedDuplicates(transactions);
   const groups = new Map<string, TransactionView[]>();
   for (const t of list) groups.set(t.date, [...(groups.get(t.date) ?? []), t]);
@@ -146,6 +148,17 @@ export function HistoryList({ transactions, today, openingDate }: { transactions
               <p className="sensitive mt-0.5 text-[1.1875rem] font-bold">{formatReais(monthTotals.expenseCents)}</p>
             </div>
           </div>
+          {/* A conciliação com o banco: o nome diz para que serve, e não só "comparar extrato". */}
+          <Link href="/extrato" className="pressable hoverable mt-2.5 flex items-center gap-3 rounded-2xl bg-card px-4 py-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[0.625rem] bg-tile">
+              <Bank size={20} weight="fill" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[1rem] leading-tight font-semibold text-action">Conferir extrato do banco</span>
+              <span className="t-sub mt-0.5 block text-label-2">Ache vendas que faltam no Teto</span>
+            </span>
+            <CaretRight size={17} weight="bold" className="shrink-0 text-label-2" aria-hidden="true" />
+          </Link>
         </>
       )}
 
@@ -186,10 +199,23 @@ export function HistoryList({ transactions, today, openingDate }: { transactions
         <button
           type="button"
           onClick={() => setShowCancelled((v) => !v)}
+          aria-expanded={showCancelled}
           className="pressable mx-auto mt-5 flex min-h-11 items-center px-4 text-[0.9375rem] font-semibold text-action"
         >
           {showCancelled ? "Ocultar cancelados" : `Mostrar ${cancelledCount} ${cancelledCount === 1 ? "cancelado" : "cancelados"}`}
         </button>
+      )}
+      {cancelledCount > 0 && showCancelled && (
+        <section aria-labelledby="cancelados" className="mt-2">
+          <h3 id="cancelados" className="mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">
+            Cancelados <span className="font-normal">· não contam no limite</span>
+          </h3>
+          <ul className="overflow-hidden rounded-card bg-card">
+            {cancelled.map((t) => (
+              <TransactionRow key={t.id} t={t} showDate />
+            ))}
+          </ul>
+        </section>
       )}
     </>
   );
