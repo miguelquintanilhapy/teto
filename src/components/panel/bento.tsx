@@ -24,7 +24,7 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
   );
   return (
     <div className="grid grid-cols-2 gap-3">
-      <section aria-label="Próximo DAS" className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4">
+      <section aria-label="Próximo DAS" className="flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4">
         <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-label-2">
           <IconTile tone={dasSoon ? "warn" : "tax"}>
             <CalendarBlank size={19} weight="fill" aria-hidden="true" />
@@ -53,7 +53,7 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         <Link
           href="/historico?status=pendente"
           aria-label={pendingAria(pendingCount)}
-          className="pressable flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4"
+          className="pressable flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4"
         >
           {notesLabel}
           <div>
@@ -63,7 +63,7 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         </Link>
       ) : (
         // Sem nada para conferir, o cartão não leva a uma lista vazia: só diz que está em dia.
-        <section aria-label="Notas" className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4">
+        <section aria-label="Notas" className="flex min-h-[8.25rem] flex-col gap-3.5 rounded-card bg-card p-4">
           {notesLabel}
           <div>
             {/* Mesmo formato do DAS ao lado: uma resposta curta e grande, e a legenda. O verde fica no ícone. */}
