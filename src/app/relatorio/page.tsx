@@ -1,14 +1,37 @@
 import { Suspense } from "react";
-import { DownloadSimple } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircle, DownloadSimple, Warning, WarningOctagon } from "@phosphor-icons/react/dist/ssr";
 import { yearOf } from "@/core";
 import { formatFullShortDate } from "@/lib/format";
 import { PrintButton } from "@/components/report/print-button";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatMoney, formatPercent, formatReais, monthName } from "@/lib/format";
+import { bandView, type Tone } from "@/lib/copy";
 import { buildYearReport } from "@/lib/report";
 import { loadPanelSafe } from "@/server/panel-safe";
 
 export const metadata = { title: "Relatório · Teto" };
+
+const TONE_TEXT: Record<Tone, string> = { ok: "text-ok-text", warn: "text-warn-text", alert: "text-alert-text", danger: "text-danger-text" };
+const TONE_ICON: Record<Tone, typeof CheckCircle> = { ok: CheckCircle, warn: Warning, alert: Warning, danger: WarningOctagon };
+
+/** "Com nota R$ X" e "Sem nota R$ Y", uma por linha, ou "Tudo com nota" / "Tudo sem nota" quando só há um dos dois. */
+function noteSplit(withNote: number, withoutNote: number): string[] {
+  if (withoutNote === 0) return ["Tudo com nota"];
+  if (withNote === 0) return ["Tudo sem nota"];
+  return [`Com nota ${formatMoney(withNote)}`, `Sem nota ${formatMoney(withoutNote)}`];
+}
+
+function NoteSplit({ withNote, withoutNote }: { withNote: number; withoutNote: number }) {
+  return (
+    <span className="sensitive t-caption mt-0.5 block text-label-2">
+      {noteSplit(withNote, withoutNote).map((line) => (
+        <span key={line} className="block whitespace-nowrap">
+          {line}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export default function RelatorioPage() {
   return (
@@ -32,7 +55,10 @@ async function Conteudo() {
   const { panel } = r;
   const year = yearOf(panel.today);
   const report = buildYearReport(panel.transactions, year);
-  const { limitCents } = panel.dashboard;
+  const { limitCents, accumulatedCents } = panel.dashboard;
+  const band = bandView(panel.dashboard.band);
+  const BandIcon = TONE_ICON[band.tone];
+  const left = limitCents - accumulatedCents;
   const rows = report.months.filter((m) => m.revenueCount > 0 || m.expenseCents > 0);
 
   return (
@@ -50,6 +76,12 @@ async function Conteudo() {
         <p className="t-body mt-2 text-label-2">
           {formatPercent(limitCents > 0 ? report.revenueCents / limitCents : 0)} do limite de {formatReais(limitCents)}
         </p>
+        {/* O estado, como no Painel: com ícone e texto, e a cor só reforça. */}
+        <p className={`t-sub mt-1 flex items-center gap-1.5 font-semibold ${TONE_TEXT[band.tone]}`}>
+          <BandIcon size={16} weight="fill" aria-hidden="true" className="shrink-0" />
+          {band.label} ·{" "}
+          <span className="sensitive">{left >= 0 ? `ainda cabem ${formatReais(left)}` : `passou ${formatReais(-left)}`}</span>
+        </p>
       </section>
 
       <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Mês a mês</h2>
@@ -62,24 +94,28 @@ async function Conteudo() {
           <thead>
             <tr className="t-sub text-label-2">
               <th scope="col" className="px-5 pt-4 pb-2 font-semibold">Mês</th>
-              <th scope="col" className="px-2 pt-4 pb-2 text-right font-semibold">Lançamentos</th>
               <th scope="col" className="px-5 pt-4 pb-2 text-right font-semibold">Receita</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-sep">
             {rows.map((m) => (
-              <tr key={m.month}>
-                <th scope="row" className="px-5 py-3 text-[1.0625rem] font-medium capitalize">{monthName(m.month)}</th>
-                <td className="px-2 py-3 text-right text-[1.0625rem] text-label-2">{m.revenueCount}</td>
-                <td className="sensitive px-5 py-3 text-right text-[1.0625rem] font-semibold">{formatMoney(m.revenueCents)}</td>
+              <tr key={m.month} className="break-inside-avoid">
+                <th scope="row" className="px-5 py-3 font-normal">
+                  <span className="block text-[1.0625rem] font-medium capitalize">{monthName(m.month)}</span>
+                  {/* A divisão do relatório mensal oficial: com documento fiscal e sem. */}
+                  <NoteSplit withNote={m.withNoteCents} withoutNote={m.withoutNoteCents} />
+                </th>
+                <td className="sensitive px-5 py-3 text-right align-top text-[1.0625rem] font-semibold whitespace-nowrap">{formatMoney(m.revenueCents)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t border-sep">
-              <th scope="row" className="px-5 py-3.5 text-[1.0625rem] font-bold">Total</th>
-              <td className="px-2 py-3.5" />
-              <td className="sensitive px-5 py-3.5 text-right text-[1.0625rem] font-bold">{formatMoney(report.revenueCents)}</td>
+              <th scope="row" className="px-5 py-3.5 font-normal">
+                <span className="block text-[1.0625rem] font-bold">Total</span>
+                <NoteSplit withNote={report.withNoteCents} withoutNote={report.withoutNoteCents} />
+              </th>
+              <td className="sensitive px-5 py-3.5 text-right align-top text-[1.0625rem] font-bold whitespace-nowrap">{formatMoney(report.revenueCents)}</td>
             </tr>
           </tfoot>
         </table>
@@ -87,15 +123,31 @@ async function Conteudo() {
       )}
 
       {(report.cancelledCount > 0 || report.pendingCount > 0 || report.expenseCents > 0) && (
-        <p className="t-sub mt-3 px-5 text-label-2">
-          {report.expenseCents > 0 && `Despesas confirmadas: ${formatMoney(report.expenseCents)} (não contam no limite). `}
-          {report.cancelledCount > 0 && `${report.cancelledCount} ${report.cancelledCount === 1 ? "lançamento cancelado fica" : "lançamentos cancelados ficam"} fora da soma. `}
-          {report.pendingCount > 0 && `${report.pendingCount} para conferir, também fora da soma.`}
-        </p>
+        <dl className="t-sub mt-3 flex flex-col gap-1 px-5 text-label-2">
+          {report.expenseCents > 0 && (
+            <div className="flex justify-between gap-3">
+              <dt>Despesas (não contam no limite)</dt>
+              <dd className="sensitive font-semibold whitespace-nowrap text-label">{formatMoney(report.expenseCents)}</dd>
+            </div>
+          )}
+          {report.cancelledCount > 0 && (
+            <div className="flex justify-between gap-3">
+              <dt>Cancelados (fora da soma)</dt>
+              <dd className="font-semibold text-label">{report.cancelledCount}</dd>
+            </div>
+          )}
+          {report.pendingCount > 0 && (
+            <div className="flex justify-between gap-3">
+              <dt>Para conferir (fora da soma)</dt>
+              <dd className="font-semibold text-label">{report.pendingCount}</dd>
+            </div>
+          )}
+        </dl>
       )}
 
       <p className="t-sub mt-4 px-5 text-label-2">
-        Resumo de apoio. Não substitui o Relatório Mensal de Receitas Brutas oficial, que o MEI mantém e não entrega.
+        Resumo de apoio. O Relatório Mensal de Receitas Brutas oficial, que o MEI preenche e guarda (não entrega), separa
+        a receita com e sem nota, como aqui, e também por atividade (comércio, indústria e serviços), o que o Teto não sabe.
       </p>
 
       <div className="no-print mt-6 flex flex-col gap-3">

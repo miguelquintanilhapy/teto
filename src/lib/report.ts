@@ -14,6 +14,12 @@ export interface MonthRow {
   month: number;
   revenueCents: Cents;
   revenueCount: number;
+  /**
+   * A receita do mês dividida como no Relatório Mensal das Receitas Brutas oficial: com documento fiscal (o
+   * lançamento veio de uma nota) e sem (lançado à mão ou Pix sem nota). O Teto não sabe o tipo de atividade.
+   */
+  withNoteCents: Cents;
+  withoutNoteCents: Cents;
   expenseCents: Cents;
 }
 
@@ -21,6 +27,8 @@ export interface YearReport {
   year: number;
   months: MonthRow[];
   revenueCents: Cents;
+  withNoteCents: Cents;
+  withoutNoteCents: Cents;
   expenseCents: Cents;
   cancelledCount: number;
   pendingCount: number;
@@ -28,7 +36,14 @@ export interface YearReport {
 
 /** Resumo do ano. Só lançamento confirmado entra nas somas, como no cálculo do limite. */
 export function buildYearReport(transactions: ReadonlyArray<ReportTransaction>, year: number): YearReport {
-  const months: MonthRow[] = Array.from({ length: 12 }, (_, month) => ({ month, revenueCents: 0, revenueCount: 0, expenseCents: 0 }));
+  const months: MonthRow[] = Array.from({ length: 12 }, (_, month) => ({
+    month,
+    revenueCents: 0,
+    revenueCount: 0,
+    withNoteCents: 0,
+    withoutNoteCents: 0,
+    expenseCents: 0,
+  }));
   let cancelledCount = 0;
   let pendingCount = 0;
   for (const t of transactions) {
@@ -40,12 +55,16 @@ export function buildYearReport(transactions: ReadonlyArray<ReportTransaction>, 
     if (t.kind === "receita") {
       row.revenueCents += t.amountCents;
       row.revenueCount += 1;
+      if (t.source === "nota") row.withNoteCents += t.amountCents;
+      else row.withoutNoteCents += t.amountCents;
     } else row.expenseCents += t.amountCents;
   }
   return {
     year,
     months,
     revenueCents: months.reduce((s, m) => s + m.revenueCents, 0),
+    withNoteCents: months.reduce((s, m) => s + m.withNoteCents, 0),
+    withoutNoteCents: months.reduce((s, m) => s + m.withoutNoteCents, 0),
     expenseCents: months.reduce((s, m) => s + m.expenseCents, 0),
     cancelledCount,
     pendingCount,
