@@ -41,9 +41,13 @@ export function formatCompact(cents: Cents): string {
   return `${mil.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
 }
 
-/** Percentual inteiro: 0.889 vira "89%". */
+/**
+ * Percentual inteiro, truncado como os reais: 0.889 vira "88%". Arredondar mostrava "90%" com a faixa ainda em
+ * "Atenção" (o Crítico começa em 90%): o número na tela só chega a um limiar quando ele foi cruzado de fato.
+ * O 1e-9 protege da conta em ponto flutuante (0.29 * 100 dá 28,999...).
+ */
 export function formatPercent(ratio: number): string {
-  return `${Math.round(ratio * 100)}%`;
+  return `${Math.floor(ratio * 100 + 1e-9)}%`;
 }
 
 function parts(date: ISODate): { y: number; m: number; d: number } {

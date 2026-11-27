@@ -15,7 +15,7 @@ import { SheetShell } from "./sheet-shell";
 
 type Stage =
   | { name: "choose"; error: string | null }
-  | { name: "reading"; fileName: string }
+  | { name: "reading"; fileName: string; previewUrl: string | null }
   | { name: "review"; values: ReviewValues; notice: ReviewNotice; saving: boolean; error: string | null }
   | { name: "done"; impact: Impact; duplicate: boolean; expense: boolean };
 
@@ -81,7 +81,9 @@ function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendCont
   async function handleFile(original: File) {
     const controller = new AbortController();
     abortRef.current = controller;
-    setStage({ name: "reading", fileName: original.name });
+    // A miniatura da foto aparece enquanto a IA lê; PDF não tem miniatura.
+    const previewUrl = original.type.startsWith("image/") ? URL.createObjectURL(original) : null;
+    setStage({ name: "reading", fileName: original.name, previewUrl });
 
     // Foto grande é reduzida aqui, no aparelho: quem fotografa não precisa saber de megabytes.
     const file = await shrinkImage(original);
@@ -183,7 +185,7 @@ function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendCont
         className={`outline-none ${stage.name === "choose" ? "lg:flex lg:flex-1 lg:flex-col" : ""}`}
       >
       {stage.name === "choose" && <ChooseStep onFile={handleFile} error={stage.error} />}
-      {stage.name === "reading" && <ReadingStep fileName={stage.fileName} onCancel={cancelReading} onManual={skipToManual} />}
+      {stage.name === "reading" && <ReadingStep fileName={stage.fileName} previewUrl={stage.previewUrl} onCancel={cancelReading} onManual={skipToManual} />}
       {stage.name === "review" && (
         <ReviewStep
           ctx={ctx}

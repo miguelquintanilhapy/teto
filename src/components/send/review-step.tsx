@@ -162,6 +162,7 @@ export function ReviewStep({
         <>
           <h2 className="mt-6 mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">Depois de confirmar</h2>
           <section aria-label="Efeito no limite" className="rounded-card bg-card p-5">
+            <p className="t-sub mb-1 text-label-2">Faturamento do ano com esta nota</p>
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <p className="sensitive text-[1.875rem] leading-none font-extrabold tracking-tight">{formatReais(impact.afterCents)}</p>
               <p className={`text-[1.0625rem] font-bold ${TONE_TEXT[tone]}`}>
@@ -182,6 +183,11 @@ export function ReviewStep({
               </BarKey>
               <BarKey mark>Limite {formatReais(ctx.limitCents)}</BarKey>
             </div>
+            <p className="t-body sensitive mt-3 text-label-2">
+              {ctx.limitCents > impact.afterCents
+                ? `Ainda cabem ${formatReais(ctx.limitCents - impact.afterCents)} até o limite do ano.`
+                : `Passa do limite em ${formatReais(impact.afterCents - ctx.limitCents)}.`}
+            </p>
           </section>
         </>
       )}

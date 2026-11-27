@@ -10,10 +10,13 @@ const SLOW_AFTER_MS = 12_000;
 /** Espera honesta: sem porcentagem inventada, só o que está acontecendo, como cancelar e como não esperar. */
 export function ReadingStep({
   fileName,
+  previewUrl,
   onCancel,
   onManual,
 }: {
   fileName: string;
+  /** Miniatura da foto enviada (PDF não tem): a pessoa vê o que está sendo lido. */
+  previewUrl?: string | null;
   onCancel: () => void;
   onManual: () => void;
 }) {
@@ -26,6 +29,10 @@ export function ReadingStep({
   return (
     <>
       <section role="status" aria-live="polite" className="rounded-card bg-card p-6 text-center">
+        {previewUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- miniatura local (blob:), sem passar pelo otimizador
+          <img src={previewUrl} alt="" className="mx-auto mb-5 max-h-44 w-auto max-w-full rounded-xl object-contain opacity-80" />
+        )}
         <SpinnerGap size={44} weight="bold" aria-hidden="true" className="mx-auto animate-spin motion-reduce:animate-none" />
         <h2 className="t-title mt-4">Lendo a nota</h2>
         <p className="t-body mt-2 text-label-2">

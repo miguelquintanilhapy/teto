@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, FileArrowUp, Warning } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { useRef } from "react";
 
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -59,22 +60,45 @@ export function ChooseStep({ onFile, error }: { onFile: (file: File) => void; er
         </p>
       )}
 
-      <div className="mt-5 flex flex-col gap-3 lg:mt-11 lg:flex-row lg:justify-center lg:gap-4">
-        <label className={`${button} ${desk} bg-primary text-on-primary shadow-[var(--glow)]`}>
-          <Camera size={24} weight="bold" aria-hidden="true" />
-          Tirar foto
-          <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={pick} className="sr-only" />
-        </label>
-        <label className={`${button} ${desk} bg-card text-label`}>
-          <FileArrowUp size={24} weight="bold" aria-hidden="true" />
-          Escolher arquivo
-          <input ref={galleryRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={pick} className="sr-only" />
-        </label>
-      </div>
+    
+<div className="mt-5 flex flex-col gap-3 lg:mt-11 lg:flex-row lg:justify-center lg:gap-4">
+  <label className={`${button} ${desk} bg-primary text-on-primary shadow-[var(--glow)]`}>
+    <Camera size={24} weight="bold" aria-hidden="true" />
+    Tirar foto
+    <input
+      ref={cameraRef}
+      type="file"
+      accept="image/*"
+      capture="environment"
+      onChange={pick}
+      className="sr-only"
+    />
+  </label>
 
-      <p className="t-sub mt-5 px-2 text-center text-label-2 lg:mt-[22px] lg:max-w-[640px] lg:text-base">
-        A imagem é lida por um serviço de IA (Google ou OpenRouter). Use só notas suas.
-      </p>
-    </div>
-  );
+  <label className={`${button} ${desk} bg-card text-action`}>
+    <FileArrowUp size={24} weight="bold" aria-hidden="true" />
+    Escolher arquivo
+    <input
+      ref={galleryRef}
+      type="file"
+      accept="image/jpeg,image/png,image/webp,application/pdf"
+      onChange={pick}
+      className="sr-only"
+    />
+  </label>
+</div>
+
+{/* Venda em dinheiro ou Pix sem comprovante: sem nota não há o que enviar, mas há o que lançar. */}
+<p className="t-body mt-4 text-center text-label-2">
+  Não tem nota?{" "}
+  <Link href="/lancar" className="font-semibold text-action">
+    Lançar sem nota
+  </Link>
+</p>
+
+<p className="t-sub mt-5 px-2 text-center text-label-2 lg:mt-[22px] lg:max-w-[640px] lg:text-base">
+  A imagem é lida por um serviço de IA (Google ou OpenRouter). Use só notas suas.
+</p>
+</div>
+);
 }

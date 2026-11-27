@@ -64,7 +64,7 @@ export function DoneStep({
             <span>Limite de {formatReais(ctx.limitCents)}</span>
           </div>
           <p className="t-body sensitive mt-3.5 text-label-2">
-            {room > 0 ? `Faltam ${formatReais(room)} para o limite do ano.` : "O limite do ano foi atingido."}
+            {room > 0 ? `Ainda cabem ${formatReais(room)} até o limite do ano.` : "O limite do ano foi atingido."}
           </p>
         </section>
       )}

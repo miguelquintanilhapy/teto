@@ -104,7 +104,9 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   arredondados (`src/lib/format.ts`). Antes o Painel mostrava 56.180 e o gráfico 56.181 para o mesmo valor. O número
   grande do Painel mostra os centavos.
 - **Vidro só na navegação.** Botões e barra de abas usam vidro; o conteúdo, não.
-- **Ação principal ao alcance do polegar.** O botão "Enviar" fica ao lado das abas, sempre à vista.
+- **Ação principal ao alcance do polegar.** O envio de nota fica no centro da barra, num círculo azul que sai dela
+  (com "Enviar nota" embaixo), entre Painel e Simular à esquerda e Histórico e Mais à direita; a cápsula da aba ativa
+  pula o lugar do meio.
 - **Conferir antes de somar.** A IA só lê. O tipo (receita ou despesa) é decidido pelo código a partir dos
   CPF/CNPJ e só é pedido ao usuário quando o código não consegue decidir. A tela mostra o efeito no limite
   antes de confirmar. Se a chave de acesso não passou no dígito verificador, a conferência avisa que ela foi
