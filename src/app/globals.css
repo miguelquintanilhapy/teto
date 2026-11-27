@@ -259,7 +259,19 @@ body {
 }
 
 /* Impressão: só o conteúdo, preto no branco, sem controles. */
+/* Folha A4 com margens de documento (o relatório do ano tem um layout próprio de impressão). */
+@page {
+  size: A4;
+  margin: 16mm 16mm 18mm;
+}
 @media print {
+  /* A coluna de celular não vale no papel: largura inteira, sem as margens da tela. */
+  main {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
   html,
   body {
     background: #fff !important;
