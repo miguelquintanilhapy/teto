@@ -210,17 +210,17 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
                           <p className="sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap">+ {formatMoney(c.amountCents)}</p>
                         </div>
                         {c.description && c.type && <p className="t-sub truncate text-label-2">{c.type}</p>}
-                        <div className="mt-2.5 flex gap-2">
+                        <div className="mt-1 flex gap-6">
                           <Link
                             href={launchHref(c)}
-                            className="pressable inline-flex min-h-10 items-center rounded-full bg-tile px-4 text-[0.9375rem] font-semibold whitespace-nowrap text-action"
+                            className="pressable inline-flex min-h-11 items-center text-[0.9375rem] font-semibold whitespace-nowrap text-action"
                           >
                             Lançar
                           </Link>
                           <button
                             type="button"
                             onClick={() => setDismissed([...dismissed, c.id])}
-                            className="pressable inline-flex min-h-10 items-center rounded-full px-3 text-[0.9375rem] font-semibold whitespace-nowrap text-label-2"
+                            className="pressable inline-flex min-h-11 items-center text-[0.9375rem] font-medium whitespace-nowrap text-action"
                           >
                             Não é receita
                           </button>
