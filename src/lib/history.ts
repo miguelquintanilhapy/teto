@@ -70,3 +70,10 @@ export function displayTitle(description: string): string {
   const d = description.trim();
   return d === "" ? "" : `${d.charAt(0).toUpperCase()}${d.slice(1)}`;
 }
+
+/** Agrupa por dia, na ordem em que os itens chegam (o histórico e o extrato já vêm do mais novo ao mais antigo). */
+export function groupByDay<T extends { date: string }>(items: ReadonlyArray<T>): Array<[string, T[]]> {
+  const groups = new Map<string, T[]>();
+  for (const t of items) groups.set(t.date, [...(groups.get(t.date) ?? []), t]);
+  return [...groups.entries()];
+}

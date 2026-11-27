@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { displayTitle, historyMonths, monthTitle, searchHistory, totals, type HistoryItem } from "./history";
+import { displayTitle, groupByDay, historyMonths, monthTitle, searchHistory, totals, type HistoryItem } from "./history";
 
 const item = (over: Partial<HistoryItem>): HistoryItem => ({
   date: "2026-11-19",
@@ -73,5 +73,15 @@ describe("displayTitle", () => {
   it("põe a inicial maiúscula e deixa o vazio vazio", () => {
     expect(displayTitle("fornecimento mensal")).toBe("Fornecimento mensal");
     expect(displayTitle("  ")).toBe("");
+  });
+});
+
+describe("groupByDay", () => {
+  it("agrupa por dia mantendo a ordem de chegada", () => {
+    const g = groupByDay([{ date: "2026-11-05", n: 1 }, { date: "2026-11-05", n: 2 }, { date: "2026-11-01", n: 3 }]);
+    expect(g.map(([d, items]) => [d, items.map((i) => i.n)])).toEqual([
+      ["2026-11-05", [1, 2]],
+      ["2026-11-01", [3]],
+    ]);
   });
 });

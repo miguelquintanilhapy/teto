@@ -20,6 +20,10 @@ export interface ReconciliationView {
   /** Entradas que são dinheiro do próprio dono mudando de lugar (resgate de cofrinho, estorno...): ficam de fora. */
   ownMovementCount: number;
   debitCount: number;
+  /** Entradas que o usuário marcou como "não é receita": saem da lista. */
+  dismissedCount: number;
+  /** Primeiro e último dia do extrato, para dizer o período que ele cobre. */
+  period: { first: ISODate; last: ISODate } | null;
 }
 
 /**
@@ -30,6 +34,7 @@ export function reconcileStatement(
   entries: ReadonlyArray<StatementEntry>,
   receipts: ReadonlyArray<ReceiptLike>,
   windowDays = 3,
+  dismissed: ReadonlySet<string> = new Set(),
 ): ReconciliationView {
   const credits = entries.filter((e) => e.amountCents > 0 && !isOwnMovement(e));
   const ownMovementCount = entries.filter((e) => e.amountCents > 0 && isOwnMovement(e)).length;
@@ -46,7 +51,9 @@ export function reconcileStatement(
 
   const creditById = new Map(credits.map((c) => [c.id, c]));
   const receiptById = new Map(inPeriod.map((r) => [r.id, r]));
-  const unmatchedCredits = result.unmatchedCredits.map((e) => creditById.get(e.id)!);
+  const stillOpen = result.unmatchedCredits.map((e) => creditById.get(e.id)!);
+  const unmatchedCredits = stillOpen.filter((c) => !dismissed.has(c.id));
+  const allDates = entries.map((e) => e.date).sort();
 
   return {
     creditCount: credits.length,
@@ -57,6 +64,8 @@ export function reconcileStatement(
     unmatchedCreditsTotalCents: unmatchedCredits.reduce((s, c) => s + c.amountCents, 0),
     ownMovementCount,
     debitCount,
+    dismissedCount: stillOpen.length - unmatchedCredits.length,
+    period: allDates.length > 0 ? { first: allDates[0]!, last: allDates[allDates.length - 1]! } : null,
   };
 }
 
