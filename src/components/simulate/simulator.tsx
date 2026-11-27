@@ -46,7 +46,8 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
 
   return (
     <>
-      <div className="divide-y divide-sep rounded-card bg-card">
+      {/* No computador (lg), a tela vira duas colunas: campo e atalhos à esquerda, resultado à direita. */}
+      <div className="divide-y divide-sep rounded-card bg-card lg:col-start-1 lg:row-start-2">
         <CurrencyField label="Valor da venda" cents={cents} onChange={setCents} />
         {headroom > 0 && (
           // Preenche com o que ainda cabe no limite: uma ação diferente dos atalhos de valor, junto do campo.
@@ -61,7 +62,7 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid grid-cols-3 gap-2 lg:col-start-1 lg:row-start-3">
         {presets.map((value) => (
           <button
             key={value}
@@ -78,7 +79,7 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
         {spoken ? `${spoken.band.label}. ${spoken.answer.label} ${formatReais(spoken.answer.cents)}. ${spoken.note}` : ""}
       </p>
 
-      <section aria-label={simulating ? "Resultado da simulação" : "Situação de hoje"} className="mt-5 rounded-card bg-card p-5">
+      <section aria-label={simulating ? "Resultado da simulação" : "Situação de hoje"} className="mt-5 rounded-card bg-card p-5 lg:col-start-2 lg:row-span-3 lg:row-start-2 lg:mt-0">
         <p className={`flex items-center gap-1.5 text-[0.9375rem] font-bold ${TONE_TEXT[view.band.tone]}`}>
           <StateIcon size={17} weight="fill" aria-hidden="true" />
           {simulating ? view.band.label : `Hoje · ${view.band.label}`} · <span className="sensitive">{pctText}</span>
@@ -107,7 +108,7 @@ export function Simulator({ ctx }: { ctx: SimulateContext }) {
         {view.costLine && <p className="t-sub sensitive mt-4 rounded-2xl bg-tile p-3.5 text-label-2">{view.costLine}</p>}
       </section>
 
-      <p className="t-caption mt-4 px-2 text-label-2">Só uma simulação: nada é lançado. A conta usa a receita bruta (o que entra), não o lucro.</p>
+      <p className="t-caption mt-4 px-2 text-label-2 lg:col-start-1 lg:row-start-4 lg:px-0">Só uma simulação: nada é lançado. A conta usa a receita bruta (o que entra), não o lucro.</p>
     </>
   );
 }

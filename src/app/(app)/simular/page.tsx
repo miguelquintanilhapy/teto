@@ -9,8 +9,8 @@ export const metadata = { title: "Simular · Teto" };
 /** Aba própria: o simulador é o diferencial do Teto e ficava escondido no meio de um cartão do Painel. */
 export default function SimularPage() {
   return (
-    <main>
-      <header className="mt-2 mb-4">
+    <main className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6">
+      <header className="mt-2 mb-4 lg:col-span-2">
         <h1 className="t-large-title">Simular</h1>
         <p className="t-body mt-0.5 text-label-2">E se eu aceitar uma venda de R$ X?</p>
       </header>
