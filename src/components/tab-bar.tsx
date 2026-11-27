@@ -67,10 +67,10 @@ export function TabBar() {
         )}
         {tab(0)}
         {tab(1)}
-        {/* O envio de nota no meio: o círculo sai da barra, e o rótulo fica na linha das abas. */}
+        {/* O envio de nota no meio: o círculo azul sai da barra; o rótulo fica cinza, porque o azul do texto marca a aba atual. */}
         <Link
           href="/enviar"
-          className="pressable relative flex h-[3.5rem] min-w-0 flex-col items-center justify-end pb-[0.3125rem] text-action"
+          className="pressable relative flex h-[3.5rem] min-w-0 flex-col items-center justify-end pb-[0.3125rem] text-label-2"
         >
           <span
             aria-hidden="true"
