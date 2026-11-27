@@ -90,7 +90,8 @@ não commite essa mudança sem querer.
   `gemini-3.6-flash` lê poucas notas por dia. `check:ai` e `eval:record` gastam essa cota.
 - Abas (Painel, Simular, Histórico, Mais) ficam em `src/app/(app)/`; as outras telas são folhas com X, que volta à
   tela de origem (`NavMemory` + `CloseButton`, em `src/components/nav`). Tela nova: decida se é aba ou folha.
-- A interface **não tem testes automatizados** (só a lógica). Verifique no navegador, em 375 px, nos temas claro e escuro.
+- A interface **não tem testes automatizados** (só a lógica). Verifique no navegador, em 375 px e em 1440 px (no
+  computador a barra de abas vira lateral e as telas ocupam a largura; ver `docs/INTERFACE.md`), nos temas claro e escuro.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

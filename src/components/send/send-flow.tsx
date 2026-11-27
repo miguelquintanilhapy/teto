@@ -175,8 +175,15 @@ function SendFlowSteps({ ctx: initialCtx, startManual = false }: { ctx: SendCont
     <SheetShell
       title={startManual && stage.name === "review" ? "Lançar sem nota" : TITLES[stage.name]}
       onClose={stage.name === "review" && !stage.saving && dirty ? () => setConfirmingClose(true) : undefined}
+      wide={stage.name === "choose"}
     >
-      <div ref={stepRef} tabIndex={-1} role="group" aria-label={TITLES[stage.name] ?? "Nota confirmada"} className="outline-none">
+      <div
+        ref={stepRef}
+        tabIndex={-1}
+        role="group"
+        aria-label={TITLES[stage.name] ?? "Nota confirmada"}
+        className={`outline-none ${stage.name === "choose" ? "lg:flex lg:flex-1 lg:flex-col" : ""}`}
+      >
       {stage.name === "choose" && <ChooseStep onFile={handleFile} error={stage.error} />}
       {stage.name === "reading" && <ReadingStep fileName={stage.fileName} previewUrl={stage.previewUrl} onCancel={cancelReading} onManual={skipToManual} />}
       {stage.name === "review" && (
