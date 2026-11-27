@@ -1,7 +1,7 @@
 # Auditoria de qualidade do Teto
 
 Registro honesto, separado em **desenho** (o que está decidido) e **implementação**
-(o que existe em código). Atualizar a cada marco. Última revisão: 26/11/2026.
+(o que existe em código). Atualizar a cada marco. Última revisão: 27/11/2026.
 
 ## Veredito
 
@@ -15,8 +15,8 @@ Registro honesto, separado em **desenho** (o que está decidido) e **implementa�
   segurança, cor e design ([REVISAO.md](REVISAO.md), [SEGURANCA.md](SEGURANCA.md)). Falta o que depende de ação
   fora do código: link público e vídeo. O que sobra está em [PLANO.md](PLANO.md).
 - **Limite honesto:** a interface foi verificada à mão no navegador e no iPhone do dono do projeto, não em
-  Android nem com leitor de tela real, e não tem testes automatizados (a lógica tem 470 testes em 46 arquivos,
-  em 25/11).
+  Android nem com leitor de tela real, e não tem testes automatizados (a lógica tem 475 testes em 46 arquivos,
+  em 27/11).
 
 ## Desenho: lacunas fechadas
 
@@ -69,7 +69,7 @@ Resolvidas ou técnicas:
 | Confirmação, cancelar e corrigir lançamento, histórico de alterações, painel e relatório | ✅ (lançamento e evento são dois comandos com compensação, não uma transação do banco) |
 | Notas "para conferir" (status `pendente`) | ❌ nenhum fluxo grava `pendente`: a nota lida fica só na tela até ser confirmada, e o contador é sempre 0 (o Painel mostra "Em dia"). Em 26/11 o filtro "Conferir" saiu do Histórico; ainda tratam `pendente` o cartão de Notas do Painel (link `/historico?status=pendente`, que agora abre em "Todos"), o selo da linha do histórico, o detalhe e o relatório |
 | Interface: 16 telas, abas Painel/Simular/Histórico/Mais, tema claro/escuro, ocultar valores, instalável | ✅ (quatro rodadas de revisão; sem testes automatizados de interface) |
-| Extrato: CSV lido no navegador e conciliado com as receitas | ✅ (não é salvo no banco) |
+| Extrato: CSV lido no navegador e conciliado com as receitas | ✅ (não é salvo no banco; lê Inter, Nubank e PicPay, e deixa de fora resgate de cofrinho, estorno e transferência entre contas) |
 | Alertas por e-mail e cron | ✅ e-mail real enviado e recebido em 25/11/2026 (chamada local ao cron, com o Resend). O cron agendado da Vercel ainda não rodou |
 | Harness `eval` (26 notas), gravação/replay, casos adversariais e porta de qualidade na CI | ✅ |
 | Cobertura das gravações no prompt v4: `gemini-3.5-flash-lite` 26/26, `gemini-flash-lite-latest` 26/26, Nemotron 0/26 (cota diária do OpenRouter acabou), `gemini-3.6-flash` 0/26 (cota pequena). Uma gravação por nota | 🟡 completar |

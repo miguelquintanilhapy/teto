@@ -95,5 +95,5 @@ Nunca coloque chave no repositório, em issue ou em chat. Só dados fictícios.
 - **Não gaste a cota de IA no dia da gravação** (nada de `check:ai` nem `eval:record`).
 - **Quem mexe no que é do dono do projeto:** aplicar migração no banco, desligar a proteção por login da
   Vercel, conferir as variáveis da Vercel (inclusive o `MODEL_CHAIN`) e mesclar o PR com os ajustes de interface da
-  `feat/chave-e-latencia` (o PR #21 já foi mesclado).
+  `feat/chave-e-latencia` (os PRs #21 e #22 já foram mesclados; falta o que veio depois do #22).
   Não faça isso sem combinar.

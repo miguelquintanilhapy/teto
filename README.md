@@ -19,16 +19,19 @@ Projeto do **Hack Brasil 2026**, trilha **Pagamentos & finanças**.
 - Quatro abas (Painel, Simular, Histórico e Mais) e o botão "Enviar" ao lado delas.
 - Painel: faturamento do ano, faixa de risco (verde, âmbar, laranja-avermelhado, vermelho), a "sala" do limite,
   barra do limite com a faixa de tolerância, previsão de quando o limite será ultrapassado (com a média usada),
-  DAS com atalho para gerar a guia e receita por mês.
+  DAS com atalho para gerar a guia (em âmbar a cinco dias ou menos do vencimento), notas e receita por mês.
 - Limite proporcional para quem abriu o MEI no meio do ano, e as três faixas (limite, 20% acima, acima disso)
   explicadas na tela de Regras.
 - Simulador: "e se eu aceitar uma venda de R$ X?", respondido com um número só (quanto ainda cabe ou quanto a venda
   passa do limite) e uma frase com a consequência, o custo estimado e o atalho "Usar o que ainda cabe".
 - Histórico mês a mês, com o resumo do mês, busca (descrição, valor ou CPF/CNPJ) e filtro de receitas e despesas;
   detalhe, correção e cancelamento (tudo registrado) e aviso de possível duplicidade; lançamento sem
-  nota e importação do extrato bancário (CSV, lido no navegador) cruzada com as receitas.
+  nota.
+- Conferir o extrato do banco (CSV do Inter, do Nubank ou do PicPay, lido no navegador) contra as receitas: a tela
+  diz quanto entrou no banco sem nota, deixa de fora resgate de cofrinho, estorno e transferência entre contas, e
+  cada entrada pode ser lançada ou marcada como "Não é receita".
 - Alertas por e-mail ao cruzar 80%, 90%, 100% e 120% do limite (idempotentes, com cron diário).
-- Relatório do ano em CSV (e em PDF pela impressão do navegador), tema claro e escuro, "ocultar valores" e
+- Relatório do ano com a receita de cada mês dividida em com nota e sem nota, em CSV (e em PDF pela impressão do navegador), tema claro e escuro, "ocultar valores" e
   instalação na tela inicial do celular.
 - Tela "Como a IA lê": em linguagem simples, com modelos, cota do dia, tempos e falhas em "Detalhes técnicos",
   para a IA não ser uma caixa-preta.
@@ -420,7 +423,8 @@ contra o Supabase em Oregon; a leitura completa não foi medida de novo.
 - A projeção é linear e não considera sazonalidade.
 - PDF acima de 4 MB é recusado (fotos grandes são reduzidas no aparelho, PDF não).
 - O lembrete do vencimento do DAS por e-mail não existe (a tabela de alertas guarda uma data por ano).
-- A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba.
+- A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba, junto com o que foi
+  marcado como "Não é receita". Só CSV (extrato em PDF não é lido).
 - "Para conferir" nunca recebe notas: nenhum fluxo grava o status `pendente` (a nota lida fica só na tela até
   ser confirmada). O contador é sempre 0, e o Painel mostra "Em dia"; o filtro "Conferir" saiu do Histórico
   por isso.
@@ -441,15 +445,17 @@ Feito:
 - [x] Alertas por e-mail e cron (Resend), idempotentes e com reserva atômica; e-mail real enviado e recebido em
   25/11 (chamada local ao cron). O cron agendado da Vercel ainda não rodou
 - [x] Revisões de UX, acessibilidade, segurança e cor, quatro rodadas ([REVISAO.md](docs/REVISAO.md), [SEGURANCA.md](docs/SEGURANCA.md))
-- [x] 470 testes automatizados em 46 arquivos (em 26/11), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
+- [x] 475 testes automatizados em 46 arquivos (em 27/11), lint e tipos limpos, `npm audit` sem vulnerabilidades de produção
 - [x] `gitleaks` e `npm audit` na CI, arquivo `LICENSE` (MIT) e Dependabot (PR #13)
 - [x] PR #21 da `feat/chave-e-latencia` mesclado (prompt v4, upload mais rápido, abas novas, quarta revisão)
+- [x] PR #22 da mesma branch mesclado em 26/11 (Simular com uma resposta só, Regras escritas para leigo, saída
+  retroativa "desde a abertura" no ano de abertura, cápsula deslizante nas abas)
 
 Falta para o envio (prazo: 30/11, 23h59):
 
-- [ ] Abrir e mesclar o PR com os ajustes de interface feitos depois do #21 na mesma branch (Simular com uma
-  resposta só, Regras escritas para leigo, saída retroativa "desde a abertura" no ano de abertura, Histórico mês a
-  mês com busca, cápsula deslizante nas abas)
+- [ ] Abrir e mesclar o PR com o que veio depois do #22 na mesma branch: Histórico mês a mês com busca (26/11) e os
+  ajustes de 27/11 (extrato do PicPay e tela do extrato refeita, cancelados num grupo próprio, quadradinhos de
+  ícone com cor no Painel, botões secundários em azul, mãozinha e hover com mouse)
 - [ ] Desligar a proteção por login da Vercel (link público). A migração `0002` já está aplicada no banco do projeto
 - [ ] Link da demo pública e vídeo de até 3 minutos
 - [ ] Questão de negócio em aberto: a data que conta é a de emissão ou a de recebimento ([mei-rules.md](docs/mei-rules.md))

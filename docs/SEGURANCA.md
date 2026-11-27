@@ -57,6 +57,13 @@ fraca da política; o resto está fechado.
 - `NEXT_PUBLIC_*` só tem a URL e a chave anônima (inútil sem políticas).
 - Dado pessoal mascarado **no servidor**, antes de entrar no payload da tela. Exceção: o CNPJ do próprio MEI, nas
   telas de envio e de lançamento (ver a tabela acima).
+- **Extrato do banco:** o CSV é lido e conciliado **só no navegador** (`src/lib/statement.ts`,
+  `src/lib/reconciliation.ts`) e nunca vai ao servidor. O extrato lido e as entradas marcadas como "Não é receita"
+  ficam no `sessionStorage` da aba (chave `teto-extrato`, em `src/components/statement/statement-importer.tsx`):
+  somem ao fechar a aba ou em "Limpar", e não são gravados no banco; só vira lançamento o que o usuário confirma.
+  Ressalva: "Lançar" abre `/lancar` com o valor, a data e quem pagou (até 120 caracteres) no endereço, e
+  `readLaunchParams` valida os três antes de preencher o formulário. Esse endereço fica no histórico do navegador
+  e pode chegar ao servidor na navegação.
 
 ### Saídas
 - React escapa tudo. O único `dangerouslySetInnerHTML` recebe uma constante.
@@ -82,7 +89,7 @@ fraca da política; o resto está fechado.
 - Requisições hostis contra o servidor de produção local: `Origin` de outro site (`403`), `text/plain` (`415`),
   edição do cadastro em produção (`403`), cron sem segredo (`401`), CPF mascarado na API.
 - Console do navegador sem violação de CSP.
-- Rodada de testes automáticos: 470 em 46 arquivos (núcleo, serviços, handlers, lógica da interface).
+- Rodada de testes automáticos: 475 em 46 arquivos, em 27/11 (núcleo, serviços, handlers, lógica da interface).
 
 ## Migração `0002` (já aplicada no banco do projeto)
 

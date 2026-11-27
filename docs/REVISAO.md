@@ -3,7 +3,7 @@
 Quatro rodadas. A primeira, em 24/11/2026, por dois revisores independentes (cada um leu o código sem a conclusão
 do outro) mais verificação no navegador em modo de produção; a segunda, uma auditoria externa por gravação de tela;
 a terceira, em 25/11, a partir do uso real no navegador e no iPhone; a quarta, em 25/11, uma auditoria de design
-independente. Depois delas, em 26/11, vieram ajustes a partir do uso (última seção). Este documento diz **o que
+independente. Depois delas, em 26/11 e 27/11, vieram ajustes a partir do uso (últimas seções). Este documento diz **o que
 achamos, o que foi corrigido e o que ficou**. Ver
 [SEGURANCA.md](SEGURANCA.md) e [INTERFACE.md](INTERFACE.md).
 
@@ -185,3 +185,22 @@ tela ficou está em [INTERFACE.md](INTERFACE.md).
 | O selo "Teto" no topo do Painel, pequeno, parecia a seta de enviar | **Corrigido**: saiu; o topo mostra só o nome da tela, como nos apps de celular |
 | A troca de aba era um corte seco | **Corrigido**: a cápsula da barra desliza até a aba tocada, e o conteúdo entra num fundido de 0,18 s (nada anima com "reduzir movimento") |
 | O Histórico era o ano inteiro numa lista só, sem busca nem totais, e o filtro "Conferir" ficava sempre vazio | **Corrigido**, com ideias do Bolso: um mês por vez com resumo de receitas e despesas, busca no ano todo, saldo de cada dia, filtro Todos, Receitas ou Despesas, e o título da linha com inicial maiúscula (sem descrição, o tipo vira o título). "Conferir" saiu porque nenhum fluxo grava `pendente` |
+
+## Ajustes de 27/11
+
+Mesma forma da seção anterior: achados do uso, sem revisor externo, todos corrigidos no código e ainda sem PR
+(estão na `feat/chave-e-latencia`, depois do #22). O detalhe está em [INTERFACE.md](INTERFACE.md).
+
+| Achado | O que mudou |
+|---|---|
+| Botão secundário branco com texto preto parecia rótulo, não botão | **Corrigido**: texto azul, o que se toca ("Corrigir lançamento", agora com lápis, "Imprimir ou salvar em PDF", "Cancelar" da leitura) |
+| "Mostrar N cancelados" espalhava os cancelados pelos dias, longe do toque | **Corrigido**: grupo próprio logo abaixo do botão, com a data em cada linha |
+| "Comparar extrato", no topo do Histórico, não dizia para que servia | **Corrigido**: linha "Conferir extrato do banco" ("Ache vendas que faltam no Teto") abaixo do resumo do mês |
+| O extrato do PicPay perdia as saídas (menos tipográfico "−") e quem pagou (coluna "origem / destino"), e resgate de cofrinho aparecia como entrada sem nota | **Corrigido**: o leitor entende o "−", "origem / destino" e "tipo"; resgate, aplicação, rendimento, estorno e transferência entre contas ficam de fora (`isOwnMovement`) |
+| A tela do extrato seguia com a explicação grande depois do arquivo, empilhava três listas e não encolhia | **Corrigido**: a resposta primeiro em número grande, as listas num controle segmentado, entradas por dia e "Não é receita" (com "Desfazer") para a lista encolher |
+| "Lançar" e "Não é receita" sem hierarquia (primeiro em cápsulas cinza, que no escuro não pareciam botão; depois os dois só em texto azul) | **Corrigido**: "Lançar" em cápsula azul cheia, "Não é receita" em texto azul |
+| Os cartões do Painel, todos com ícone preto em quadradinho cinza, pareciam desabilitados | **Corrigido**: quadradinho com cor (`IconTile`): azul na ação, azul-petróleo no DAS (âmbar a cinco dias ou menos), cor do estado na Previsão e nas Notas, a barra selecionada do gráfico em azul (as outras seguem cinza, pelo contraste). O roxo testado em "Entenda o limite" saiu |
+| Sem mãozinha nos botões (o Tailwind v4 tirou o ponteiro) e sem hover nos botões cheios, nas abas e nos links | **Corrigido**: uma regra global em `src/app/globals.css` para o cursor, e um clarear leve só onde há mouse |
+| O relatório do ano mostrava a contagem de lançamentos por mês, que diz pouco, e no PDF o total se repetia no pé da primeira página | **Corrigido**: cada mês dividido em com nota e sem nota (como o relatório mensal oficial), o estado no topo, despesas e cancelados em linhas, e o total uma vez só na impressão |
+| O "Lançar" do extrato tinha 36 px de altura | **Corrigido**: a área de toque passa de 44 px, sem mudar o desenho |
+| "Tudo conferido" grande e verde quebrava a linha e parecia alerta; DAS e Notas com o conteúdo em alturas diferentes | **Corrigido**: "Em dia" no formato do DAS, legenda "nada para conferir", e o conteúdo dos dois logo abaixo do título |

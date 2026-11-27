@@ -6,7 +6,7 @@ Janela: **23/11 a 30/11/2026**. O envio fecha em 30/11 às 23h59 e o repositóri
 Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) ·
 [auditoria](AUDITORIA.md) · [tarefas da equipe](TAREFAS.md).
 
-## Andamento (26/11)
+## Andamento (27/11)
 
 - [x] Fase 0 de fundação, mesclada na `main`
 - [x] Adaptadores Gemini e OpenRouter, com a cadeia montada por `MODEL_CHAIN`
@@ -26,9 +26,11 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [modelo de dados](DATA-MODEL.md) 
 - [x] PR #21 mesclado (`feat/chave-e-latencia`): prompt v4 para a chave de acesso, chave inválida descartada em vez
   de reprovar a nota, upload mais rápido (a IA lê enquanto o arquivo é gravado), abas novas (Painel, Simular,
   Histórico, Mais) e a quarta rodada de revisão de design
-- [ ] Ajustes de interface de 26/11, na mesma branch, ainda sem PR: Simular com uma resposta só, Regras escritas
-  para leigo, saída retroativa "desde a abertura" no ano de abertura, Histórico mês a mês com busca, cápsula
-  deslizante nas abas ([REVISAO.md](REVISAO.md))
+- [x] PR #22 mesclado em 26/11 (mesma branch): Simular com uma resposta só, Regras escritas para leigo, saída
+  retroativa "desde a abertura" no ano de abertura, cápsula deslizante nas abas
+- [ ] Ajustes depois do #22, na mesma branch, ainda sem PR: Histórico mês a mês com busca (26/11); extrato do
+  PicPay e tela do extrato refeita, cancelados num grupo próprio, quadradinhos de ícone com cor no Painel, botões
+  secundários em azul, mãozinha e hover com mouse (27/11) ([REVISAO.md](REVISAO.md))
 - [ ] Deixar o link da Vercel público e gravar o vídeo
 
 ## Como trabalhamos
@@ -120,7 +122,7 @@ Quase todo o escopo já foi feito. Se o prazo apertar, sacrificar nesta ordem:
 ## Definição de pronto para o envio
 
 - [ ] Repositório público, criado após 4/11, sem fork, com commits dos três (hoje, um autor só)
-- [x] `npm run check` verde (470 testes em 46 arquivos, em 26/11)
+- [x] `npm run check` verde (475 testes em 46 arquivos, em 27/11)
 - [x] CI com `gitleaks` e `npm audit`, além de lint, tipos, testes e o eval em replay
 - [ ] Demo em HTTPS testada em outro dispositivo e em janela anônima
 - [ ] Vídeo de até 3 minutos, aberto sem login, mostrando o produto funcionando
