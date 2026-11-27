@@ -12,6 +12,8 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 - **As outras telas são folhas**, abertas por cima, com um X. O X volta para a tela de origem quando ela é
   conhecida (o filtro e a rolagem continuam lá); senão vai para um destino fixo. Quem lembra a origem é o
   `NavMemory`, e quem usa é o `CloseButton` (`src/components/nav`).
+- **No computador** (a partir de 1024 px), as mesmas abas e o botão de enviar ficam numa barra lateral à esquerda, e
+  as telas ocupam a largura (ver "Layout no celular e no computador").
 
 ## Telas
 
@@ -64,7 +66,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   | Crítico e "Limite atingido" (laranja-avermelhado) | `alert` / `alert-text` | `#ff6a2a` / `#ff8a57` | `#e0501a` / `#b4390a` |
   | Acima do limite (vermelho) | `danger` / `danger-text` | `#ff453a` / `#ff6961` | `#d70015` / `#d70015` |
   | Confirmação | `ok` / `ok-text` | `#30d158` / `#30d158` | `#248a3d` / `#1f7a34` |
-  | Fundo de mesa (computador e tablet) | `--desk` | `#1c1c1e` | `#e3e3e8` |
+  | Fundo de mesa (tablet; no computador o app ocupa a tela) | `--desk` | `#1c1c1e` | `#e3e3e8` |
   | Categoria: imposto/DAS (azul-petróleo), só no quadradinho do ícone | `tax` | `#40c8e0` | `#0e8a9e` |
 
   Regras que saíram das revisões de cor:
@@ -173,8 +175,23 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 
 - No iPhone, o topo tem folga depois da área segura, e uma película na cor do fundo fica sob a barra de status,
   para o conteúdo rolado não aparecer embaixo do relógio.
-- No computador e no tablet (a partir de 768 px), o app continua uma coluna de celular (até 430 px), emoldurada
-  com borda e sombra sobre um fundo de mesa (`--desk`), em vez de preto dos dois lados.
+- No tablet (de 768 a 1023 px), o app continua uma coluna de celular (até 430 px), emoldurada com borda e sombra
+  sobre um fundo de mesa (`--desk`), em vez de preto dos dois lados.
+- **No computador (a partir de 1024 px, o `lg` do Tailwind)**, o app ocupa a tela. Tudo está atrás de `lg:` ou de
+  `@media (min-width: 1024px)`, então celular e tablet não mudam (conferido pixel a pixel contra a produção).
+  - **Barra lateral** (`TabBar`): a barra de abas vira uma barra fixa à esquerda, de 256 px, com o ícone e o nome do
+    app no topo, "Enviar nota" por extenso logo abaixo (a ação principal continua a primeira coisa à vista) e as
+    quatro abas em linhas. A cápsula da aba escolhida desliza na vertical (`--tab-i`, em `globals.css`) e usa o fundo
+    do cartão, porque o `--selected` do tema escuro some sobre o preto. Sem moldura nem fundo de mesa.
+  - **Abas**: o conteúdo ocupa a largura (até 1400 px). O **Painel** vira uma grade de 12 colunas (faturamento e
+    previsão; os dois atalhos; o gráfico ao lado do DAS e das notas); o **Simular** e o **Mais** ficam em duas
+    colunas; o **Histórico** fica numa coluna centralizada de até 760 px, porque uma lista de extrato esticada
+    afasta o valor da descrição.
+  - **Folhas** (`SheetShell`): tela cheia, sem moldura, com o X e o título no topo. O conteúdo fica numa coluna
+    centralizada de até 760 px e o botão do rodapé (`BottomAction`) segue o conteúdo, em vez de ficar preso
+    embaixo. Com `wide`, o conteúdo recebe a tela toda: é o caso de **Enviar nota** no passo de escolher o arquivo,
+    que vira uma página de envio de arquivo (tudo no centro, título grande, os dois botões grandes lado a lado).
+  - A impressão do relatório não muda: a folha A4 fica abaixo de 1024 px.
 
 ## Mais (perfil)
 
