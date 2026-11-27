@@ -83,7 +83,7 @@ export function Hero() {
         </motion.div>
       </motion.div>
 
-      <motion.div style={reduce ? undefined : { y: stageY }} className="relative mx-auto mt-16 w-[min(70vw,20.5rem)] sm:mt-20 lg:w-[21.5rem]">
+      <motion.div style={reduce ? undefined : { y: stageY }} className="relative mx-auto mt-16 w-[min(64vw,20.5rem)] sm:mt-20 lg:w-[21.5rem]">
         <Roof
           delay={0.65}
           lift={reduce ? undefined : dotsLift}
@@ -98,7 +98,7 @@ export function Hero() {
             src={painel}
             preload
             className="drop-shadow-[0_50px_80px_rgb(0_0_0/0.7)]"
-            alt="Painel do Teto: faturamento de 2026 de R$ 59.160,50, selo Atenção, 88% do limite e ainda cabem R$ 8.339. Limite de R$ 67.500; com os 20% de tolerância, R$ 81.000."
+            alt="Painel do Teto: faturamento de 2026 de R$ 60.710,50, selo Atenção, 89% do limite e ainda cabem R$ 6.789. Limite de R$ 67.500; com os 20% de tolerância, R$ 81.000."
           />
         </motion.div>
         <motion.p {...fadeUp(1.4)} className="mt-8 text-center text-xs text-mute-dark">

@@ -61,8 +61,12 @@ npm run capturas -- http://localhost:3000
 ```
 
 O script abre o Edge ou o Chrome instalado, emula um iPhone (390 × 844 a 3x) e grava WebP em `src/assets/telas/`.
+Ele simula as áreas seguras do iPhone (47 pt no alto, 34 pt embaixo), e o app se afasta delas como num aparelho de
+verdade. A moldura (`src/components/phone.tsx`) desenha por cima a barra de status (hora, sinal, bateria) e o traço
+de início. Por isso cada `<Phone>` recebe `screen="dark"` ou `"light"`, o tema da captura.
 **Só dados fictícios**: aponte para o perfil de demonstração. A tela de avisos fica de fora de propósito, porque
-mostra parte do e-mail cadastrado. Confira cada captura antes de commitar.
+mostra parte do e-mail cadastrado. Confira cada captura antes de commitar. Os números da demonstração mudam com o
+tempo: ao recapturar, atualize os textos alternativos e as notas que citam valores (`hero.tsx`, `features.tsx`).
 
 ## Publicar na Vercel
 

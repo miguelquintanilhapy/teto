@@ -38,10 +38,14 @@ const JOBS = [
   { name: "enviar-escuro", path: "/enviar", theme: "dark" },
   { name: "historico-claro", path: "/historico", theme: "light" },
   { name: "regras-claro", path: "/regras", theme: "light", eval: "window.scrollTo(0, 360)" },
-  { name: "alertas-escuro", path: "/alertas", theme: "dark" },
+  // A tela de avisos fica de fora: mostra parte do e-mail cadastrado.
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Em pontos, como num iPhone de 390 x 844. Se mudar, mude também em src/components/phone.tsx.
+const SAFE_TOP = 47;
+const SAFE_BOTTOM = 34;
 
 const browser = BROWSERS.find((b) => existsSync(b));
 if (!browser) {
@@ -93,6 +97,10 @@ try {
 
   for (const job of JOBS) {
     await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+    // As áreas seguras de um iPhone (barra de status em cima, traço de início embaixo): o app já se afasta delas,
+    // e a moldura do site (src/components/phone.tsx) desenha a hora, a bateria e o traço por cima.
+    const insets = await send("Emulation.setSafeAreaInsetsOverride", { insets: { top: SAFE_TOP, bottom: SAFE_BOTTOM, left: 0, right: 0 } });
+    if (insets.error) throw new Error(`O navegador não simula a área segura (${insets.error.message}). Atualize o Edge ou o Chrome.`);
     await send("Emulation.setEmulatedMedia", {
       features: [
         { name: "prefers-color-scheme", value: job.theme },

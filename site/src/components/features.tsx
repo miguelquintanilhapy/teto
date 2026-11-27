@@ -29,6 +29,8 @@ type Chapter = {
   body: string;
   note?: string;
   shot: StaticImageData;
+  /** Tema da captura, para a barra de status do celular. */
+  screen: "dark" | "light";
   alt: string;
 };
 
@@ -41,7 +43,8 @@ const CHAPTERS: Chapter[] = [
     body: "O faturamento do ano, a faixa de risco e quanto ainda cabe no limite. A sala enche conforme você fatura: o telhado é o limite, e o pontilhado, os 20% de tolerância.",
     note: "O risco nunca vem só em cor: sempre com ícone e texto.",
     shot: painel,
-    alt: "Painel em tema claro: faturamento de 2026 de R$ 59.160,50, selo Atenção, 88% do limite e ainda cabem R$ 8.339, com a sala do limite cheia em âmbar.",
+    screen: "light",
+    alt: "Painel em tema claro: faturamento de 2026 de R$ 60.710,50, selo Atenção, 89% do limite e ainda cabem R$ 6.789, com a sala do limite cheia em âmbar.",
   },
   {
     id: "enviar",
@@ -50,16 +53,18 @@ const CHAPTERS: Chapter[] = [
     body: "Foto, PDF ou comprovante de Pix. A IA só extrai os campos; nada entra no limite antes de você conferir. E quem decide se é receita ou despesa é o código, pelo CNPJ do seu MEI.",
     note: "Sem comprovante? Dá para lançar à mão uma venda em dinheiro ou Pix.",
     shot: enviar,
-    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo.",
+    screen: "dark",
+    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo, e o atalho Lançar sem nota.",
   },
   {
     id: "simular",
     kicker: "Simular",
     title: "E se eu aceitar essa venda?",
     body: "Digite o valor e a resposta aparece enquanto você digita: quanto ainda cabe, ou quanto a venda passa do limite, com a consequência em português e o custo extra estimado.",
-    note: "Na tela, uma venda de R$ 12.000 passaria do limite em R$ 3.660.",
+    note: "Na tela, uma venda de R$ 12.000 passaria do limite em R$ 5.210.",
     shot: simular,
-    alt: "Simulação de uma venda de R$ 12.000: acima do limite, 105%. A venda passa do limite em R$ 3.660; custo extra estimado de R$ 219, rotulado como estimativa.",
+    screen: "dark",
+    alt: "Simulação de uma venda de R$ 12.000: acima do limite, 107%. A venda passa do limite em R$ 5.210; até R$ 81.000, o ano termina como MEI, mas com imposto a mais sobre o que passou.",
   },
   {
     id: "previsao",
@@ -67,7 +72,8 @@ const CHAPTERS: Chapter[] = [
     title: "Saiba como o ano vai fechar.",
     body: "Pela média de receita desde a abertura, o Teto projeta onde o ano termina e se o limite será ultrapassado. A previsão muda a cada nova receita. E o DAS do mês aparece com a data e um atalho para gerar a guia.",
     shot: previsao,
-    alt: "Previsão: no ritmo atual, termina 2026 dentro do limite, fechando em R$ 66.801. DAS vence em 20 de dezembro, com o atalho Gerar guia. Gráfico de receita por mês.",
+    screen: "dark",
+    alt: "Previsão: você deve passar do limite em 28 de dezembro; no ritmo atual, 2026 fecha em R$ 68.299. DAS vence em 20 de dezembro, com o atalho Gerar guia. Notas em dia e gráfico de receita por mês.",
   },
 ];
 
@@ -98,8 +104,8 @@ function ChapterText({ chapter, index, onActive }: { chapter: Chapter; index: nu
         {chapter.note ? <p className="mt-5 max-w-[31rem] text-[0.9375rem] leading-relaxed text-graphite/80">{chapter.note}</p> : null}
       </Reveal>
       {/* no celular, cada capítulo traz a sua tela */}
-      <Reveal className="mx-auto mt-12 w-[min(72vw,19rem)] lg:hidden">
-        <Phone src={chapter.shot} alt={chapter.alt} className="drop-shadow-[0_40px_60px_rgb(0_0_0/0.22)]" />
+      <Reveal className="mx-auto mt-12 w-[min(64vw,18rem)] lg:hidden">
+        <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} className="drop-shadow-[0_40px_60px_rgb(0_0_0/0.22)]" />
       </Reveal>
     </div>
   );
@@ -150,7 +156,7 @@ export function Features() {
                     exit={{ opacity: 0, y: -20, scale: 0.98 }}
                     transition={{ duration: 0.6, ease: EASE }}
                   >
-                    <Phone src={chapter.shot} alt={chapter.alt} sizes="320px" className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
+                    <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} sizes="320px" className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
                   </motion.div>
                 </AnimatePresence>
                 {/* onde estamos: um ponto por capítulo */}
