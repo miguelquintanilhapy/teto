@@ -3,6 +3,7 @@ import { CheckCircle, DownloadSimple, Warning, WarningOctagon } from "@phosphor-
 import { yearOf } from "@/core";
 import { formatFullShortDate } from "@/lib/format";
 import { PrintButton } from "@/components/report/print-button";
+import { PrintReport } from "@/components/report/print-report";
 import { SheetShell } from "@/components/send/sheet-shell";
 import { formatMoney, formatPercent, formatReais, monthName } from "@/lib/format";
 import { bandView, type Tone } from "@/lib/copy";
@@ -62,7 +63,18 @@ async function Conteudo() {
   const rows = report.months.filter((m) => m.revenueCount > 0 || m.expenseCents > 0);
 
   return (
-    <article className="print:text-black">
+    <>
+    <PrintReport
+      name={panel.profile.name}
+      taxId={panel.profile.taxId}
+      openingDate={panel.profile.openingDate}
+      today={panel.today}
+      report={report}
+      limitCents={limitCents}
+      bandLabel={band.label}
+    />
+    {/* Na impressão, o documento acima toma o lugar da tela. */}
+    <article className="print:hidden">
       <header className="mb-4 px-1">
         <h2 className="t-title">{panel.profile.name}</h2>
         <p className="t-sub text-label-2">
@@ -162,5 +174,6 @@ async function Conteudo() {
         <PrintButton />
       </div>
     </article>
+    </>
   );
 }
