@@ -7,7 +7,8 @@ export const metadata = { title: "Histórico · Teto" };
 
 export default function HistoricoPage() {
   return (
-    <main>
+    // No computador (lg), uma coluna centralizada: uma lista de extrato esticada na tela toda fica difícil de ler.
+    <main className="lg:mx-auto lg:max-w-[760px]">
       <h1 className="t-large-title mt-2 mb-3">Histórico</h1>
       <Suspense fallback={<HistoricoSkeleton />}>
         <Conteudo />
