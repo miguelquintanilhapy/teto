@@ -129,7 +129,7 @@
 /*
  * Mãozinha em tudo que se clica. O Tailwind v4 tirou o cursor de ponteiro dos botões (só links o têm por padrão);
  * esta regra devolve para botões, links, interruptores, controles segmentados, resumos que abrem e o rótulo que
- * escolhe arquivo, sem depender de cada componente lembrar. Desabilitado fica com o cursor normal.
+ * escolhe arquivo, sem depender de cada componente lembrar. Botão desabilitado mostra o cursor de proibido.
  */
 @layer base {
   a[href],
@@ -275,6 +275,13 @@ body {
   }
   .privacy-hide {
     visibility: visible !important;
+  }
+  /* O navegador repete o rodapé da tabela em cada página: o "Total" do relatório apareceria no meio do ano. */
+  tfoot {
+    display: table-row-group;
+  }
+  tr {
+    break-inside: avoid;
   }
   * {
     box-shadow: none !important;

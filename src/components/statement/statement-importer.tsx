@@ -213,7 +213,7 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
                         <div className="mt-2.5 flex items-center gap-5">
                           <Link
                             href={launchHref(c)}
-                            className="pressable inline-flex h-9 items-center rounded-full bg-primary px-4 text-[0.9375rem] font-bold whitespace-nowrap text-on-primary"
+                            className="pressable relative inline-flex h-9 items-center rounded-full bg-primary px-4 text-[0.9375rem] font-bold whitespace-nowrap text-on-primary before:absolute before:-inset-1 before:content-['']"
                           >
                             Lançar
                           </Link>
