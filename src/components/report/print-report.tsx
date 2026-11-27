@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { formatCnpjInput, formatMoney, formatPercent, formatReais, monthName } from "@/lib/format";
 import { historyMonths } from "@/lib/history";
 import type { YearReport } from "@/lib/report";
@@ -44,7 +45,9 @@ export function PrintReport({
             CNPJ {formatCnpjInput(taxId)} · aberto em {dateBr(openingDate)}
           </p>
         </div>
-        <div className="text-right">
+        <div className="flex flex-col items-end text-right">
+          {/* A marca do Teto, como num papel timbrado: preta, para sair bem em qualquer impressora. */}
+          <Image src="/brand/teto-logo-preta.png" alt="Teto" width={442} height={242} className="mb-2 h-[13mm] w-auto" />
           <p className="text-[18pt] leading-tight font-bold">{report.year}</p>
           <p className="mt-1 text-[9pt]">
             {first && last ? `${cap(monthName(first.month))} a ${monthName(last.month)}` : ""} · gerado em {dateBr(today)}
