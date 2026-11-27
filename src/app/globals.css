@@ -259,6 +259,63 @@ body {
 }
 
 /* Impressão: só o conteúdo, preto no branco, sem controles. */
+/*
+ * Abertura do app (o elemento .splash fica no layout raiz). O mesmo preto da tela nativa de abertura, a logo branca
+ * em duas partes da mesma imagem: o telhado (o terço de cima) e o nome (o resto), revelado da esquerda para a
+ * direita. Some sozinha em 1,2 s, não recebe toques e não reaparece na mesma sessão.
+ */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: #000;
+  pointer-events: none;
+  animation: splash-out 300ms ease-in 900ms forwards;
+}
+.splash-mark {
+  grid-area: 1 / 1;
+  width: min(46vw, 190px);
+  aspect-ratio: 884 / 484;
+  background: #fff;
+  -webkit-mask: url("/brand/teto-logo-branca.png") center / contain no-repeat;
+  mask: url("/brand/teto-logo-branca.png") center / contain no-repeat;
+}
+.splash-roof {
+  clip-path: inset(0 0 64.2% 0);
+  animation: splash-roof 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.splash-word {
+  clip-path: inset(35.8% 0 0 0);
+  animation: splash-word 380ms cubic-bezier(0.32, 0.72, 0, 1) 320ms both;
+}
+@keyframes splash-roof {
+  from {
+    opacity: 0;
+    transform: translateY(12%);
+  }
+}
+@keyframes splash-word {
+  from {
+    clip-path: inset(35.8% 100% 0 0);
+  }
+}
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+:root[data-seen] .splash {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    display: none;
+  }
+}
+
 /* Folha A4 com margens de documento (o relatório do ano tem um layout próprio de impressão). */
 @page {
   size: A4;
