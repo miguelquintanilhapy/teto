@@ -212,12 +212,13 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 (`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
 se desenhando. `:hover` só existe onde há mouse.
 
-Abertura do app: fundo preto (o mesmo da tela nativa), o telhado da logo aparece e o nome "Teto" se revela da
-esquerda para a direita, e tudo some num fundido em 1,2 s, só com CSS (`.splash` no layout raiz), sem esperar dados:
-o app carrega por baixo. Só na primeira visita da sessão (`data-seen`), nunca com "reduzir movimento", e não recebe
-toques. No iPhone instalado, as telas nativas de abertura (`public/brand/splash/`, uma por tamanho de tela, declaradas
-em `appleWebApp.startupImage`) mostram a mesma logo branca no preto, então não há piscar; o manifest usa o nome curto
-"Teto", que o Android mostra na abertura.
+Abertura do app, como a do Bolso: no fundo preto (o mesmo da tela nativa), primeiro só o ícone (o T com o
+telhado), grande e no centro; depois ele desliza para o lugar e o "eto" se revela ao lado; a logo inteira fica um
+instante e tudo some num fundido, em 2,3 s, só com CSS (`.splash` no layout raiz, uma imagem recortada por
+`clip-path`), sem esperar dados: o app carrega por baixo. Só na primeira visita da sessão (`data-seen`), nunca com
+"reduzir movimento", e não recebe toques. No iPhone instalado, as telas nativas de abertura (`public/brand/splash/`,
+uma por tamanho de tela, em `appleWebApp.startupImage`) mostram o mesmo ícone branco no preto, no mesmo tamanho e
+lugar, então a animação continua delas sem salto; o manifest usa o nome curto "Teto", que o Android mostra na abertura.
 
 Com mouse, tudo que se clica mostra a mãozinha: uma regra só em `src/app/globals.css` cobre botões, links,
 interruptores, controles segmentados, resumos que abrem e o rótulo que escolhe arquivo (o Tailwind v4 tirou o

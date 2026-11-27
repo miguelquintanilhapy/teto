@@ -55,13 +55,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full">
         {/*
-          Abertura: o telhado aparece e o nome "Teto" se revela da esquerda para a direita, e tudo some num fundido
-          (1,2 s, só com CSS, sem esperar nada: o app carrega por baixo). Só na primeira visita da sessão (o
+          Abertura: primeiro só o ícone (o T com o telhado), depois o "eto" se revela ao lado, e tudo some num fundido
+          (2,3 s, só com CSS, sem esperar nada: o app carrega por baixo). Só na primeira visita da sessão (o
           PREFS_SCRIPT marca data-seen), e nunca com "reduzir movimento". O preto emenda com a tela nativa.
         */}
         <div aria-hidden="true" className="splash no-print">
-          <span className="splash-mark splash-roof" />
-          <span className="splash-mark splash-word" />
+          <span className="splash-mark" />
         </div>
         {/* Película do tamanho da barra de status (zero fora do celular): o conteúdo que rola por baixo some em vez de colidir com a hora e a bateria. */}
         <div

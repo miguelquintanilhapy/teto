@@ -260,9 +260,10 @@ body {
 
 /* Impressão: só o conteúdo, preto no branco, sem controles. */
 /*
- * Abertura do app (o elemento .splash fica no layout raiz). O mesmo preto da tela nativa de abertura, a logo branca
- * em duas partes da mesma imagem: o telhado (o terço de cima) e o nome (o resto), revelado da esquerda para a
- * direita. Some sozinha em 1,2 s, não recebe toques e não reaparece na mesma sessão.
+ * Abertura do app (o elemento .splash fica no layout raiz), como a do Bolso: no preto da tela nativa, primeiro só o
+ * ícone (o T com o telhado), grande e no centro; depois ele desliza para o lugar e o "eto" se revela ao lado; a logo
+ * inteira fica um instante e tudo some num fundido. Uma imagem só (a logo branca), recortada por clip-path.
+ * Some sozinha em 2,3 s, não recebe toques e não reaparece na mesma sessão.
  */
 .splash {
   position: fixed;
@@ -272,33 +273,39 @@ body {
   place-items: center;
   background: #000;
   pointer-events: none;
-  animation: splash-out 300ms ease-in 900ms forwards;
+  animation: splash-out 380ms ease-in 1950ms forwards;
 }
 .splash-mark {
-  grid-area: 1 / 1;
-  width: min(46vw, 190px);
+  width: min(48vw, 200px);
   aspect-ratio: 884 / 484;
   background: #fff;
   -webkit-mask: url("/brand/teto-logo-branca.png") center / contain no-repeat;
   mask: url("/brand/teto-logo-branca.png") center / contain no-repeat;
+  /* Começa só com o ícone: o telhado (até 42,4% da largura), a barra do T (até 37,6%) e a haste (até 27,5%).
+     O deslocamento de 38,2% põe o centro do ícone, já ampliado, no centro da tela. */
+  clip-path: polygon(0 0, 100% 0, 100% 36%, 100% 36%, 100% 50.5%, 100% 50.5%, 100% 100%, 0 100%);
+  animation:
+    splash-icon-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    splash-reveal 620ms cubic-bezier(0.32, 0.72, 0, 1) 950ms both;
 }
-.splash-roof {
-  clip-path: inset(0 0 64.2% 0);
-  animation: splash-roof 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.splash-word {
-  clip-path: inset(35.8% 0 0 0);
-  animation: splash-word 380ms cubic-bezier(0.32, 0.72, 0, 1) 320ms both;
-}
-@keyframes splash-roof {
+@keyframes splash-icon-in {
   from {
     opacity: 0;
-    transform: translateY(12%);
+    transform: translateX(38.2%) scale(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(38.2%) scale(1.35);
   }
 }
-@keyframes splash-word {
+@keyframes splash-reveal {
   from {
-    clip-path: inset(35.8% 100% 0 0);
+    transform: translateX(38.2%) scale(1.35);
+    clip-path: polygon(0 0, 42.4% 0, 42.4% 36%, 37.6% 36%, 37.6% 50.5%, 27.5% 50.5%, 27.5% 100%, 0 100%);
+  }
+  to {
+    transform: none;
+    clip-path: polygon(0 0, 100% 0, 100% 36%, 100% 36%, 100% 50.5%, 100% 50.5%, 100% 100%, 0 100%);
   }
 }
 @keyframes splash-out {
