@@ -24,7 +24,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 | `/enviar` (botão Enviar) | "Tirar foto" como ação principal (ou escolher arquivo), aviso de que a imagem vai para a IA, espera da leitura, conferência e confirmação |
 | `/lancar` | Lançar sem nota (também abre pré-preenchido a partir do extrato) |
 | `/historico/[id]` | Detalhe: a descrição como título, por que conta (ou não) no limite, "Pela IA, conferida por você", histórico de alterações, corrigir e cancelar |
-| `/extrato` | Importa o CSV do banco **no navegador** e concilia com as receitas (entradas sem nota, notas sem entrada) |
+| `/extrato` | Importa o CSV do banco **no navegador** e concilia com as receitas (entradas sem nota, notas sem entrada). Lê os formatos do Inter, do Nubank e do PicPay (menos tipográfico "−", colunas "origem / destino" e "tipo"); cada entrada mostra primeiro quem pagou, e resgate de cofrinho, estorno e transferência entre contas ficam de fora, porque não são venda |
 | `/relatorio` | Receita mês a mês, CSV e impressão em PDF |
 | `/alertas` ("Avisos do limite") | Cada faixa do limite: cruzada ou não, e-mail enviado, na fila ou aguardando configuração, com atalho para trocar o e-mail |
 | `/ia` | Como a IA lê, em linguagem simples; a cadeia de modelos, a cota de hoje, tempos, falhas e o rastro de cada leitura ficam em "Detalhes técnicos" |

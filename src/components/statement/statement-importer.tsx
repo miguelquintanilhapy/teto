@@ -93,8 +93,9 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
       {view && parsed && (
         <div aria-live="polite">
           <p className="t-sub mt-4 px-2 text-label-2">
-            {fileName}: {view.creditCount} entradas ({formatReais(view.creditTotalCents)}) e {parsed.entries.length - view.creditCount} saídas
-            {parsed.skipped > 0 && `. ${parsed.skipped} linhas não deram para ler.`}{" "}
+            {fileName}: {view.creditCount} {view.creditCount === 1 ? "entrada" : "entradas"} ({formatReais(view.creditTotalCents)}) e {view.debitCount} {view.debitCount === 1 ? "saída" : "saídas"}.
+            {view.ownMovementCount > 0 && ` ${view.ownMovementCount} resgates de cofrinho, estornos e transferências entre suas contas ficaram de fora: não são venda.`}
+            {parsed.skipped > 0 && ` ${parsed.skipped} ${parsed.skipped === 1 ? "linha sem data ou valor foi ignorada" : "linhas sem data ou valor foram ignoradas"}.`}{" "}
             <button type="button" onClick={() => writeSessionValue(SESSION_KEY, null)} className="min-h-11 font-semibold text-action underline underline-offset-2">
               Limpar
             </button>
@@ -111,10 +112,11 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
                   {view.unmatchedCredits.map((c) => (
                     <li key={c.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                       <div className="min-w-0">
-                        <p className="sensitive text-[1.0625rem] font-semibold">+ {formatMoney(c.amountCents)}</p>
+                        {/* Quem pagou é o que decide se é venda: vem primeiro. */}
+                        <p className="truncate text-[1.0625rem] font-semibold">{c.description || c.type || "Entrada"}</p>
                         <p className="t-sub truncate text-label-2">
-                          {formatFullShortDate(c.date)}
-                          {c.description && ` · ${c.description}`}
+                          <span className="sensitive">+ {formatMoney(c.amountCents)}</span> · {formatFullShortDate(c.date)}
+                          {c.description && c.type && ` · ${c.type}`}
                         </p>
                       </div>
                       <Link href={launchHref(c)} className="pressable inline-flex min-h-11 shrink-0 items-center rounded-full bg-primary px-4 text-[0.9375rem] font-bold text-on-primary">

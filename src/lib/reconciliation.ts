@@ -1,5 +1,5 @@
 import { addDays, reconcile, type Cents, type Entry, type ISODate } from "@/core";
-import type { StatementEntry } from "./statement";
+import { isOwnMovement, type StatementEntry } from "./statement";
 
 export interface ReceiptLike {
   id: string;
@@ -17,6 +17,9 @@ export interface ReconciliationView {
   /** Receitas lançadas que não aparecem como entrada no extrato do período. */
   unmatchedReceipts: ReceiptLike[];
   unmatchedCreditsTotalCents: Cents;
+  /** Entradas que são dinheiro do próprio dono mudando de lugar (resgate de cofrinho, estorno...): ficam de fora. */
+  ownMovementCount: number;
+  debitCount: number;
 }
 
 /**
@@ -28,7 +31,9 @@ export function reconcileStatement(
   receipts: ReadonlyArray<ReceiptLike>,
   windowDays = 3,
 ): ReconciliationView {
-  const credits = entries.filter((e) => e.amountCents > 0);
+  const credits = entries.filter((e) => e.amountCents > 0 && !isOwnMovement(e));
+  const ownMovementCount = entries.filter((e) => e.amountCents > 0 && isOwnMovement(e)).length;
+  const debitCount = entries.filter((e) => e.amountCents < 0).length;
   const dates = credits.map((c) => c.date).sort();
   // A nota pode ter sido emitida alguns dias antes ou depois da entrada: a janela de casamento entra no período.
   const first = dates[0];
@@ -50,6 +55,8 @@ export function reconcileStatement(
     unmatchedCredits,
     unmatchedReceipts: result.unmatchedReceipts.map((e) => receiptById.get(e.id)!),
     unmatchedCreditsTotalCents: unmatchedCredits.reduce((s, c) => s + c.amountCents, 0),
+    ownMovementCount,
+    debitCount,
   };
 }
 

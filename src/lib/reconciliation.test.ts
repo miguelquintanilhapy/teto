@@ -2,10 +2,26 @@ import { describe, expect, it } from "vitest";
 import { launchHref, readLaunchParams, reconcileStatement } from "./reconciliation";
 import type { StatementEntry } from "./statement";
 
-const credit = (id: string, date: string, amountCents: number, description = ""): StatementEntry => ({ id, date, amountCents, description });
+const credit = (id: string, date: string, amountCents: number, description = "", type = ""): StatementEntry => ({ id, date, amountCents, description, type });
 const receipt = (id: string, date: string, amountCents: number) => ({ id, date, amountCents, description: id });
 
 describe("reconcileStatement", () => {
+  it("deixa de fora resgate de cofrinho e estorno, que não são venda, e conta as saídas", () => {
+    const r = reconcileStatement(
+      [
+        credit("c1", "2026-11-05", 2000, "Do cofrinho Viagem", "Dinheiro resgatado"),
+        credit("c2", "2026-11-05", 5000, "Cliente Fictício", "Pix recebido"),
+        credit("c3", "2026-11-06", 990, "Loja Exemplo", "Estorno"),
+        credit("d1", "2026-11-06", -1000, "Mercado Exemplo", "Compra realizada"),
+      ],
+      [],
+    );
+    expect(r.unmatchedCredits.map((c) => c.id)).toEqual(["c2"]);
+    expect(r.creditCount).toBe(1);
+    expect(r.ownMovementCount).toBe(2);
+    expect(r.debitCount).toBe(1);
+  });
+
   it("casa crédito e nota de mesmo valor em até 3 dias, e separa o resto", () => {
     const r = reconcileStatement(
       [credit("c1", "2026-11-05", 368500), credit("c2", "2026-11-19", 301500), credit("d1", "2026-11-06", -51237)],
