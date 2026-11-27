@@ -17,7 +17,7 @@ const ctx: AlertContext = {
 describe("buildAlertEmail", () => {
   it("avisa a faixa de atenção com o que ainda cabe e a data prevista", () => {
     const e = buildAlertEmail("threshold_warning", ctx);
-    expect(e.subject).toBe("Teto: você já usou 89% do limite do MEI");
+    expect(e.subject).toBe("Teto: você já usou 88% do limite do MEI"); // 60.000 de 67.500 = 88,9%, truncado
     expect(nb(e.text)).toContain("Ainda cabem R$ 7.500");
     expect(e.text).toContain("28 de dezembro");
   });

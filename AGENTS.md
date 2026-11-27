@@ -74,6 +74,7 @@ não commite essa mudança sem querer.
   valor (a sala, o preenchimento das barras) leva `privacy-hide`.
 - Reais inteiros na tela são **truncados**, nunca arredondados (`src/lib/format.ts`): o mesmo valor não pode
   aparecer como 56.180 num lugar e 56.181 em outro.
+  O percentual do limite também é truncado: arredondado, 89,5% aparecia como "90%" com a faixa ainda em "Atenção".
 - Lógica pura de interface vai em `src/lib` (com teste ao lado); componentes em `src/components`; telas em `src/app`.
 - Textos de erro são específicos e dizem o que fazer; nada de "inválido" genérico.
 - Estado de tela com Next: a tela anterior fica guardada escondida **com o estado**. O fluxo de envio se

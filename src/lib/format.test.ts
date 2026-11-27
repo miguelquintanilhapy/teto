@@ -51,8 +51,11 @@ describe("formatação de datas e percentuais", () => {
     expect(formatFullShortDate("2026-11-22")).toBe("22 nov 2026");
   });
 
-  it("arredonda o percentual", () => {
-    expect(formatPercent(0.889)).toBe("89%");
+  it("trunca o percentual, para não mostrar um limiar que ainda não foi cruzado", () => {
+    expect(formatPercent(0.889)).toBe("88%");
+    expect(formatPercent(0.8951)).toBe("89%");
+    expect(formatPercent(0.9)).toBe("90%");
+    expect(formatPercent(0.29)).toBe("29%");
     expect(formatPercent(1.2)).toBe("120%");
   });
 
