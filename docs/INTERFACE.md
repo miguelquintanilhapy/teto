@@ -65,8 +65,20 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
   | Acima do limite (vermelho) | `danger` / `danger-text` | `#ff453a` / `#ff6961` | `#d70015` / `#d70015` |
   | Confirmação | `ok` / `ok-text` | `#30d158` / `#30d158` | `#248a3d` / `#1f7a34` |
   | Fundo de mesa (computador e tablet) | `--desk` | `#1c1c1e` | `#e3e3e8` |
+  | Categoria: explicação (roxo), só no quadradinho do ícone | `info` | `#bf5af2` | `#af52de` |
+  | Categoria: imposto/DAS (azul-petróleo), só no quadradinho do ícone | `tax` | `#40c8e0` | `#0e8a9e` |
 
   Regras que saíram das revisões de cor:
+
+  - **Quadradinho de ícone colorido, como no Ajustes do iPhone** (`IconTile`, em `src/components/icon-tile.tsx`).
+    Os cartões do Painel abaixo do principal eram todos cartão branco com ícone preto em quadradinho cinza, e pareciam
+    desabilitados. Agora o quadradinho tem cor: azul quando o cartão é uma ação ("Lançar sem nota"), roxo e
+    azul-petróleo como cor de categoria ("Entenda o limite" e DAS), e a cor do estado quando o cartão mostra um estado
+    de verdade (Previsão: verde dentro do limite, âmbar ou laranja se vai passar; Notas: verde em "Tudo conferido";
+    DAS: âmbar com ícone a cinco dias ou menos do vencimento, nunca vermelho). **As cores de categoria ficam só no
+    quadradinho, nunca em texto ou número**, e amarelo, laranja, rosa e verde ficam de fora delas, para não serem
+    confundidos com risco ou confirmação. As barras do gráfico mensal são azuis porque se tocam; não usam a cor da
+    faixa (um mês passado verde ou âmbar diria algo falso).
 
   - **O azul do botão passa de 4,5:1 com texto branco nos dois temas.** O azul do iOS (`#007aff` e `#0a84ff`) não
     passava; os novos dão 5,07:1 (claro) e 4,83:1 (escuro).

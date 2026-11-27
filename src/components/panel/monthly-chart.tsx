@@ -115,7 +115,7 @@ export function MonthlyChart({
               )}
               <span
                 aria-hidden="true"
-                className="bar-grow privacy-hide block w-full rounded-t-[0.4375rem] rounded-b-[0.1875rem] bg-label"
+                className="bar-grow privacy-hide block w-full rounded-t-[0.4375rem] rounded-b-[0.1875rem] bg-primary"
                 style={{ height: `${Math.max(3, (b.cents / max) * 100)}%`, opacity: isSelected ? 1 : 0.45, ["--i" as string]: i }}
               />
               <span aria-hidden="true" className={b.current ? "font-bold" : undefined}>

@@ -30,12 +30,14 @@ describe("forecastView", () => {
   it("avisa quando ainda não há receita confirmada", () => {
     const f = forecastView(dash([]), "2026-03-01");
     expect(f.headline).toBe("Ainda não há receita confirmada em 2026.");
+    expect(f.tone).toBeNull();
   });
 
   it("prevê o dia em que o limite será ultrapassado", () => {
     // 60.000 em 269 dias desde 1/3: ritmo de ~223 por dia, limite de 67.500 em 28/12
     const f = forecastView(dash([rev("a", "2026-03-10", 30_000_00), rev("b", "2026-11-05", 30_000_00)]), "2026-03-01");
     expect(f.headline).toBe("Você deve passar do limite em 28 de dezembro.");
+    expect(f.tone).toBe("warn");
     expect(nb(f.body)).toContain("2026 fecha em R$ 68.252");
     expect(nb(f.body)).toContain("Até R$ 81.000 você termina o ano como MEI, mas paga imposto a mais");
   });
@@ -56,6 +58,7 @@ describe("forecastView", () => {
   it("diz que termina o ano dentro do limite quando o ritmo permite", () => {
     const f = forecastView(dash([rev("a", "2026-03-10", 10_000_00)], "2026-06-30"), "2026-03-01");
     expect(f.headline).toBe("No ritmo atual, você termina 2026 dentro do limite.");
+    expect(f.tone).toBe("ok");
   });
 });
 
