@@ -12,9 +12,20 @@ export function SettingsTile({ icon: IconComponent }: { icon: Icon }) {
 }
 
 /** Um grupo de linhas num cartão só, com título e linhas separadas por filetes. */
-export function SettingsGroup({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
+export function SettingsGroup({
+  title,
+  note,
+  className = "",
+  children,
+}: {
+  title: string;
+  note?: string;
+  /** Classes extras do grupo (por exemplo, a posição na grade do computador). */
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="mt-6">
+    <section className={`mt-6 ${className}`}>
       <h2 className="mb-2 px-5 text-[0.9375rem] font-semibold text-label-2">{title}</h2>
       <div className="divide-y divide-sep overflow-hidden rounded-card bg-card">{children}</div>
       {note && <p className="t-sub mt-2 px-5 text-label-2">{note}</p>}
