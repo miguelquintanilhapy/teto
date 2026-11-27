@@ -11,11 +11,13 @@ import { Reveal } from "./reveal";
  * Nenhum número aqui é inventado: R$ 81.000 é o limite do ano; R$ 97.200, o limite com 20%;
  * R$ 6.750 por mês, o limite proporcional do ano de abertura.
  */
-const STEPS: Array<{ kicker: string; title: string; body: string; icon: Icon; tone: string }> = [
+const STEPS: Array<{ kicker: string; title: string; body: string; aside?: string; icon: Icon; tone: string }> = [
   {
+    // Receita bruta é o que vem da venda de bens e serviços (LC 123/2006, art. 3º, §1º), não todo dinheiro que entra.
     kicker: "Receita bruta",
-    title: "Conta tudo que entra. Não o lucro.",
-    body: "O limite do MEI olha o faturamento bruto do ano: cada venda, cada Pix, sem descontar custo nenhum. Quem não soma ao longo do ano perde a noção de quanto já foi.",
+    title: "O que conta como faturamento?",
+    body: "O valor bruto das suas vendas e serviços, sem descontar os custos do negócio. Quem não soma ao longo do ano perde a noção de quanto já foi.",
+    aside: "Mas nem todo dinheiro que entra na conta é faturamento: transferência entre contas suas, empréstimo e outros valores que não vêm de venda ou serviço ficam de fora.",
     icon: ArrowsDownUp,
     tone: "text-mute-dark",
   },
@@ -124,7 +126,7 @@ function Step({ index, onActive, active }: { index: number; onActive: (i: number
   useEffect(() => {
     if (inView) onActive(index);
   }, [inView, index, onActive]);
-  const { kicker, title, body, icon: StepIcon, tone } = STEPS[index];
+  const { kicker, title, body, aside, icon: StepIcon, tone } = STEPS[index];
   return (
     <div ref={ref} className="flex min-h-[62svh] items-center lg:min-h-[78svh]">
       <div className={`transition-opacity duration-500 ${active ? "lg:opacity-100" : "lg:opacity-30"}`}>
@@ -134,6 +136,7 @@ function Step({ index, onActive, active }: { index: number; onActive: (i: number
         </p>
         <h3 className="display mt-4 text-[clamp(2rem,1.3rem+2.6vw,3.5rem)] text-snow">{title}</h3>
         <p className="lead mt-5 max-w-[30rem] text-mute-dark">{body}</p>
+        {aside ? <p className="mt-5 max-w-[30rem] text-[0.9375rem] leading-relaxed text-snow/80">{aside}</p> : null}
       </div>
     </div>
   );
