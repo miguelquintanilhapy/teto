@@ -203,6 +203,10 @@ Discretas e sempre atrás de `prefers-reduced-motion: no-preference`: entrada su
 (`:active`), barras do gráfico crescendo em sequência, a sala enchendo, o visto da confirmação com o telhado
 se desenhando. `:hover` só existe onde há mouse.
 
+Com mouse, tudo que se clica mostra a mãozinha: uma regra só em `src/app/globals.css` cobre botões, links,
+interruptores, controles segmentados, resumos que abrem e o rótulo que escolhe arquivo (o Tailwind v4 tirou o
+cursor de ponteiro dos botões). Botão desabilitado mostra o cursor de proibido.
+
 A sala e o gráfico só animam **na primeira visita da sessão**; depois aparecem prontos (animar a cada troca de
 aba cansava). Na troca de aba, a cápsula da barra desliza até a aba tocada (curva de mola do iOS, 0,42 s, com uma
 leve esticada no caminho) e sai no toque, sem esperar a tela carregar; o conteúdo novo entra num fundido de 0,18 s,

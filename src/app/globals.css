@@ -129,6 +129,30 @@
   color-scheme: light;
 }
 
+/*
+ * Mãozinha em tudo que se clica. O Tailwind v4 tirou o cursor de ponteiro dos botões (só links o têm por padrão);
+ * esta regra devolve para botões, links, interruptores, controles segmentados, resumos que abrem e o rótulo que
+ * escolhe arquivo, sem depender de cada componente lembrar. Desabilitado fica com o cursor normal.
+ */
+@layer base {
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="switch"],
+  [role="radio"],
+  [role="tab"],
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label:has(> input[type="file"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-card: var(--card);
