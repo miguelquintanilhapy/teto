@@ -66,8 +66,9 @@ export function Bento({ dashboard }: { dashboard: Dashboard }) {
         <section aria-label="Notas" className="flex min-h-[8.25rem] flex-col justify-between rounded-card bg-card p-4">
           {notesLabel}
           <div>
-            <p className="text-[1.375rem] leading-tight font-extrabold tracking-tight text-ok-text">Tudo conferido</p>
-            <p className="t-caption mt-1 text-label-2">nenhuma nota esperando</p>
+            {/* Mesmo formato do DAS ao lado: uma resposta curta e grande, e a legenda. O verde fica no ícone. */}
+            <p className="text-[1.875rem] leading-none font-extrabold tracking-tight">Em dia</p>
+            <p className="t-caption mt-1 text-label-2">nada para conferir</p>
           </div>
         </section>
       )}

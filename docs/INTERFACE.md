@@ -17,7 +17,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
 
 | Rota | O que faz |
 |---|---|
-| `/` (aba Painel) | Faturamento do ano (com centavos), faixa de risco, a sala do limite, "Lançar sem nota" logo abaixo do número, barra do limite com a faixa de tolerância, previsão, DAS com atalho "Gerar guia" (PGMEI), notas ("Tudo conferido" quando não há pendentes) e receita por mês (valor e mês ao toque) |
+| `/` (aba Painel) | Faturamento do ano (com centavos), faixa de risco, a sala do limite, "Lançar sem nota" logo abaixo do número, barra do limite com a faixa de tolerância, previsão, DAS com atalho "Gerar guia" (PGMEI), notas ("Em dia" quando não há pendentes, no mesmo formato do DAS) e receita por mês (valor e mês ao toque) |
 | `/simular` (aba Simular) | "E se eu aceitar uma venda de R$ X?", respondido enquanto o valor é digitado. Uma resposta só, em número grande (quanto ainda cabe ou quanto a venda passa do limite), com uma frase de consequência embaixo; atalhos numa linha e "Usar o que ainda cabe" junto do campo |
 | `/historico` (aba Histórico) | Lançamentos mês a mês (‹ Novembro de 2026 ›, do mês de abertura ou de janeiro até hoje), com o resumo do mês (Receitas e Despesas), busca no ano todo, filtro Todos, Receitas ou Despesas guardado no endereço, o saldo de cada dia ao lado da data, a linha "Conferir extrato do banco" abaixo do resumo (leva a `/extrato`), cancelados escondidos até pedir (aparecem num grupo próprio logo abaixo do botão, onde o toque foi) e aviso de "Possível duplicidade" |
 | `/perfil` (aba Mais) | Cartão do MEI, preferências (tema e ocultar valores), atalhos do MEI, ajuda e "Sobre" (a IA); a versão do app aparece com um toque |
@@ -74,7 +74,7 @@ Ver também: [arquitetura](ARCHITECTURE.md) · [plano](PLANO.md) · [revisão](R
     Os cartões do Painel abaixo do principal eram todos cartão branco com ícone preto em quadradinho cinza, e pareciam
     desabilitados. Agora o quadradinho tem cor: azul quando o cartão é uma ação ("Lançar sem nota"), roxo e
     azul-petróleo como cor de categoria ("Entenda o limite" e DAS), e a cor do estado quando o cartão mostra um estado
-    de verdade (Previsão: verde dentro do limite, âmbar ou laranja se vai passar; Notas: verde em "Tudo conferido";
+    de verdade (Previsão: verde dentro do limite, âmbar ou laranja se vai passar; Notas: ícone verde em "Em dia";
     DAS: âmbar com ícone a cinco dias ou menos do vencimento, nunca vermelho). **As cores de categoria ficam só no
     quadradinho, nunca em texto ou número**, e amarelo, laranja, rosa e verde ficam de fora delas, para não serem
     confundidos com risco ou confirmação. As barras do gráfico mensal são azuis porque se tocam; não usam a cor da
@@ -220,7 +220,7 @@ instantânea.
 ## O que ainda não existe
 
 - Autenticação e vários MEIs (ver [SEGURANCA.md](SEGURANCA.md)).
-- Notas "para conferir": nenhum fluxo grava o status `pendente`, então o Painel sempre mostra "Tudo conferido". O
+- Notas "para conferir": nenhum fluxo grava o status `pendente`, então o Painel sempre mostra "Em dia". O
   filtro "Conferir" saiu do histórico por isso; o código ainda trata `pendente` no cartão de Notas do Painel (que
   leva a `/historico?status=pendente`, hoje aberto em "Todos"), no selo da linha do histórico, no detalhe e no
   relatório, para quando esse status passar a ser gravado.

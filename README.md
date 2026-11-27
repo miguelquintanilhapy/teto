@@ -422,7 +422,7 @@ contra o Supabase em Oregon; a leitura completa não foi medida de novo.
 - O lembrete do vencimento do DAS por e-mail não existe (a tabela de alertas guarda uma data por ano).
 - A conciliação do extrato não é salva: o CSV é lido no navegador e some ao fechar a aba.
 - "Para conferir" nunca recebe notas: nenhum fluxo grava o status `pendente` (a nota lida fica só na tela até
-  ser confirmada). O contador é sempre 0, e o Painel mostra "Tudo conferido"; o filtro "Conferir" saiu do Histórico
+  ser confirmada). O contador é sempre 0, e o Painel mostra "Em dia"; o filtro "Conferir" saiu do Histórico
   por isso.
 - A interface não tem testes automatizados (só a lógica tem); foi verificada à mão no navegador e no iPhone do
   dono do projeto, não em Android nem com leitor de tela. Ver [docs/REVISAO.md](docs/REVISAO.md).
