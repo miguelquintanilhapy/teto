@@ -210,10 +210,10 @@ export function StatementImporter({ receipts }: { receipts: ReceiptLike[] }) {
                           <p className="sensitive shrink-0 text-[1.0625rem] font-semibold whitespace-nowrap">+ {formatMoney(c.amountCents)}</p>
                         </div>
                         {c.description && c.type && <p className="t-sub truncate text-label-2">{c.type}</p>}
-                        <div className="mt-1 flex gap-6">
+                        <div className="mt-2.5 flex items-center gap-5">
                           <Link
                             href={launchHref(c)}
-                            className="pressable inline-flex min-h-11 items-center text-[0.9375rem] font-semibold whitespace-nowrap text-action"
+                            className="pressable inline-flex h-9 items-center rounded-full bg-primary px-4 text-[0.9375rem] font-bold whitespace-nowrap text-on-primary"
                           >
                             Lançar
                           </Link>
