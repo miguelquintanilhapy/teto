@@ -358,6 +358,34 @@ input[type="date"]::-webkit-date-and-time-value {
   .hoverable:hover {
     background: color-mix(in srgb, var(--label) 6%, transparent);
   }
+  /* O resto do que se clica (botões cheios, links de texto, abas, atalhos) clareia um pouco sob o mouse, como o
+     destaque do iOS. A opção já escolhida de um controle segmentado não muda. */
+  :where(
+      a[href],
+      button:not(:disabled),
+      [role="button"],
+      [role="switch"],
+      [role="radio"]:not([aria-checked="true"]),
+      summary,
+      label:has(> input[type="file"])
+    ):not(.hoverable) {
+    /* Mantém as transições do toque (.pressable) e da barra de abas, que esta regra substituiria. */
+    transition:
+      opacity 150ms ease,
+      transform 120ms ease,
+      color 200ms ease;
+  }
+  :where(
+      a[href],
+      button:not(:disabled),
+      [role="button"],
+      [role="switch"],
+      [role="radio"]:not([aria-checked="true"]),
+      summary,
+      label:has(> input[type="file"])
+    ):not(.hoverable):hover {
+    opacity: 0.78;
+  }
 }
 
 /* Com o teclado do celular aberto, o botão do rodapé sai da frente dos campos. */
