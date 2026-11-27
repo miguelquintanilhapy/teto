@@ -3,15 +3,14 @@ import type { Tone } from "@/lib/copy";
 /**
  * O quadradinho do ícone de um cartão, como no Ajustes do iPhone: a cor ajuda a achar o cartão de relance.
  * - "action" (azul): o cartão é uma ação.
- * - "info" (roxo) e "tax" (azul-petróleo): cores de categoria, só para o quadradinho, nunca em texto ou número.
+ * - "tax" (azul-petróleo): cor de categoria do DAS, só para o quadradinho, nunca em texto ou número.
  * - Tons de estado (ok, warn, alert, danger): só quando o cartão mostra um estado de verdade, e sempre com texto.
  * - "neutral": o cinza de antes.
  */
-export type TileTone = "neutral" | "action" | "info" | "tax" | Tone;
+export type TileTone = "neutral" | "action" | "tax" | Tone;
 
 const BASE: Record<Exclude<TileTone, "neutral">, string> = {
   action: "var(--primary)",
-  info: "var(--info)",
   tax: "var(--tax)",
   ok: "var(--ok)",
   warn: "var(--warn)",
@@ -22,7 +21,6 @@ const BASE: Record<Exclude<TileTone, "neutral">, string> = {
 const ICON: Record<TileTone, string> = {
   neutral: "text-label",
   action: "text-action",
-  info: "text-info",
   tax: "text-tax",
   ok: "text-ok-text",
   warn: "text-warn-text",

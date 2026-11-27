@@ -26,9 +26,8 @@
   --tint: 12%;
   /* Quadradinho de ícone colorido: um pouco mais forte que o tingido do cartão. */
   --tile-tint: 15%;
-  /* Cores de categoria (como os ícones do Ajustes do iPhone): só no quadradinho do ícone, nunca em texto ou número.
-     Ícone a 3:1 ou mais sobre o quadradinho. Roxo = explicação; azul-petróleo = imposto (DAS). */
-  --info: #af52de;
+  /* Cor de categoria (como os ícones do Ajustes do iPhone): só no quadradinho do ícone, nunca em texto ou número.
+     Ícone a 3:1 ou mais sobre o quadradinho. Azul-petróleo = imposto (DAS). */
   --tax: #0e8a9e;
   --on-ok: #ffffff;
   --ok: #248a3d;
@@ -67,7 +66,6 @@
 
     --tint: 22%;
     --tile-tint: 24%;
-    --info: #bf5af2;
     --tax: #40c8e0;
     --on-ok: #000000;
     --ok: #30d158;
@@ -106,7 +104,6 @@
 
   --tint: 22%;
   --tile-tint: 24%;
-  --info: #bf5af2;
   --tax: #40c8e0;
   --on-ok: #000000;
   --ok: #30d158;
@@ -174,7 +171,6 @@
   --color-alert-text: var(--alert-text);
   --color-danger: var(--danger);
   --color-danger-text: var(--danger-text);
-  --color-info: var(--info);
   --color-tax: var(--tax);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --radius-card: 1.6875rem; /* 27 pt: raio medido no Ajustes do iOS 26 */

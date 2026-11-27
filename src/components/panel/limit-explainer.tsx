@@ -9,7 +9,8 @@ import { IconTile } from "@/components/icon-tile";
 export function LimitExplainer() {
   return (
     <Link href="/regras" className="pressable hoverable flex min-h-14 items-center gap-3.5 rounded-card bg-card px-5 py-3.5">
-      <IconTile tone="info">
+      {/* Explicação, não ação nem estado: o quadradinho fica neutro. */}
+      <IconTile>
         <Info size={19} weight="fill" aria-hidden="true" />
       </IconTile>
       <span className="min-w-0 flex-1">
