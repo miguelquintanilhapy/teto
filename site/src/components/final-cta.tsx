@@ -23,18 +23,21 @@ export function FinalCta() {
         <div className="w-[min(60vw,15rem)]">
           <Roof className="block w-full" delay={0.1} trigger="view" />
         </div>
-        <Reveal as="h2" id="comecar-titulo" className="display mt-10 text-[clamp(3rem,1.6rem+6.4vw,7.5rem)] text-snow">
-          Saiba quanto falta.
-          <span className="block text-mute-dark">Antes de estourar.</span>
+        <Reveal as="h2" id="comecar-titulo" className="display mt-10 text-[clamp(2.75rem,1.4rem+5.6vw,6.5rem)] text-snow">
+          Seu faturamento sob controle.
+          <span className="block text-mute-dark">Seu MEI sem surpresas.</span>
         </Reveal>
-        <Reveal as="p" delay={0.1} className="lead mt-8 max-w-[32rem] text-mute-dark">
-          Abra o Teto no celular. Funciona no navegador, e dá para colocar na tela inicial.
+        <Reveal as="p" delay={0.1} className="lead mt-8 max-w-[34rem] text-mute-dark">
+          Acompanhe seus resultados, entenda seu limite e saiba quanto ainda cabe no seu faturamento anual.
         </Reveal>
 
         <Reveal delay={0.15} className="mt-10 flex flex-col items-center gap-10 lg:flex-row lg:gap-14">
-          <a href={APP_URL} className="btn btn-primary min-h-[3.25rem] px-8 text-[1.0625rem]">
-            Abrir o Teto
-          </a>
+          <div className="flex flex-col items-center gap-3">
+            <a href={APP_URL} className="btn btn-primary min-h-[3.25rem] px-8 text-[1.0625rem]">
+              Conhecer o Teto
+            </a>
+            <p className="text-sm text-mute-dark">Demonstração gratuita, sem cadastro.</p>
+          </div>
           <div className="hidden items-center gap-5 text-left lg:flex">
             <QrCode value={APP_URL} label="QR code que abre o Teto no celular" className="size-28 rounded-2xl" />
             <p className="max-w-[11rem] text-sm leading-relaxed text-mute-dark">
