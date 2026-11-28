@@ -11,6 +11,7 @@ export const REPO_URL = "https://github.com/miguelquintanilhapy/teto";
 export const SECTIONS = [
   { id: "recursos", label: "Demonstração" },
   { id: "problema", label: "O problema" },
+  { id: "ia", label: "IA" },
   { id: "como-usar", label: "Como usar" },
   { id: "para-quem", label: "Para quem" },
   { id: "quem-somos", label: "Quem somos" },

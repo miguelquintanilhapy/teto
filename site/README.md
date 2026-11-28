@@ -1,6 +1,6 @@
 # Site de apresentação do Teto
 
-Página única que apresenta o Teto: a demonstração com telas reais do app, o problema do limite do MEI, o limite proporcional do ano de abertura, como usar,
+Página única que apresenta o Teto: a demonstração com telas reais do app, o problema do limite do MEI, o limite proporcional do ano de abertura, como a IA é usada, como usar,
 para quem é, quem somos e a chamada para abrir o app.
 
 É um projeto **à parte** do app: tem `package.json` próprio e não importa nada de `../src`. O app só é citado por
@@ -32,7 +32,7 @@ Não precisa de variável de ambiente nenhuma.
 
 ```
 src/app/          layout, página, 404, ícones e imagem de compartilhamento (opengraph-image.tsx)
-src/components/   uma seção por arquivo, na ordem da página (hero, features, problem, opening-year, how-it-works, audience,
+src/components/   uma seção por arquivo, na ordem da página (hero, features, problem, opening-year, ai-explainer, how-it-works, audience,
                   about, final-cta)
                   e as peças comuns (header, footer, phone, roof, logo, reveal, qr-code)
 src/lib/          links e seções, curva e entrada padrão das animações

@@ -1,4 +1,5 @@
 import { About } from "@/components/about";
+import { AiExplainer } from "@/components/ai-explainer";
 import { Audience } from "@/components/audience";
 import { Features } from "@/components/features";
 import { FinalCta } from "@/components/final-cta";
@@ -18,6 +19,7 @@ export default function Home() {
         <Features />
         <Problem />
         <OpeningYear />
+        <AiExplainer />
         <HowItWorks />
         <Audience />
         <About />
