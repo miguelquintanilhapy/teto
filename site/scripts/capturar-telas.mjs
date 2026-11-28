@@ -1,7 +1,7 @@
 // Captura telas reais do app publicado, emulando um iPhone (390 x 844 a 3x), para os mockups do site.
 // Usa o Microsoft Edge (ou o Chrome) instalado, pelo DevTools Protocol. Sem dependências.
 //
-// Uso (dentro de site/): npm run capturas [-- url-do-app]
+// Uso (dentro de site/): npm run capturas [-- url-do-app [nome,nome]]
 // Saída: site/src/assets/telas/<nome>.webp (importadas pelo next/image)
 //
 // Os dados da demonstração são fictícios ("Doces da Marta MEI"). Não aponte para um perfil real.
@@ -13,6 +13,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const APP = process.argv[2] ?? "https://teto-omega.vercel.app";
+// Opcional: só as telas com esses nomes, separados por vírgula (npm run capturas -- <url> historico-claro).
+const ONLY = process.argv[3]?.split(",");
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "assets", "telas");
 
 const BROWSERS = [
@@ -28,6 +30,10 @@ const typeValue = (cents) =>
   `(() => { const i = document.querySelector('input'); const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;` +
   ` i.focus(); set.call(i, '${cents}'); i.dispatchEvent(new Event('input', { bubbles: true })); i.blur(); })()`;
 
+// Toca no botão "Mês anterior" do Histórico (o rótulo fica escondido, só para leitor de tela).
+const clickPreviousMonth =
+  `[...document.querySelectorAll('button')].find((b) => b.textContent.includes('Mês anterior'))?.click()`;
+
 const JOBS = [
   { name: "painel-escuro", path: "/", theme: "dark" },
   { name: "painel-claro", path: "/", theme: "light" },
@@ -36,7 +42,8 @@ const JOBS = [
   { name: "simular-escuro", path: "/simular", theme: "dark", eval: typeValue(1200000) },
   { name: "simular-claro", path: "/simular", theme: "light", eval: typeValue(500000) },
   { name: "enviar-escuro", path: "/enviar", theme: "dark" },
-  { name: "historico-claro", path: "/historico", theme: "light" },
+  // Volta um mês: o mês corrente da demonstração pública costuma ter lançamentos de teste de quem visitou.
+  { name: "historico-claro", path: "/historico", theme: "light", eval: clickPreviousMonth },
   { name: "regras-claro", path: "/regras", theme: "light", eval: "window.scrollTo(0, 360)" },
   // A tela de avisos fica de fora: mostra parte do e-mail cadastrado.
 ];
@@ -95,7 +102,7 @@ try {
     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
   });
 
-  for (const job of JOBS) {
+  for (const job of JOBS.filter((j) => !ONLY || ONLY.includes(j.name))) {
     await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
     // As áreas seguras de um iPhone (barra de status em cima, traço de início embaixo): o app já se afasta delas,
     // e a moldura do site (src/components/phone.tsx) desenha a hora, a bateria e o traço por cima.

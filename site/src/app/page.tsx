@@ -15,9 +15,9 @@ export default function Home() {
       <Header />
       <main id="conteudo">
         <Hero />
+        <Features />
         <Problem />
         <OpeningYear />
-        <Features />
         <HowItWorks />
         <Audience />
         <About />

@@ -17,10 +17,12 @@ import type { Icon } from "@phosphor-icons/react";
 import { Phone } from "./phone";
 import { Reveal } from "./reveal";
 import { EASE } from "@/lib/motion";
+import { APP_URL } from "@/lib/links";
 import painel from "@/assets/telas/painel-claro.webp";
 import enviar from "@/assets/telas/enviar-escuro.webp";
 import simular from "@/assets/telas/simular-escuro.webp";
 import previsao from "@/assets/telas/painel-previsao-escuro.webp";
+import historico from "@/assets/telas/historico-claro.webp";
 
 type Chapter = {
   id: string;
@@ -39,22 +41,12 @@ const CHAPTERS: Chapter[] = [
   {
     id: "painel",
     kicker: "Painel",
-    title: "Quanto falta, num número só.",
+    title: "Quanto já faturou e quanto ainda cabe.",
     body: "O faturamento do ano, a faixa de risco e quanto ainda cabe no limite. A sala enche conforme você fatura: o telhado é o limite, e o pontilhado, os 20% de tolerância.",
     note: "O risco nunca vem só em cor: sempre com ícone e texto.",
     shot: painel,
     screen: "light",
     alt: "Painel em tema claro: faturamento de 2026 de R$ 60.710,50, selo Atenção, 89% do limite e ainda cabem R$ 6.789, com a sala do limite cheia em âmbar.",
-  },
-  {
-    id: "enviar",
-    kicker: "Enviar nota",
-    title: "Fotografe a nota. A IA lê, você confere.",
-    body: "Foto, PDF ou comprovante de Pix. A IA só extrai os campos; nada entra no limite antes de você conferir. E quem decide se é receita ou despesa é o código, pelo CNPJ do seu MEI.",
-    note: "Sem comprovante? Dá para lançar à mão uma venda em dinheiro ou Pix.",
-    shot: enviar,
-    screen: "dark",
-    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo, e o atalho Lançar sem nota.",
   },
   {
     id: "simular",
@@ -67,6 +59,25 @@ const CHAPTERS: Chapter[] = [
     alt: "Simulação de uma venda de R$ 12.000: acima do limite, 107%. A venda passa do limite em R$ 5.210; até R$ 81.000, o ano termina como MEI, mas com imposto a mais sobre o que passou.",
   },
   {
+    id: "historico",
+    kicker: "Histórico",
+    title: "Cada lançamento, mês a mês.",
+    body: "Receitas e despesas do mês, com busca e filtro. Corrigir e cancelar ficam registrados, e o extrato do banco ajuda a achar vendas que ficaram de fora.",
+    shot: historico,
+    screen: "light",
+    alt: "Histórico de outubro de 2026: receitas de R$ 4.185 e despesas de R$ 512. Lançamentos Encomenda de docinhos, mais R$ 4.185,00, e Compra de farinha e açúcar, menos R$ 512,37.",
+  },
+  {
+    id: "enviar",
+    kicker: "Enviar nota",
+    title: "Fotografe a nota. A IA lê, você confere.",
+    body: "Foto, PDF ou comprovante de Pix. A IA só extrai os campos; nada entra no limite antes de você conferir. E quem decide se é receita ou despesa é o código, pelo CNPJ do seu MEI.",
+    note: "Sem comprovante? Dá para lançar à mão uma venda em dinheiro ou Pix.",
+    shot: enviar,
+    screen: "dark",
+    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo, e o atalho Lançar sem nota.",
+  },
+  {
     id: "previsao",
     kicker: "Previsão e DAS",
     title: "Saiba como o ano vai fechar.",
@@ -76,7 +87,6 @@ const CHAPTERS: Chapter[] = [
     alt: "Previsão: você deve passar do limite em 28 de dezembro; no ritmo atual, 2026 fecha em R$ 68.299. DAS vence em 20 de dezembro, com o atalho Gerar guia. Notas em dia e gráfico de receita por mês.",
   },
 ];
-
 const MORE: Array<{ icon: Icon; title: string; body: string }> = [
   { icon: BellRinging, title: "Avisos por e-mail", body: "Aos 80%, 90%, 100% e 120% do limite, uma vez por faixa." },
   { icon: ClockCounterClockwise, title: "Histórico que não apaga", body: "Corrigir e cancelar ficam registrados, com aviso de possível duplicidade." },
@@ -128,14 +138,22 @@ export function Features() {
     >
       <div className="mx-auto max-w-[80rem]">
         <Reveal as="p" className="eyebrow text-action-light">
-          O app
+          Demonstração
         </Reveal>
         <Reveal as="h2" id="recursos-titulo" className="display mt-5 max-w-[16ch] text-[clamp(2.75rem,1.6rem+5vw,6rem)]">
-          O limite do ano, sempre à vista.
+          Veja seu faturamento de um jeito simples.
         </Reveal>
         <Reveal as="p" delay={0.1} className="lead mt-7 max-w-[36rem] text-mute-light">
-          Quatro abas e um botão para enviar a nota. Tudo pensado para o celular, para quem não tem tempo de abrir
-          planilha.
+          Acompanhe quanto já faturou, quanto ainda pode faturar e como está a sua situação durante o ano. Estas são
+          telas reais do app, com um MEI fictício.
+        </Reveal>
+        <Reveal delay={0.15} className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <a href={APP_URL} className="btn btn-primary">
+            Experimentar sem cadastro
+          </a>
+          <p className="max-w-[22rem] text-[0.9375rem] leading-relaxed text-mute-light">
+            O app abre com o MEI de demonstração. Não precisa criar conta.
+          </p>
         </Reveal>
 
         <div className="mt-8 grid gap-x-20 lg:mt-0 lg:grid-cols-2">
