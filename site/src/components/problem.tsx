@@ -22,23 +22,28 @@ const STEPS: Array<{ kicker: string; title: string; body: string; aside?: string
     tone: "text-mute-dark",
   },
   {
+    // LC 123, art. 18-A, §§1º e 2º; para 2027, LC 238/2026 (condicionada à previsão no orçamento).
     kicker: "Até R$ 81.000",
     title: "Dentro do limite, tudo certo.",
     body: "Em 2026, o limite é de R$ 81.000. Quem abriu o MEI no meio do ano tem um limite proporcional: R$ 6.750 por mês de atividade.",
+    aside: "Para 2027, a lei já prevê um limite de R$ 110.000, desde que o orçamento do ano confirme.",
     icon: CheckCircle,
     tone: "text-ok",
   },
   {
-    kicker: "Até R$ 97.200",
+    // LC 123, art. 18-A, §7º, III "a" e IV "a": segue MEI no ano e sai em 1º de janeiro; comunica até o último dia útil do mês seguinte.
+    kicker: "De R$ 81.000 a R$ 97.200",
     title: "Passou até 20%: o ano fecha com custo.",
-    body: "Você termina o ano como MEI, mas paga imposto a mais sobre o que passou e vira microempresa em 1º de janeiro.",
+    body: "A tolerância não é uma folga. Você termina o ano como MEI, mas paga imposto a mais sobre o que passou e deixa de ser MEI em 1º de janeiro do ano seguinte.",
+    aside: "E precisa comunicar o desenquadramento à Receita até o último dia útil do mês seguinte ao que passou do limite.",
     icon: Warning,
     tone: "text-alert",
   },
   {
+    // LC 123, art. 18-A, §7º, III "b" e IV "b": desenquadramento retroativo, diferenças com encargos legais.
     kicker: "Acima de R$ 97.200",
     title: "Passou de 20%: a conta volta no tempo.",
-    body: "Deixa de ser MEI desde janeiro, ou desde a abertura, e paga a diferença com juros e multa. É aqui que a surpresa custa caro.",
+    body: "Deixa de ser MEI desde 1º de janeiro, ou desde a abertura, se abriu no mesmo ano. Os impostos do período são recalculados, e a diferença é paga com juros e multa. É aqui que a surpresa custa caro.",
     icon: WarningOctagon,
     tone: "text-danger",
   },
@@ -168,7 +173,7 @@ export function Problem() {
         </Reveal>
       </div>
 
-      <div ref={scene} className="relative mx-auto grid max-w-[80rem] gap-x-16 pb-16 lg:grid-cols-[1fr_1.05fr] lg:pb-32">
+      <div ref={scene} className="relative mx-auto grid max-w-[80rem] gap-x-16 pb-4 lg:grid-cols-[1fr_1.05fr] lg:pb-0">
         {/* a sala: fixa enquanto o texto rola (no celular, presa no alto, sobre um fundo) */}
         <div className="sticky top-14 z-10 -mx-4 bg-ink px-4 py-4 sm:-mx-6 sm:px-6 lg:order-2 lg:top-0 lg:mx-0 lg:flex lg:h-svh lg:items-center lg:bg-transparent lg:p-0">
           <div className="mx-auto h-[32svh] max-h-[26rem] w-full max-w-[26rem] lg:h-[34rem] lg:max-h-none lg:max-w-[34rem]">
@@ -181,6 +186,13 @@ export function Problem() {
           ))}
         </div>
       </div>
+
+      <p className="mx-auto max-w-[80rem] pb-16 text-sm leading-relaxed text-mute-dark lg:pb-24">
+        <span className="block max-w-[44rem]">
+          Resumo das regras de 2026, pela Lei Complementar 123/2006. Cada caso tem detalhes: antes de decidir, confirme
+          com um contador.
+        </span>
+      </p>
     </section>
   );
 }
