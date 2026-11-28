@@ -17,10 +17,12 @@ import type { Icon } from "@phosphor-icons/react";
 import { Phone } from "./phone";
 import { Reveal } from "./reveal";
 import { EASE } from "@/lib/motion";
+import { APP_URL } from "@/lib/links";
 import painel from "@/assets/telas/painel-claro.webp";
-import enviar from "@/assets/telas/enviar-escuro.webp";
-import simular from "@/assets/telas/simular-escuro.webp";
-import previsao from "@/assets/telas/painel-previsao-escuro.webp";
+import enviar from "@/assets/telas/enviar-claro.webp";
+import simular from "@/assets/telas/simular-claro.webp";
+import previsao from "@/assets/telas/painel-previsao-claro.webp";
+import historico from "@/assets/telas/historico-claro.webp";
 
 type Chapter = {
   id: string;
@@ -29,19 +31,44 @@ type Chapter = {
   body: string;
   note?: string;
   shot: StaticImageData;
+  /** Tema da captura, para a cor do traço de início do celular. */
+  screen: "dark" | "light";
   alt: string;
 };
 
-/** Cada capítulo descreve só o que a tela mostra (capturas do app publicado, dados fictícios). */
+/**
+ * Cada capítulo descreve só o que a tela mostra (capturas do app publicado, dados fictícios).
+ * Todas em tema claro, combinando com o palco claro da seção; só a abertura mostra o app no escuro.
+ */
 const CHAPTERS: Chapter[] = [
   {
     id: "painel",
     kicker: "Painel",
-    title: "Quanto falta, num número só.",
+    title: "Quanto já faturou e quanto ainda cabe.",
     body: "O faturamento do ano, a faixa de risco e quanto ainda cabe no limite. A sala enche conforme você fatura: o telhado é o limite, e o pontilhado, os 20% de tolerância.",
     note: "O risco nunca vem só em cor: sempre com ícone e texto.",
     shot: painel,
-    alt: "Painel em tema claro: faturamento de 2026 de R$ 59.160,50, selo Atenção, 88% do limite e ainda cabem R$ 8.339, com a sala do limite cheia em âmbar.",
+    screen: "light",
+    alt: "Painel em tema claro: faturamento de 2026 de R$ 60.710,50, selo Atenção, 89% do limite e ainda cabem R$ 6.789, com a sala do limite cheia em âmbar.",
+  },
+  {
+    id: "simular",
+    kicker: "Simular",
+    title: "E se eu aceitar essa venda?",
+    body: "Digite o valor e a resposta aparece enquanto você digita: quanto ainda cabe, ou quanto a venda passa do limite, com a consequência em português e o custo extra estimado.",
+    note: "Na tela, uma venda de R$ 12.000 passaria do limite em R$ 5.210.",
+    shot: simular,
+    screen: "light",
+    alt: "Simulação de uma venda de R$ 12.000: acima do limite, 107%. A venda passa do limite em R$ 5.210; até R$ 81.000, o ano termina como MEI, mas com imposto a mais sobre o que passou.",
+  },
+  {
+    id: "historico",
+    kicker: "Histórico",
+    title: "Cada lançamento, mês a mês.",
+    body: "Receitas e despesas do mês, com busca e filtro. Corrigir e cancelar ficam registrados, e o extrato do banco ajuda a achar vendas que ficaram de fora.",
+    shot: historico,
+    screen: "light",
+    alt: "Histórico de outubro de 2026: receitas de R$ 4.185 e despesas de R$ 512. Lançamentos Encomenda de docinhos, mais R$ 4.185,00, e Compra de farinha e açúcar, menos R$ 512,37.",
   },
   {
     id: "enviar",
@@ -50,16 +77,8 @@ const CHAPTERS: Chapter[] = [
     body: "Foto, PDF ou comprovante de Pix. A IA só extrai os campos; nada entra no limite antes de você conferir. E quem decide se é receita ou despesa é o código, pelo CNPJ do seu MEI.",
     note: "Sem comprovante? Dá para lançar à mão uma venda em dinheiro ou Pix.",
     shot: enviar,
-    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo.",
-  },
-  {
-    id: "simular",
-    kicker: "Simular",
-    title: "E se eu aceitar essa venda?",
-    body: "Digite o valor e a resposta aparece enquanto você digita: quanto ainda cabe, ou quanto a venda passa do limite, com a consequência em português e o custo extra estimado.",
-    note: "Na tela, uma venda de R$ 12.000 passaria do limite em R$ 3.660.",
-    shot: simular,
-    alt: "Simulação de uma venda de R$ 12.000: acima do limite, 105%. A venda passa do limite em R$ 3.660; custo extra estimado de R$ 219, rotulado como estimativa.",
+    screen: "light",
+    alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo, e o atalho Lançar sem nota.",
   },
   {
     id: "previsao",
@@ -67,10 +86,10 @@ const CHAPTERS: Chapter[] = [
     title: "Saiba como o ano vai fechar.",
     body: "Pela média de receita desde a abertura, o Teto projeta onde o ano termina e se o limite será ultrapassado. A previsão muda a cada nova receita. E o DAS do mês aparece com a data e um atalho para gerar a guia.",
     shot: previsao,
-    alt: "Previsão: no ritmo atual, termina 2026 dentro do limite, fechando em R$ 66.801. DAS vence em 20 de dezembro, com o atalho Gerar guia. Gráfico de receita por mês.",
+    screen: "light",
+    alt: "Previsão: você deve passar do limite em 28 de dezembro; no ritmo atual, 2026 fecha em R$ 68.299. DAS vence em 20 de dezembro, com o atalho Gerar guia. Notas em dia e gráfico de receita por mês.",
   },
 ];
-
 const MORE: Array<{ icon: Icon; title: string; body: string }> = [
   { icon: BellRinging, title: "Avisos por e-mail", body: "Aos 80%, 90%, 100% e 120% do limite, uma vez por faixa." },
   { icon: ClockCounterClockwise, title: "Histórico que não apaga", body: "Corrigir e cancelar ficam registrados, com aviso de possível duplicidade." },
@@ -98,8 +117,8 @@ function ChapterText({ chapter, index, onActive }: { chapter: Chapter; index: nu
         {chapter.note ? <p className="mt-5 max-w-[31rem] text-[0.9375rem] leading-relaxed text-graphite/80">{chapter.note}</p> : null}
       </Reveal>
       {/* no celular, cada capítulo traz a sua tela */}
-      <Reveal className="mx-auto mt-12 w-[min(72vw,19rem)] lg:hidden">
-        <Phone src={chapter.shot} alt={chapter.alt} className="drop-shadow-[0_40px_60px_rgb(0_0_0/0.22)]" />
+      <Reveal className="mx-auto mt-12 w-[min(64vw,18rem)] lg:hidden">
+        <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} className="drop-shadow-[0_40px_60px_rgb(0_0_0/0.22)]" />
       </Reveal>
     </div>
   );
@@ -122,14 +141,22 @@ export function Features() {
     >
       <div className="mx-auto max-w-[80rem]">
         <Reveal as="p" className="eyebrow text-action-light">
-          O app
+          Demonstração
         </Reveal>
         <Reveal as="h2" id="recursos-titulo" className="display mt-5 max-w-[16ch] text-[clamp(2.75rem,1.6rem+5vw,6rem)]">
-          O limite do ano, sempre à vista.
+          Veja seu faturamento de um jeito simples.
         </Reveal>
         <Reveal as="p" delay={0.1} className="lead mt-7 max-w-[36rem] text-mute-light">
-          Quatro abas e um botão para enviar a nota. Tudo pensado para o celular, para quem não tem tempo de abrir
-          planilha.
+          Acompanhe quanto já faturou, quanto ainda pode faturar e como está a sua situação durante o ano. Estas são
+          telas reais do app, com um MEI fictício.
+        </Reveal>
+        <Reveal delay={0.15} className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <a href={APP_URL} className="btn btn-primary">
+            Experimentar sem cadastro
+          </a>
+          <p className="max-w-[22rem] text-[0.9375rem] leading-relaxed text-mute-light">
+            O app abre com o MEI de demonstração. Não precisa criar conta.
+          </p>
         </Reveal>
 
         <div className="mt-8 grid gap-x-20 lg:mt-0 lg:grid-cols-2">
@@ -150,7 +177,7 @@ export function Features() {
                     exit={{ opacity: 0, y: -20, scale: 0.98 }}
                     transition={{ duration: 0.6, ease: EASE }}
                   >
-                    <Phone src={chapter.shot} alt={chapter.alt} sizes="320px" className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
+                    <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
                   </motion.div>
                 </AnimatePresence>
                 {/* onde estamos: um ponto por capítulo */}

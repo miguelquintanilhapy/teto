@@ -1,6 +1,6 @@
 # Site de apresentação do Teto
 
-Página única que apresenta o Teto: o problema do limite do MEI, os recursos com telas reais do app, como usar,
+Página única que apresenta o Teto: a demonstração com telas reais do app, o problema do limite do MEI, o limite proporcional do ano de abertura, como a IA é usada, como usar,
 para quem é, quem somos e a chamada para abrir o app.
 
 É um projeto **à parte** do app: tem `package.json` próprio e não importa nada de `../src`. O app só é citado por
@@ -32,7 +32,8 @@ Não precisa de variável de ambiente nenhuma.
 
 ```
 src/app/          layout, página, 404, ícones e imagem de compartilhamento (opengraph-image.tsx)
-src/components/   uma seção por arquivo (hero, problem, features, how-it-works, audience, about, final-cta)
+src/components/   uma seção por arquivo, na ordem da página (hero, features, problem, opening-year, ai-explainer, how-it-works, audience,
+                  about, final-cta)
                   e as peças comuns (header, footer, phone, roof, logo, reveal, qr-code)
 src/lib/          links e seções, curva e entrada padrão das animações
 src/assets/       capturas do app (telas/), logo (marca/) e a fonte recortada da imagem de compartilhamento (fontes/)
@@ -58,11 +59,17 @@ scripts/          capturar-telas.mjs
 ```bash
 npm run capturas                       # usa https://teto-omega.vercel.app
 npm run capturas -- http://localhost:3000
+npm run capturas -- https://teto-omega.vercel.app historico-claro   # só as telas com esses nomes
 ```
 
-O script abre o Edge ou o Chrome instalado, emula um iPhone (390 × 844 a 3x) e grava WebP em `src/assets/telas/`.
+O script abre o Edge ou o Chrome instalado, emula um iPhone (390 × 844 a 3x) e grava WebP **sem perda** em
+`src/assets/telas/` (pelo `sharp`, que vem com o Next). O site serve esses arquivos como estão, sem recomprimir, para o
+texto das telas ficar nítido. Ele simula as áreas seguras do iPhone (47 pt no alto, 34 pt embaixo), e o app se afasta
+delas como num aparelho de verdade. A moldura (`src/components/phone.tsx`) põe a câmera na folga de cima e o traço de
+início na de baixo. Por isso cada `<Phone>` recebe `screen="dark"` ou `"light"`, o tema da captura.
 **Só dados fictícios**: aponte para o perfil de demonstração. A tela de avisos fica de fora de propósito, porque
-mostra parte do e-mail cadastrado. Confira cada captura antes de commitar.
+mostra parte do e-mail cadastrado. Confira cada captura antes de commitar. Os números da demonstração mudam com o
+tempo: ao recapturar, atualize os textos alternativos e as notas que citam valores (`hero.tsx`, `features.tsx`).
 
 ## Publicar na Vercel
 
