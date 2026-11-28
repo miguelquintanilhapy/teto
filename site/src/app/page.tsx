@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
+import { OpeningYear } from "@/components/opening-year";
 import { Problem } from "@/components/problem";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <main id="conteudo">
         <Hero />
         <Problem />
+        <OpeningYear />
         <Features />
         <HowItWorks />
         <Audience />
