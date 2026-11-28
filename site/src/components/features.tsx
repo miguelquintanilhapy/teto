@@ -19,9 +19,9 @@ import { Reveal } from "./reveal";
 import { EASE } from "@/lib/motion";
 import { APP_URL } from "@/lib/links";
 import painel from "@/assets/telas/painel-claro.webp";
-import enviar from "@/assets/telas/enviar-escuro.webp";
-import simular from "@/assets/telas/simular-escuro.webp";
-import previsao from "@/assets/telas/painel-previsao-escuro.webp";
+import enviar from "@/assets/telas/enviar-claro.webp";
+import simular from "@/assets/telas/simular-claro.webp";
+import previsao from "@/assets/telas/painel-previsao-claro.webp";
 import historico from "@/assets/telas/historico-claro.webp";
 
 type Chapter = {
@@ -36,7 +36,10 @@ type Chapter = {
   alt: string;
 };
 
-/** Cada capítulo descreve só o que a tela mostra (capturas do app publicado, dados fictícios). */
+/**
+ * Cada capítulo descreve só o que a tela mostra (capturas do app publicado, dados fictícios).
+ * Todas em tema claro, combinando com o palco claro da seção; só a abertura mostra o app no escuro.
+ */
 const CHAPTERS: Chapter[] = [
   {
     id: "painel",
@@ -55,7 +58,7 @@ const CHAPTERS: Chapter[] = [
     body: "Digite o valor e a resposta aparece enquanto você digita: quanto ainda cabe, ou quanto a venda passa do limite, com a consequência em português e o custo extra estimado.",
     note: "Na tela, uma venda de R$ 12.000 passaria do limite em R$ 5.210.",
     shot: simular,
-    screen: "dark",
+    screen: "light",
     alt: "Simulação de uma venda de R$ 12.000: acima do limite, 107%. A venda passa do limite em R$ 5.210; até R$ 81.000, o ano termina como MEI, mas com imposto a mais sobre o que passou.",
   },
   {
@@ -74,7 +77,7 @@ const CHAPTERS: Chapter[] = [
     body: "Foto, PDF ou comprovante de Pix. A IA só extrai os campos; nada entra no limite antes de você conferir. E quem decide se é receita ou despesa é o código, pelo CNPJ do seu MEI.",
     note: "Sem comprovante? Dá para lançar à mão uma venda em dinheiro ou Pix.",
     shot: enviar,
-    screen: "dark",
+    screen: "light",
     alt: "Tela Enviar nota: foto, PDF ou comprovante de Pix; a IA lê os dados e você confere antes de somar ao limite. Botões Tirar foto e Escolher arquivo, e o atalho Lançar sem nota.",
   },
   {
@@ -83,7 +86,7 @@ const CHAPTERS: Chapter[] = [
     title: "Saiba como o ano vai fechar.",
     body: "Pela média de receita desde a abertura, o Teto projeta onde o ano termina e se o limite será ultrapassado. A previsão muda a cada nova receita. E o DAS do mês aparece com a data e um atalho para gerar a guia.",
     shot: previsao,
-    screen: "dark",
+    screen: "light",
     alt: "Previsão: você deve passar do limite em 28 de dezembro; no ritmo atual, 2026 fecha em R$ 68.299. DAS vence em 20 de dezembro, com o atalho Gerar guia. Notas em dia e gráfico de receita por mês.",
   },
 ];

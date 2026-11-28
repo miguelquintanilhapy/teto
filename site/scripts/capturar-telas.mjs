@@ -47,10 +47,12 @@ const JOBS = [
   { name: "painel-escuro", path: "/", theme: "dark" },
   { name: "painel-claro", path: "/", theme: "light" },
   { name: "painel-previsao-escuro", path: "/", theme: "dark", eval: "window.scrollTo(0, 620)" },
+  { name: "painel-previsao-claro", path: "/", theme: "light", eval: "window.scrollTo(0, 620)" },
   { name: "painel-mensal-claro", path: "/", theme: "light", eval: "window.scrollTo(0, document.body.scrollHeight)" },
   { name: "simular-escuro", path: "/simular", theme: "dark", eval: typeValue(1200000) },
-  { name: "simular-claro", path: "/simular", theme: "light", eval: typeValue(500000) },
+  { name: "simular-claro", path: "/simular", theme: "light", eval: typeValue(1200000) },
   { name: "enviar-escuro", path: "/enviar", theme: "dark" },
+  { name: "enviar-claro", path: "/enviar", theme: "light" },
   // Volta um mês: o mês corrente da demonstração pública costuma ter lançamentos de teste de quem visitou.
   { name: "historico-claro", path: "/historico", theme: "light", eval: clickPreviousMonth },
   { name: "regras-claro", path: "/regras", theme: "light", eval: "window.scrollTo(0, 360)" },
