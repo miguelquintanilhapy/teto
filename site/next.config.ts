@@ -19,7 +19,8 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
-    // As capturas têm texto miúdo: 90 deixa as letras nítidas; 75 é o padrão para o resto.
+    // As capturas do app não passam por aqui: são WebP sem perda servidas como estão (`unoptimized` em phone.tsx).
+    // 90 fica para imagens com texto miúdo; 75 é o padrão para o resto.
     qualities: [75, 90],
   },
   async headers() {

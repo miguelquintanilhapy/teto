@@ -1,5 +1,6 @@
 // Captura telas reais do app publicado, emulando um iPhone (390 x 844 a 3x), para os mockups do site.
-// Usa o Microsoft Edge (ou o Chrome) instalado, pelo DevTools Protocol. Sem dependências.
+// Usa o Microsoft Edge (ou o Chrome) instalado, pelo DevTools Protocol. Grava em WebP sem perda, pelo sharp
+// (que já vem com o Next); sem ele, cai para o WebP do navegador na qualidade máxima.
 //
 // Uso (dentro de site/): npm run capturas [-- url-do-app [nome,nome]]
 // Saída: site/src/assets/telas/<nome>.webp (importadas pelo next/image)
@@ -15,6 +16,14 @@ import { fileURLToPath } from "node:url";
 const APP = process.argv[2] ?? "https://teto-omega.vercel.app";
 // Opcional: só as telas com esses nomes, separados por vírgula (npm run capturas -- <url> historico-claro).
 const ONLY = process.argv[3]?.split(",");
+
+// WebP sem perda: o texto miúdo das telas fica nítido. O site serve o arquivo como está (sem recomprimir).
+let sharp = null;
+try {
+  sharp = (await import("sharp")).default;
+} catch {
+  console.warn("Sem o sharp: as capturas saem em WebP com perda (qualidade 100).");
+}
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "assets", "telas");
 
 const BROWSERS = [
@@ -120,13 +129,24 @@ try {
       await send("Runtime.evaluate", { expression: job.eval, awaitPromise: true });
       await sleep(1500);
     }
-    const shot = await send("Page.captureScreenshot", { format: "webp", quality: 88 });
-    writeFileSync(join(OUT, `${job.name}.webp`), Buffer.from(shot.result.data, "base64"));
+    const file = join(OUT, `${job.name}.webp`);
+    if (sharp) {
+      const shot = await send("Page.captureScreenshot", { format: "png" });
+      await sharp(Buffer.from(shot.result.data, "base64")).webp({ lossless: true, effort: 6 }).toFile(file);
+    } else {
+      const shot = await send("Page.captureScreenshot", { format: "webp", quality: 100 });
+      writeFileSync(file, Buffer.from(shot.result.data, "base64"));
+    }
     console.log("ok", job.name);
   }
   ws.close();
 } finally {
   proc.kill();
   await sleep(500);
-  rmSync(profile, { recursive: true, force: true });
+  // O navegador pode demorar a soltar a pasta do perfil temporário: tenta de novo e, se não der, deixa para o sistema.
+  try {
+    rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 400 });
+  } catch {
+    console.warn(`Não consegui apagar ${profile}; pode apagar à mão.`);
+  }
 }

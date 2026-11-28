@@ -31,7 +31,7 @@ type Chapter = {
   body: string;
   note?: string;
   shot: StaticImageData;
-  /** Tema da captura, para a barra de status do celular. */
+  /** Tema da captura, para a cor do traço de início do celular. */
   screen: "dark" | "light";
   alt: string;
 };
@@ -174,7 +174,7 @@ export function Features() {
                     exit={{ opacity: 0, y: -20, scale: 0.98 }}
                     transition={{ duration: 0.6, ease: EASE }}
                   >
-                    <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} sizes="320px" className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
+                    <Phone src={chapter.shot} screen={chapter.screen} alt={chapter.alt} className="drop-shadow-[0_50px_70px_rgb(0_0_0/0.25)]" />
                   </motion.div>
                 </AnimatePresence>
                 {/* onde estamos: um ponto por capítulo */}
